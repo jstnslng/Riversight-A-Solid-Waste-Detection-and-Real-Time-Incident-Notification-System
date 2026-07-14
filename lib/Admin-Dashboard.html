@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiverSight — Dashboard</title>
+<link rel="stylesheet" href="Admin-Dashboard.css">
+</head>
+<body>
+
+  <div class="topbar">Administrator Dashboard</div>
+
+  <div class="layout">
+
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+    <img src="../assets/Riversight-logo.png"
+         class="brand-logo"
+         alt="RiverSight logo">
+
+    <div class="brand-name">RiverSight</div>
+    <div class="brand-tagline">Creek Waterway Monitoring</div>
+    </div>
+
+      <nav class="nav">
+        <a href="dashboard.html" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M14.8 14.2c2.4.2 4.7 2.3 4.7 5.8"/></svg>
+          User Management
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M15 2.5V7h4"/><path d="M8 12h8M8 15.5h8M8 18.5h5"/></svg>
+          Reports
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+          System Monitoring
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <div>
+          <div class="node-name">Node: PH-MNL-QC</div>
+          <div class="node-sub">Auth Protocol: V3.12 Secure</div>
+        </div>
+      </div>
+    </aside>
+
+
+    <main class="main">
+
+      <header class="header-row">
+        <div class="breadcrumb">Home <span>›</span> <strong>Dashboard</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Global system search...">
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge">3</span>
+          </button>
+          <div class="user-chip">
+            <img src="../assets/admin-profile-pic.jpg" alt="Admin avatar">
+            <div>
+              <div class="user-name">Admin</div>
+              <div class="user-role">System Administrator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-title-row">
+        <div>
+          <h1>Dashboard Overview</h1>
+          <div class="updated-row"><span class="live-dot"></span> Last updated: Just now</div>
+        </div>
+        <div class="page-title-actions">
+          <button class="date-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
+            May 12, 2026 - May 19, 2026
+          </button>
+          <button class="export-btn">Export Report</button>
+        </div>
+      </div>
+
+
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Active Cameras</span>
+            <span class="stat-icon icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 7.5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z"/><path d="M15 10l6-3.2v10.4L15 14"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">4/4 <span class="stat-sub good">Online</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Total Detections Today</span>
+            <span class="stat-icon icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4.5-7.5 11-7.5S23 12 23 12s-4.5 7.5-11 7.5S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">1,284 <span class="stat-sub good">↑ 12%</span></div>
+          <div class="stat-note">Since 12:00 AM</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Active Incidents</span>
+            <span class="stat-icon icon-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 1 21h22L12 3Z"/><path d="M12 9.5v5M12 17.5h.01"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">8 <span class="stat-sub pill-red">HIGH PRIORITY</span></div>
+          <div class="stat-note">Requiring immediate action</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Resolved Incidents</span>
+            <span class="stat-icon icon-gray">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">142 <span class="stat-sub muted">This Month</span></div>
+          <div class="stat-note">94.2% resolution rate</div>
+        </div>
+      </section>
+
+
+      <section class="content-grid">
+        <div class="card map-card">
+          <div class="card-head">
+            <div>
+              <h3>Interactive GIS Map Preview</h3>
+              <div class="card-sub">Live monitoring across 4 sectors</div>
+            </div>
+            <div class="map-toggles">
+              <button class="toggle-pill active">Satellite</button>
+              <button class="toggle-pill">Terrain</button>
+              <span class="live-map-pill">Live Map <span class="mini-switch"></span></span>
+            </div>
+          </div>
+          <div class="map-canvas">
+            <div class="map-marker marker-green" style="top:52%; left:47%;"></div>
+            <div class="map-marker marker-orange" style="top:63%; left:53%;"></div>
+            <div class="map-marker marker-red" style="top:70%; left:50%;"></div>
+            <div class="map-marker marker-orange small" style="top:23%; left:31%;"></div>
+            <div class="map-marker marker-pink small" style="top:58%; left:20%;"></div>
+            <span class="map-compass">N</span>
+          </div>
+        </div>
+
+        <div class="card detections-card">
+          <div class="card-head">
+            <div>
+              <h3>Recent AI Detections</h3>
+              <div class="card-sub">Last 5 system events</div>
+            </div>
+          </div>
+
+          <div class="detection-item">
+            <div class="thumb"></div>
+            <div class="detection-info">
+              <div class="detection-row"><span class="cam-id">CAM-003</span><span class="time">14:24:02</span></div>
+              <div class="detection-title">Plastic Waste Detection</div>
+              <div class="confidence">Confidence: <strong class="good">98.4%</strong></div>
+            </div>
+          </div>
+          <div class="detection-item">
+            <div class="thumb"></div>
+            <div class="detection-info">
+              <div class="detection-row"><span class="cam-id">CAM-001</span><span class="time">14:18:45</span></div>
+              <div class="detection-title">Organic Debris</div>
+              <div class="confidence">Confidence: <strong class="good">82.1%</strong></div>
+            </div>
+          </div>
+          <div class="detection-item">
+            <div class="thumb"></div>
+            <div class="detection-info">
+              <div class="detection-row"><span class="cam-id">CAM-004</span><span class="time">14:05:12</span></div>
+              <div class="detection-title">Plastic Waste Detection</div>
+              <div class="confidence">Confidence: <strong class="warn">64.5%</strong></div>
+            </div>
+          </div>
+
+          <button class="view-all-btn">View All Alerts</button>
+        </div>
+      </section>
+
+
+      <section class="bottom-grid">
+        <div class="card">
+          <h3>Detection Trend</h3>
+          <div class="card-sub">Detections over last 24 hours</div>
+          <svg class="trend-chart" viewBox="0 0 320 170" preserveAspectRatio="none">
+            <line x1="34" y1="10" x2="34" y2="140" stroke="#e2e2e2" stroke-width="1"/>
+            <line x1="34" y1="140" x2="310" y2="140" stroke="#e2e2e2" stroke-width="1"/>
+            <text x="8" y="14" class="axis-label">150</text>
+            <text x="8" y="78" class="axis-label">100</text>
+            <text x="14" y="112" class="axis-label">50</text>
+            <path d="M34,120 C60,110 75,60 95,45 C120,25 140,15 160,20 C185,28 195,70 215,95 C235,118 255,132 280,138 L280,140 L34,140 Z" fill="#111111" fill-opacity="0.06"/>
+            <path d="M34,120 C60,110 75,60 95,45 C120,25 140,15 160,20 C185,28 195,70 215,95 C235,118 255,132 280,138" fill="none" stroke="#111111" stroke-width="2.2"/>
+            <text x="30" y="155" class="axis-label">00:00</text>
+            <text x="78" y="155" class="axis-label">03:00</text>
+            <text x="120" y="155" class="axis-label">06:00</text>
+            <text x="163" y="155" class="axis-label">09:00</text>
+            <text x="205" y="155" class="axis-label">12:00</text>
+            <text x="248" y="155" class="axis-label">15:00</text>
+            <text x="284" y="155" class="axis-label">18:00</text>
+            <text x="300" y="155" class="axis-label">21:00</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h3>Incident Severity</h3>
+          <div class="card-sub">Monthly distribution</div>
+          <div class="donut-wrap">
+            <svg viewBox="0 0 42 42" class="donut">
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e6e6e6" stroke-width="6.5"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#111111" stroke-width="6.5"
+                stroke-dasharray="18 82" stroke-dashoffset="25" stroke-linecap="butt"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#7a7a7a" stroke-width="6.5"
+                stroke-dasharray="30 70" stroke-dashoffset="7" stroke-linecap="butt"></circle>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot low"></i>Low</span>
+            <span><i class="dot medium"></i>Medium</span>
+            <span><i class="dot high"></i>High</span>
+          </div>
+        </div>
+
+        <div class="card health-card">
+          <h3>Camera Health Overview</h3>
+          <div class="card-sub">Priority Node status</div>
+
+          <div class="health-item">
+            <span class="status-dot green"></span>
+            <div class="health-info">
+              <div class="health-name">CAM-001 (Buwaya)</div>
+              <div class="health-sub">Up: 42d 12h</div>
+            </div>
+            <div class="health-pct good">99.8%</div>
+          </div>
+          <div class="health-item">
+            <span class="status-dot green"></span>
+            <div class="health-info">
+              <div class="health-name">CAM-002 (Buwaya - North)</div>
+              <div class="health-sub">Up: 12d 05h</div>
+            </div>
+            <div class="health-pct good">96.2%</div>
+          </div>
+          <div class="health-item">
+            <span class="status-dot red"></span>
+            <div class="health-info">
+              <div class="health-name offline">CAM-003 (Tres Kantos)</div>
+              <div class="health-sub">Down: 4h 2m</div>
+            </div>
+            <div class="health-pct offline">OFFLINE</div>
+          </div>
+          <div class="health-item">
+            <span class="status-dot orange"></span>
+            <div class="health-info">
+              <div class="health-name">CAM-004 (Marilag)</div>
+              <div class="health-sub">Signal Weak</div>
+            </div>
+            <div class="health-pct warn">74.5%</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>
