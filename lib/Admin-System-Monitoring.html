@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiverSight — System Monitoring</title>
+<link rel="stylesheet" href="../css/Admin-System-Monitoring.css">
+</head>
+<body>
+
+  <div class="topbar">Administrator System Monitoring</div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="../assets/Riversight-logo.png" class="brand-logo" alt="RiverSight logo">
+        <div class="brand-name">RiverSight</div>
+        <div class="brand-tagline">Creek Waterway Monitoring</div>
+      </div>
+
+      <nav class="nav">
+        <a href="../lib/Admin-Dashboard.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a>
+        <a href="../lib/UserManagement.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M14.8 14.2c2.4.2 4.7 2.3 4.7 5.8"/></svg>
+          User Management
+        </a>
+        <a href="../lib/Admin-Reports.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M15 2.5V7h4"/><path d="M8 12h8M8 15.5h8M8 18.5h5"/></svg>
+          Reports
+        </a>
+        <a href="../lib/Admin-System-Monitoring.html" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+          System Monitoring
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <div>
+          <div class="node-name">Node: PH-MNL-QC</div>
+          <div class="node-sub">Auth Protocol: V3.12 Secure</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="header-row">
+        <div class="breadcrumb">Home <span>›</span> <strong>System Monitoring</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search system health, cameras, servers...">
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge">2</span>
+          </button>
+          <div class="user-chip">
+            <img src="../assets/admin-profile-pic.jpg" alt="Admin avatar">
+            <div>
+              <div class="user-name">Admin</div>
+              <div class="user-role">System Administrator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-title-row">
+        <div>
+          <h1>System Monitoring</h1>
+          <div class="updated-row"><span class="live-dot"></span> Live placeholder metrics ready for backend binding</div>
+        </div>
+        <div class="page-title-actions">
+          <button class="export-btn light" type="button">Refresh Status</button>
+          <button class="export-btn" type="button">View Logs</button>
+        </div>
+      </div>
+
+      <section class="card camera-section">
+        <div class="card-head">
+          <div>
+            <h3>Camera Monitoring</h3>
+            <div class="card-sub">Placeholder cards ready for live preview and remote control actions</div>
+          </div>
+        </div>
+
+        <div class="camera-grid">
+          <article class="camera-card">
+            <div class="camera-preview"><span>Preview Unavailable</span></div>
+            <div class="camera-meta">
+              <div class="camera-title-row"><h4>CAM-001 Buwaya South</h4><span class="status-pill good">Online</span></div>
+              <div class="camera-details"><span>Station</span><strong>Buwaya</strong></div>
+              <div class="camera-details"><span>IP Address</span><strong>192.168.10.41</strong></div>
+              <div class="camera-details"><span>Resolution</span><strong>1920 x 1080</strong></div>
+              <div class="camera-details"><span>FPS</span><strong>30</strong></div>
+              <div class="camera-details"><span>Last Detection</span><strong>Plastic waste - 2m ago</strong></div>
+              <div class="camera-details"><span>Last Connected Time</span><strong>Just now</strong></div>
+            </div>
+            <div class="camera-actions">
+              <button type="button">View Camera</button>
+              <button type="button">Restart Camera</button>
+              <button type="button">Reconnect</button>
+              <button type="button" class="light">Settings</button>
+            </div>
+          </article>
+
+          <article class="camera-card">
+            <div class="camera-preview"><span>Preview Unavailable</span></div>
+            <div class="camera-meta">
+              <div class="camera-title-row"><h4>CAM-002 Buwaya North</h4><span class="status-pill good">Online</span></div>
+              <div class="camera-details"><span>Station</span><strong>Buwaya</strong></div>
+              <div class="camera-details"><span>IP Address</span><strong>192.168.10.42</strong></div>
+              <div class="camera-details"><span>Resolution</span><strong>1280 x 720</strong></div>
+              <div class="camera-details"><span>FPS</span><strong>24</strong></div>
+              <div class="camera-details"><span>Last Detection</span><strong>Organic debris - 11m ago</strong></div>
+              <div class="camera-details"><span>Last Connected Time</span><strong>2 mins ago</strong></div>
+            </div>
+            <div class="camera-actions">
+              <button type="button">View Camera</button>
+              <button type="button">Restart Camera</button>
+              <button type="button">Reconnect</button>
+              <button type="button" class="light">Settings</button>
+            </div>
+          </article>
+
+          <article class="camera-card">
+            <div class="camera-preview"><span>Preview Unavailable</span></div>
+            <div class="camera-meta">
+              <div class="camera-title-row"><h4>CAM-003 Tres Kantos</h4><span class="status-pill danger">Offline</span></div>
+              <div class="camera-details"><span>Station</span><strong>Tres Kantos</strong></div>
+              <div class="camera-details"><span>IP Address</span><strong>192.168.10.43</strong></div>
+              <div class="camera-details"><span>Resolution</span><strong>1920 x 1080</strong></div>
+              <div class="camera-details"><span>FPS</span><strong>30</strong></div>
+              <div class="camera-details"><span>Last Detection</span><strong>None recorded</strong></div>
+              <div class="camera-details"><span>Last Connected Time</span><strong>4h 12m ago</strong></div>
+            </div>
+            <div class="camera-actions">
+              <button type="button">View Camera</button>
+              <button type="button">Restart Camera</button>
+              <button type="button">Reconnect</button>
+              <button type="button" class="light">Settings</button>
+            </div>
+          </article>
+
+          <article class="camera-card">
+            <div class="camera-preview"><span>Preview Unavailable</span></div>
+            <div class="camera-meta">
+              <div class="camera-title-row"><h4>CAM-004 Marilag</h4><span class="status-pill warn">Weak Signal</span></div>
+              <div class="camera-details"><span>Station</span><strong>Marilag</strong></div>
+              <div class="camera-details"><span>IP Address</span><strong>192.168.10.44</strong></div>
+              <div class="camera-details"><span>Resolution</span><strong>1280 x 720</strong></div>
+              <div class="camera-details"><span>FPS</span><strong>20</strong></div>
+              <div class="camera-details"><span>Last Detection</span><strong>Mixed debris - 18m ago</strong></div>
+              <div class="camera-details"><span>Last Connected Time</span><strong>14 mins ago</strong></div>
+            </div>
+            <div class="camera-actions">
+              <button type="button">View Camera</button>
+              <button type="button">Restart Camera</button>
+              <button type="button">Reconnect</button>
+              <button type="button" class="light">Settings</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="system-grid">
+        <div class="card system-card usage-card"><div class="card-head"><h3>CPU Usage</h3><span class="status-pill warn">78%</span></div><div class="meter"><span style="width:78%"></span></div><div class="card-sub">Average processor load</div></div>
+        <div class="card system-card usage-card"><div class="card-head"><h3>RAM Usage</h3><span class="status-pill warn">64%</span></div><div class="meter"><span style="width:64%"></span></div><div class="card-sub">Memory consumption</div></div>
+        <div class="card system-card usage-card"><div class="card-head"><h3>Disk Usage</h3><span class="status-pill good">41%</span></div><div class="meter"><span style="width:41%"></span></div><div class="card-sub">System disk utilization</div></div>
+        <div class="card system-card usage-card"><div class="card-head"><h3>Storage Usage</h3><span class="status-pill warn">72%</span></div><div class="meter"><span style="width:72%"></span></div><div class="card-sub">Archive and media storage</div></div>
+        <div class="card system-card status-card"><div class="card-head"><h3>Database Status</h3><span class="status-pill good">Online</span></div><div class="card-sub">Connected to reporting datastore</div><div class="mini-meta">Latency: 14 ms</div></div>
+        <div class="card system-card status-card"><div class="card-head"><h3>Server Status</h3><span class="status-pill good">Healthy</span></div><div class="card-sub">API and dashboard services responding</div><div class="mini-meta">Uptime: 18d 06h</div></div>
+        <div class="card system-card status-card"><div class="card-head"><h3>Camera Status</h3><span class="status-pill good">4 Online</span></div><div class="card-sub">All live feeds reporting</div><div class="mini-meta">1 camera awaiting sync</div></div>
+        <div class="card system-card status-card"><div class="card-head"><h3>YOLO Model Status</h3><span class="status-pill good">Loaded</span></div><div class="card-sub">Latest detection model deployed</div><div class="mini-meta">Version: v8.2.1</div></div>
+        <div class="card system-card status-card"><div class="card-head"><h3>System Uptime</h3><span class="status-pill good">Stable</span></div><div class="uptime-value">99d 12h</div><div class="card-sub">No restart events in the current window</div></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
