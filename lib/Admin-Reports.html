@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiverSight — Reports</title>
+<link rel="stylesheet" href="../css/Admin-Reports.css">
+</head>
+<body>
+
+  <div class="topbar">Administrator Reports</div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="../assets/Riversight-logo.png" class="brand-logo" alt="RiverSight logo">
+        <div class="brand-name">RiverSight</div>
+        <div class="brand-tagline">Creek Waterway Monitoring</div>
+      </div>
+
+      <nav class="nav">
+        <a href="../lib/Admin-Dashboard.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a>
+        <a href="../lib/UserManagement.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M14.8 14.2c2.4.2 4.7 2.3 4.7 5.8"/></svg>
+          User Management
+        </a>
+        <a href="../lib/Admin-Reports.html" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M15 2.5V7h4"/><path d="M8 12h8M8 15.5h8M8 18.5h5"/></svg>
+          Reports
+        </a>
+        <a href="../lib/Admin-System-Monitoring.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+          System Monitoring
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <div>
+          <div class="node-name">Node: PH-MNL-QC</div>
+          <div class="node-sub">Auth Protocol: V3.12 Secure</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="header-row">
+        <div class="breadcrumb">Home <span>›</span> <strong>Reports</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search reports, stations, cameras...">
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge">5</span>
+          </button>
+          <div class="user-chip">
+            <img src="../assets/admin-profile-pic.jpg" alt="Admin avatar">
+            <div>
+              <div class="user-name">Admin</div>
+              <div class="user-role">System Administrator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-title-row">
+        <div>
+          <h1>Reports Center</h1>
+          <div class="updated-row"><span class="live-dot"></span> Demo data ready for database integration</div>
+        </div>
+        <div class="page-title-actions export-actions">
+          <button class="export-btn light" type="button">Export PDF</button>
+          <button class="export-btn light" type="button">Export Excel</button>
+          <button class="export-btn light" type="button">Export CSV</button>
+          <button class="export-btn" type="button" onclick="window.print()">Print Report</button>
+        </div>
+      </div>
+
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Total Reports</span><span class="stat-icon icon-blue"></span></div>
+          <div class="stat-value">248</div>
+          <div class="stat-note">All generated report records</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Total Incidents</span><span class="stat-icon icon-red"></span></div>
+          <div class="stat-value">86</div>
+          <div class="stat-note">Incident reports this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Total Detections</span><span class="stat-icon icon-blue"></span></div>
+          <div class="stat-value">1,284</div>
+          <div class="stat-note">AI detections recorded</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Active Cameras</span><span class="stat-icon icon-gray"></span></div>
+          <div class="stat-value">4</div>
+          <div class="stat-note">Online camera feeds</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Critical Alerts</span><span class="stat-icon icon-red"></span></div>
+          <div class="stat-value">12</div>
+          <div class="stat-note">Requires immediate review</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Resolved Incidents</span><span class="stat-icon icon-green"></span></div>
+          <div class="stat-value">142</div>
+          <div class="stat-note">Closed and archived</div>
+        </div>
+      </section>
+
+      <section class="card filters-card">
+        <div class="card-head">
+          <div>
+            <h3>Report Filters</h3>
+            <div class="card-sub">Filter by date, station, severity, camera, and status</div>
+          </div>
+          <div class="filter-actions">
+            <button class="ghost-btn" type="button">Reset</button>
+            <button class="export-btn" type="button">Apply Filters</button>
+          </div>
+        </div>
+
+        <div class="filters-grid">
+          <label class="field">
+            <span>Date Range Start</span>
+            <input type="date" value="2026-07-01">
+          </label>
+          <label class="field">
+            <span>Date Range End</span>
+            <input type="date" value="2026-07-17">
+          </label>
+          <label class="field">
+            <span>Station</span>
+            <select>
+              <option>All Stations</option>
+              <option>Buwaya</option>
+              <option>Tres Kantos</option>
+              <option>Marilag</option>
+              <option>North Creek</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Severity</span>
+            <select>
+              <option>All Severity Levels</option>
+              <option>Critical</option>
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Camera</span>
+            <select>
+              <option>All Cameras</option>
+              <option>CAM-001</option>
+              <option>CAM-002</option>
+              <option>CAM-003</option>
+              <option>CAM-004</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Status</span>
+            <select>
+              <option>All Status</option>
+              <option>Open</option>
+              <option>Resolved</option>
+              <option>Pending Review</option>
+              <option>Archived</option>
+            </select>
+          </label>
+          <label class="field field-wide">
+            <span>Report Type</span>
+            <select>
+              <option>All Report Types</option>
+              <option>Incident Report</option>
+              <option>Detection Report</option>
+              <option>Operational Analytics Report</option>
+              <option>Forecast Report</option>
+              <option>Daily Report</option>
+              <option>Weekly Report</option>
+              <option>Monthly Report</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="charts-grid">
+        <div class="card chart-card">
+          <div class="card-head">
+            <div>
+              <h3>Detection Trend</h3>
+              <div class="card-sub">24-hour detection volume preview</div>
+            </div>
+          </div>
+          <svg class="trend-chart" viewBox="0 0 360 190" preserveAspectRatio="none" aria-label="Detection trend chart placeholder">
+            <line x1="36" y1="12" x2="36" y2="150" stroke="#e2e2e2" stroke-width="1"/>
+            <line x1="36" y1="150" x2="340" y2="150" stroke="#e2e2e2" stroke-width="1"/>
+            <path d="M36,128 C58,114 76,76 96,70 C116,64 133,34 154,42 C173,49 190,92 210,96 C231,101 250,62 268,55 C289,47 305,72 334,88" fill="none" stroke="#111111" stroke-width="2.4"/>
+            <path d="M36,128 C58,114 76,76 96,70 C116,64 133,34 154,42 C173,49 190,92 210,96 C231,101 250,62 268,55 C289,47 305,72 334,88 L334,150 L36,150 Z" fill="#111111" fill-opacity="0.06"/>
+            <text x="6" y="16" class="axis-label">180</text>
+            <text x="10" y="84" class="axis-label">90</text>
+            <text x="14" y="152" class="axis-label">0</text>
+          </svg>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-head">
+            <div>
+              <h3>Monthly Reports</h3>
+              <div class="card-sub">Trend across the current reporting cycle</div>
+            </div>
+          </div>
+          <div class="bar-chart">
+            <div class="bar-row"><span>Jan</span><div class="bar-track"><div class="bar-fill" style="width:58%"></div></div><strong>58</strong></div>
+            <div class="bar-row"><span>Feb</span><div class="bar-track"><div class="bar-fill" style="width:74%"></div></div><strong>74</strong></div>
+            <div class="bar-row"><span>Mar</span><div class="bar-track"><div class="bar-fill" style="width:63%"></div></div><strong>63</strong></div>
+            <div class="bar-row"><span>Apr</span><div class="bar-track"><div class="bar-fill" style="width:82%"></div></div><strong>82</strong></div>
+            <div class="bar-row"><span>May</span><div class="bar-track"><div class="bar-fill" style="width:91%"></div></div><strong>91</strong></div>
+            <div class="bar-row"><span>Jun</span><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><strong>88</strong></div>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-head">
+            <div>
+              <h3>Severity Distribution</h3>
+              <div class="card-sub">Incident severity snapshot</div>
+            </div>
+          </div>
+          <div class="donut-wrap">
+            <svg viewBox="0 0 42 42" class="donut">
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#ececec" stroke-width="6.5"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#111111" stroke-width="6.5" stroke-dasharray="16 84" stroke-dashoffset="22"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#7a7a7a" stroke-width="6.5" stroke-dasharray="28 72" stroke-dashoffset="5"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0a020" stroke-width="6.5" stroke-dasharray="22 78" stroke-dashoffset="-17"></circle>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot critical"></i>Critical</span>
+            <span><i class="dot high"></i>High</span>
+            <span><i class="dot medium"></i>Medium</span>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-head">
+            <div>
+              <h3>Camera Activity</h3>
+              <div class="card-sub">Reports generated by camera source</div>
+            </div>
+          </div>
+          <div class="camera-bars">
+            <div class="camera-bar"><span>CAM-001</span><div class="bar-track"><div class="bar-fill" style="width:84%"></div></div><strong>84%</strong></div>
+            <div class="camera-bar"><span>CAM-002</span><div class="bar-track"><div class="bar-fill" style="width:71%"></div></div><strong>71%</strong></div>
+            <div class="camera-bar"><span>CAM-003</span><div class="bar-track"><div class="bar-fill" style="width:93%"></div></div><strong>93%</strong></div>
+            <div class="camera-bar"><span>CAM-004</span><div class="bar-track"><div class="bar-fill" style="width:66%"></div></div><strong>66%</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card table-card">
+        <div class="card-head">
+          <div>
+            <h3>Reports Table</h3>
+            <div class="card-sub">Incident, detection, operational, forecast, daily, weekly, and monthly report records</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Report ID</th>
+                <th>Report Type</th>
+                <th>Camera</th>
+                <th>Station</th>
+                <th>Severity</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>RPT-2026-0717-001</td>
+                <td><span class="type-badge incident">Incident Report</span></td>
+                <td>CAM-003</td>
+                <td>Tres Kantos</td>
+                <td><span class="severity-badge critical">Critical</span></td>
+                <td>Jul 17, 2026</td>
+                <td><span class="status-badge open">Open</span></td>
+                <td><button class="view-btn" type="button">View</button></td>
+              </tr>
+              <tr>
+                <td>RPT-2026-0717-002</td>
+                <td><span class="type-badge detection">Detection Report</span></td>
+                <td>CAM-001</td>
+                <td>Buwaya</td>
+                <td><span class="severity-badge high">High</span></td>
+                <td>Jul 17, 2026</td>
+                <td><span class="status-badge resolved">Resolved</span></td>
+                <td><button class="view-btn" type="button">View</button></td>
+              </tr>
+              <tr>
+                <td>RPT-2026-0716-003</td>
+                <td><span class="type-badge analytics">Operational Analytics Report</span></td>
+                <td>CAM-002</td>
+                <td>Marilag</td>
+                <td><span class="severity-badge medium">Medium</span></td>
+                <td>Jul 16, 2026</td>
+                <td><span class="status-badge archived">Archived</span></td>
+                <td><button class="view-btn" type="button">View</button></td>
+              </tr>
+              <tr>
+                <td>RPT-2026-0715-004</td>
+                <td><span class="type-badge forecast">Forecast Report</span></td>
+                <td>CAM-004</td>
+                <td>North Creek</td>
+                <td><span class="severity-badge low">Low</span></td>
+                <td>Jul 15, 2026</td>
+                <td><span class="status-badge pending">Pending</span></td>
+                <td><button class="view-btn" type="button">View</button></td>
+              </tr>
+              <tr>
+                <td>RPT-2026-0714-005</td>
+                <td><span class="type-badge daily">Daily Report</span></td>
+                <td>CAM-001</td>
+                <td>Buwaya</td>
+                <td><span class="severity-badge medium">Medium</span></td>
+                <td>Jul 14, 2026</td>
+                <td><span class="status-badge open">Open</span></td>
+                <td><button class="view-btn" type="button">View</button></td>
+              </tr>
+              <tr>
+                <td>RPT-2026-0713-006</td>
+                <td><span class="type-badge weekly">Weekly Report</span></td>
+                <td>CAM-003</td>
+                <td>Tres Kantos</td>
+                <td><span class="severity-badge high">High</span></td>
+                <td>Jul 13, 2026</td>
+                <td><span class="status-badge resolved">Resolved</span></td>
+                <td><button class="view-btn" type="button">View</button></td>
+              </tr>
+              <tr>
+                <td>RPT-2026-0712-007</td>
+                <td><span class="type-badge monthly">Monthly Report</span></td>
+                <td>CAM-004</td>
+                <td>Marilag</td>
+                <td><span class="severity-badge critical">Critical</span></td>
+                <td>Jul 12, 2026</td>
+                <td><span class="status-badge archived">Archived</span></td>
+                <td><button class="view-btn" type="button">View</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
