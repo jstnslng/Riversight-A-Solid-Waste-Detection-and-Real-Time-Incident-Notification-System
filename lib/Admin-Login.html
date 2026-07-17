@@ -96,6 +96,13 @@
 
     document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
+      const rememberDevice = document.getElementById('remember').checked;
+      sessionStorage.setItem('riversightAdminSession', 'active');
+      if (rememberDevice) {
+        localStorage.setItem('riversightAdminSession', 'active');
+      } else {
+        localStorage.removeItem('riversightAdminSession');
+      }
       window.location.href = 'Admin-Dashboard.html';
     });
   </script>
