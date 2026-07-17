@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiverSight — Settings</title>
+<link rel="stylesheet" href="../css/Admin-Dashboard.css">
+<link rel="stylesheet" href="../css/Admin-Settings.css">
+</head>
+<body>
+
+  <div class="topbar">Administrator Settings</div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="../assets/Riversight-logo.png" class="brand-logo" alt="RiverSight logo">
+        <div class="brand-name">RiverSight</div>
+        <div class="brand-tagline">Creek Waterway Monitoring</div>
+      </div>
+
+      <nav class="nav">
+        <a href="../lib/Admin-Dashboard.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a>
+        <a href="../lib/UserManagement.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M14.8 14.2c2.4.2 4.7 2.3 4.7 5.8"/></svg>
+          User Management
+        </a>
+        <a href="../lib/Admin-Reports.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M15 2.5V7h4"/><path d="M8 12h8M8 15.5h8M8 18.5h5"/></svg>
+          Reports
+        </a>
+        <a href="../lib/Admin-System-Monitoring.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+          System Monitoring
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <div>
+          <div class="node-name">Node: PH-MNL-QC</div>
+          <div class="node-sub">Auth Protocol: V3.12 Secure</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="header-row">
+        <div class="breadcrumb">Home <span>›</span> <strong>Settings</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search settings, alerts, security...">
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge">2</span>
+          </button>
+          <div class="profile-menu" data-profile-menu>
+            <button class="user-chip user-chip-button" type="button" data-profile-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Open profile menu">
+              <img src="../assets/admin-profile-pic.jpg" alt="Admin avatar">
+              <div>
+                <div class="user-name">Admin</div>
+                <div class="user-role">System Administrator</div>
+              </div>
+            </button>
+
+            <div class="profile-dropdown" role="menu" aria-label="Profile menu">
+              <a href="../lib/Admin-Profile.html" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                Profile
+              </a>
+              <a href="../lib/Admin-Settings.html" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+                Settings
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="../lib/Admin-Login.html" class="danger" role="menuitem" data-logout-link>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 16l-4-4 4-4"/><path d="M6 12h11"/><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg>
+                Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-title-row">
+        <div>
+          <h1>Settings</h1>
+          <div class="updated-row"><span class="live-dot"></span> Placeholder preferences ready for backend integration</div>
+        </div>
+        <div class="page-title-actions">
+          <button class="date-btn" type="button">Reset View</button>
+          <button class="export-btn" type="button">Save Settings</button>
+        </div>
+      </div>
+
+      <section class="settings-grid">
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h3>Account Settings</h3>
+              <div class="card-sub">Credential changes for the current administrator account</div>
+            </div>
+          </div>
+
+          <div class="settings-columns">
+            <label class="setting-row">
+              <span>Change Username</span>
+              <input type="text" value="admin" placeholder="Change Username">
+            </label>
+            <label class="setting-row">
+              <span>Change Email</span>
+              <input type="email" value="admin@riversight.gov.ph" placeholder="Change Email">
+            </label>
+            <label class="setting-row">
+              <span>Change Password</span>
+              <input type="password" value="placeholder-password" placeholder="Change Password">
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h3>Appearance</h3>
+              <div class="card-sub">Light and dark theme placeholders plus text sizing controls</div>
+            </div>
+          </div>
+
+          <div class="settings-columns">
+            <label class="setting-row">
+              <span>Theme</span>
+              <select>
+                <option selected>Light</option>
+                <option>Dark</option>
+              </select>
+            </label>
+            <label class="setting-row">
+              <span>Font Size</span>
+              <select>
+                <option selected>Default</option>
+                <option>Small</option>
+                <option>Large</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h3>Notification Settings</h3>
+              <div class="card-sub">Select which updates should reach the administrator account</div>
+            </div>
+          </div>
+
+          <div class="switch-list">
+            <div class="switch-item">
+              <div class="switch-copy">
+                <strong>Email Notifications</strong>
+                <span>Placeholder toggle for account email alerts</span>
+              </div>
+              <span class="toggle"></span>
+            </div>
+            <div class="switch-item">
+              <div class="switch-copy">
+                <strong>System Alerts</strong>
+                <span>Placeholder toggle for platform maintenance warnings</span>
+              </div>
+              <span class="toggle"></span>
+            </div>
+            <div class="switch-item">
+              <div class="switch-copy">
+                <strong>Detection Alerts</strong>
+                <span>Placeholder toggle for incident and waste detection notices</span>
+              </div>
+              <span class="toggle"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h3>Security</h3>
+              <div class="card-sub">Account protection placeholders for future backend integration</div>
+            </div>
+          </div>
+
+          <div class="switch-list">
+            <div class="switch-item">
+              <div class="switch-copy">
+                <strong>Two-Factor Authentication</strong>
+                <span>Placeholder setting for a second login verification step</span>
+              </div>
+              <span class="toggle off"></span>
+            </div>
+            <div class="switch-item">
+              <div class="switch-copy">
+                <strong>Session Timeout</strong>
+                <span>Placeholder setting for automatic logout timing</span>
+              </div>
+              <span class="toggle"></span>
+            </div>
+          </div>
+
+          <div class="security-note">These controls are non-persistent placeholders until backend account preferences are connected.</div>
+
+          <div class="button-row">
+            <button class="secondary-btn" type="button">Reset to Default</button>
+            <button class="primary-btn" type="button">Save Settings</button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const profileMenu = document.querySelector('[data-profile-menu]');
+    const profileToggle = document.querySelector('[data-profile-toggle]');
+    const logoutLink = document.querySelector('[data-logout-link]');
+
+    const closeProfileMenu = () => {
+      profileMenu.classList.remove('open');
+      profileToggle.setAttribute('aria-expanded', 'false');
+    };
+
+    profileToggle.addEventListener('click', () => {
+      const isOpen = profileMenu.classList.toggle('open');
+      profileToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!profileMenu.contains(event.target)) {
+        closeProfileMenu();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeProfileMenu();
+      }
+    });
+
+    logoutLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      localStorage.removeItem('riversightAdminSession');
+      sessionStorage.removeItem('riversightAdminSession');
+      window.location.href = logoutLink.href;
+    });
+  </script>
+
+</body>
+</html>
