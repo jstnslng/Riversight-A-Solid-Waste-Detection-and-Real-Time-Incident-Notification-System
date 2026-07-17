@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiverSight — Profile</title>
+<link rel="stylesheet" href="../css/Admin-Dashboard.css">
+<link rel="stylesheet" href="../css/Admin-Profile.css">
+</head>
+<body>
+
+  <div class="topbar">Administrator Profile</div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="../assets/Riversight-logo.png" class="brand-logo" alt="RiverSight logo">
+        <div class="brand-name">RiverSight</div>
+        <div class="brand-tagline">Creek Waterway Monitoring</div>
+      </div>
+
+      <nav class="nav">
+        <a href="../lib/Admin-Dashboard.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a>
+        <a href="../lib/UserManagement.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M14.8 14.2c2.4.2 4.7 2.3 4.7 5.8"/></svg>
+          User Management
+        </a>
+        <a href="../lib/Admin-Reports.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M15 2.5V7h4"/><path d="M8 12h8M8 15.5h8M8 18.5h5"/></svg>
+          Reports
+        </a>
+        <a href="../lib/Admin-System-Monitoring.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+          System Monitoring
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <div>
+          <div class="node-name">Node: PH-MNL-QC</div>
+          <div class="node-sub">Auth Protocol: V3.12 Secure</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="header-row">
+        <div class="breadcrumb">Home <span>›</span> <strong>Profile</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search profile, station, settings...">
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge">2</span>
+          </button>
+          <div class="profile-menu" data-profile-menu>
+            <button class="user-chip user-chip-button" type="button" data-profile-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Open profile menu">
+              <img src="../assets/admin-profile-pic.jpg" alt="Admin avatar">
+              <div>
+                <div class="user-name">Admin</div>
+                <div class="user-role">System Administrator</div>
+              </div>
+            </button>
+
+            <div class="profile-dropdown" role="menu" aria-label="Profile menu">
+              <a href="../lib/Admin-Profile.html" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                Profile
+              </a>
+              <a href="../lib/Admin-Settings.html" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+                Settings
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="../lib/Admin-Login.html" class="danger" role="menuitem" data-logout-link>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 16l-4-4 4-4"/><path d="M6 12h11"/><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg>
+                Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-title-row">
+        <div>
+          <h1>Profile Overview</h1>
+          <div class="updated-row"><span class="live-dot"></span> Placeholder account data ready for backend binding</div>
+        </div>
+        <div class="page-title-actions">
+          <button class="date-btn" type="button">Edit Summary</button>
+          <button class="export-btn" type="button">Save Changes</button>
+        </div>
+      </div>
+
+      <section class="card profile-card">
+        <div class="profile-hero">
+          <img class="profile-avatar" src="../assets/admin-profile-pic.jpg" alt="Admin profile picture">
+          <div class="profile-summary">
+            <span class="status-pill">Active</span>
+            <h2>Admin</h2>
+            <div class="card-sub">System Administrator</div>
+            <div class="meta-line">Assigned monitoring station: PH-MNL-QC</div>
+            <div class="summary-pills">
+              <span class="pill-red">User ID: ADM-0001</span>
+              <span class="status-pill">Last login: Just now</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="secondary-btn" type="button">Edit Profile</button>
+          <button class="secondary-btn" type="button">Change Password</button>
+          <button class="primary-btn" type="button">Save Changes</button>
+          <button class="secondary-btn" type="button">Cancel</button>
+        </div>
+      </section>
+
+      <section class="profile-grid">
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h3>Profile Information</h3>
+              <div class="card-sub">Core account details and monitoring assignment</div>
+            </div>
+          </div>
+
+          <div class="profile-details">
+            <label class="field-group">
+              <span>Full Name</span>
+              <input type="text" value="Admin User" placeholder="Full Name">
+            </label>
+            <label class="field-group">
+              <span>Username</span>
+              <input type="text" value="admin" placeholder="Username">
+            </label>
+            <label class="field-group">
+              <span>Email Address</span>
+              <input type="email" value="admin@riversight.gov.ph" placeholder="Email Address">
+            </label>
+            <label class="field-group">
+              <span>Phone Number</span>
+              <input type="tel" value="+63 912 345 6789" placeholder="Phone Number">
+            </label>
+            <label class="field-group">
+              <span>Role</span>
+              <select>
+                <option selected>System Administrator</option>
+                <option>Supervisor</option>
+                <option>Operator</option>
+              </select>
+            </label>
+            <label class="field-group">
+              <span>Assigned Monitoring Station</span>
+              <select>
+                <option selected>PH-MNL-QC</option>
+                <option>Buwaya</option>
+                <option>Tres Kantos</option>
+                <option>Marilag</option>
+              </select>
+            </label>
+            <label class="field-group">
+              <span>Date Joined</span>
+              <input type="text" class="readonly" value="May 12, 2025" readonly>
+            </label>
+            <label class="field-group">
+              <span>Last Login</span>
+              <input type="text" class="readonly" value="Jul 17, 2026 14:32" readonly>
+            </label>
+          </div>
+        </section>
+
+        <section class="card account-card">
+          <div class="card-head">
+            <div>
+              <h3>Account Information</h3>
+              <div class="card-sub">Access state and identity reference</div>
+            </div>
+          </div>
+
+          <div class="account-details">
+            <div class="info-grid">
+              <div class="info-item">
+                <span>Account Status</span>
+                <strong>Active</strong>
+              </div>
+              <div class="info-item">
+                <span>User ID</span>
+                <strong>ADM-0001</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const profileMenu = document.querySelector('[data-profile-menu]');
+    const profileToggle = document.querySelector('[data-profile-toggle]');
+    const logoutLink = document.querySelector('[data-logout-link]');
+
+    const closeProfileMenu = () => {
+      profileMenu.classList.remove('open');
+      profileToggle.setAttribute('aria-expanded', 'false');
+    };
+
+    profileToggle.addEventListener('click', () => {
+      const isOpen = profileMenu.classList.toggle('open');
+      profileToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!profileMenu.contains(event.target)) {
+        closeProfileMenu();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeProfileMenu();
+      }
+    });
+
+    logoutLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      localStorage.removeItem('riversightAdminSession');
+      sessionStorage.removeItem('riversightAdminSession');
+      window.location.href = logoutLink.href;
+    });
+  </script>
+
+</body>
+</html>
