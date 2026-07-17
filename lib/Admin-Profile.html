@@ -95,8 +95,9 @@
           <div class="updated-row"><span class="live-dot"></span> Placeholder account data ready for backend binding</div>
         </div>
         <div class="page-title-actions">
-          <button class="date-btn" type="button">Edit Summary</button>
-          <button class="export-btn" type="button">Save Changes</button>
+          <button class="date-btn" type="button" data-edit-profile>Edit Profile</button>
+          <button class="export-btn" type="button" data-save-profile hidden>Save Changes</button>
+          <button class="secondary-btn" type="button" data-cancel-profile hidden>Cancel</button>
         </div>
       </div>
 
@@ -114,13 +115,6 @@
             </div>
           </div>
         </div>
-
-        <div class="button-row">
-          <button class="secondary-btn" type="button">Edit Profile</button>
-          <button class="secondary-btn" type="button">Change Password</button>
-          <button class="primary-btn" type="button">Save Changes</button>
-          <button class="secondary-btn" type="button">Cancel</button>
-        </div>
       </section>
 
       <section class="profile-grid">
@@ -135,44 +129,27 @@
           <div class="profile-details">
             <label class="field-group">
               <span>Full Name</span>
-              <input type="text" value="Admin User" placeholder="Full Name">
+              <input type="text" value="Admin User" placeholder="Full Name" data-editable-field disabled>
             </label>
             <label class="field-group">
               <span>Username</span>
-              <input type="text" value="admin" placeholder="Username">
+              <input type="text" value="admin" placeholder="Username" data-editable-field disabled>
             </label>
             <label class="field-group">
               <span>Email Address</span>
-              <input type="email" value="admin@riversight.gov.ph" placeholder="Email Address">
+              <input type="email" value="admin@riversight.gov.ph" placeholder="Email Address" data-editable-field disabled>
             </label>
             <label class="field-group">
               <span>Phone Number</span>
-              <input type="tel" value="+63 912 345 6789" placeholder="Phone Number">
+              <input type="tel" value="+63 912 345 6789" placeholder="Phone Number" data-editable-field disabled>
             </label>
             <label class="field-group">
               <span>Role</span>
-              <select>
-                <option selected>System Administrator</option>
-                <option>Supervisor</option>
-                <option>Operator</option>
-              </select>
+              <input type="text" value="System Administrator" readonly data-system-field>
             </label>
             <label class="field-group">
               <span>Assigned Monitoring Station</span>
-              <select>
-                <option selected>PH-MNL-QC</option>
-                <option>Buwaya</option>
-                <option>Tres Kantos</option>
-                <option>Marilag</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Date Joined</span>
-              <input type="text" class="readonly" value="May 12, 2025" readonly>
-            </label>
-            <label class="field-group">
-              <span>Last Login</span>
-              <input type="text" class="readonly" value="Jul 17, 2026 14:32" readonly>
+              <input type="text" value="PH-MNL-QC" readonly data-system-field>
             </label>
           </div>
         </section>
@@ -195,6 +172,14 @@
                 <span>User ID</span>
                 <strong>ADM-0001</strong>
               </div>
+              <div class="info-item">
+                <span>Date Joined</span>
+                <strong>May 12, 2025</strong>
+              </div>
+              <div class="info-item">
+                <span>Last Login</span>
+                <strong>Jul 17, 2026 14:32</strong>
+              </div>
             </div>
           </div>
         </section>
@@ -206,6 +191,39 @@
     const profileMenu = document.querySelector('[data-profile-menu]');
     const profileToggle = document.querySelector('[data-profile-toggle]');
     const logoutLink = document.querySelector('[data-logout-link]');
+    const editButton = document.querySelector('[data-edit-profile]');
+    const saveButton = document.querySelector('[data-save-profile]');
+    const cancelButton = document.querySelector('[data-cancel-profile]');
+    const editableFields = Array.from(document.querySelectorAll('[data-editable-field]'));
+    const systemFields = Array.from(document.querySelectorAll('[data-system-field]'));
+    const originalValues = editableFields.map((field) => field.value);
+    let isEditing = false;
+
+    const setEditingState = (editing) => {
+      isEditing = editing;
+      editableFields.forEach((field) => {
+        field.disabled = !editing;
+      });
+
+      systemFields.forEach((field) => {
+        field.readOnly = true;
+      });
+
+      editButton.style.display = editing ? 'none' : '';
+      if (editing) {
+        saveButton.removeAttribute('hidden');
+        cancelButton.removeAttribute('hidden');
+      } else {
+        saveButton.setAttribute('hidden', '');
+        cancelButton.setAttribute('hidden', '');
+      }
+    };
+
+    const restoreOriginalValues = () => {
+      editableFields.forEach((field, index) => {
+        field.value = originalValues[index];
+      });
+    };
 
     const closeProfileMenu = () => {
       profileMenu.classList.remove('open');
@@ -228,6 +246,22 @@
         closeProfileMenu();
       }
     });
+
+    editButton.addEventListener('click', () => {
+      setEditingState(true);
+    });
+
+    saveButton.addEventListener('click', () => {
+      originalValues.splice(0, originalValues.length, ...editableFields.map((field) => field.value));
+      setEditingState(false);
+    });
+
+    cancelButton.addEventListener('click', () => {
+      restoreOriginalValues();
+      setEditingState(false);
+    });
+
+    setEditingState(false);
 
     logoutLink.addEventListener('click', (event) => {
       event.preventDefault();
