@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiverSight — Monitoring Personnel Login</title>
+<link rel="stylesheet" href="../css/Monitoring-Login.css">
+</head>
+<body>
+
+  <div class="topbar">Monitoring Personnel Login Module</div>
+
+  <div class="bg-decor">
+    <div class="ring ring1"></div>
+    <div class="ring ring2"></div>
+    <div class="ring ring3"></div>
+    <div class="ring ring4"></div>
+  </div>
+
+  <div class="main">
+    <div class="card">
+      <div class="logo-badge">
+        <img src="../assets/Riversight-logo.png" alt="RiverSight logo">
+      </div>
+      <div class="brand-name">RiverSight</div>
+      <div class="brand-tagline">Creek Waterway Monitoring</div>
+
+      <form id="loginForm">
+        <div class="form-title">Monitoring Personnel Login</div>
+        <div class="form-subtitle">Secure access for waterway monitoring and field reporting.</div>
+
+        <div class="field">
+          <label for="username">Username</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+            <input type="text" id="username" name="username" placeholder="monitoring" autocomplete="username" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-row">
+            <label for="password">Password</label>
+            <a href="#" class="forgot-link">Forgot Password?</a>
+          </div>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="5" y="11" width="14" height="9" rx="2"/>
+              <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+            </svg>
+            <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+            <button type="button" class="toggle-visibility" id="togglePw" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="remember-row">
+          <input type="checkbox" id="remember" name="remember">
+          <label for="remember">Remember this device for 30 days</label>
+        </div>
+
+        <button type="submit" class="login-btn">
+          Log In to Monitor
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 6l6 6-6 6"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="card-footer">
+        <div class="avatar-stack">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="card-footer-text">QC River Monitoring Team Access Only</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-info">
+    Node: RV-MNL-00-WAR<br>
+    Audit Protocol #103 · Secure Bridge
+  </div>
+
+  <script>
+    const pwInput = document.getElementById('password');
+    const toggleBtn = document.getElementById('togglePw');
+    toggleBtn.addEventListener('click', () => {
+      pwInput.type = pwInput.type === 'password' ? 'text' : 'password';
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rememberDevice = document.getElementById('remember').checked;
+      sessionStorage.setItem('riversightMonitoringSession', 'active');
+      if (rememberDevice) {
+        localStorage.setItem('riversightMonitoringSession', 'active');
+      } else {
+        localStorage.removeItem('riversightMonitoringSession');
+      }
+      window.location.href = 'Admin-Dashboard.html';
+    });
+  </script>
+
+</body>
+</html>
