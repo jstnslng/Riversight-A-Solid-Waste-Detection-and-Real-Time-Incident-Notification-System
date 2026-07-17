@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiverSight — Live Waterway Monitoring</title>
+  <link rel="stylesheet" href="../css/Live-Monitoring.css">
+</head>
+<body>
+
+  <div class="topbar">Live Waterway Monitoring</div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="../assets/Riversight-logo.png" class="brand-logo" alt="RiverSight logo">
+        <div class="brand-name">RiverSight</div>
+        <div class="brand-tagline">Creek Waterway Monitoring</div>
+      </div>
+
+      <nav class="nav">
+        <a href="Live-Monitoring.html" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M1 12s4.5-7.5 11-7.5S23 12 23 12s-4.5 7.5-11 7.5S1 12 1 12Z"/></svg>
+          Live Monitoring
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="M11 3v16M3 11h16"/></svg>
+          Waste Detection
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5Z"/></svg>
+          Incident Evaluation
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M15 2.5V7h4"/></svg>
+          Incident Reports
+        </a>
+      </nav>
+
+      <div class="feed-selector">
+        <div class="feed-selector-label">ACTIVE FEED SELECTOR</div>
+        <a href="#" class="feed-item active">
+          <span class="feed-dot green"></span>
+          <span class="feed-name">CAM-001</span>
+          <span class="feed-status">ONLINE</span>
+        </a>
+        <a href="#" class="feed-item">
+          <span class="feed-dot green"></span>
+          <span class="feed-name">CAM-002</span>
+          <span class="feed-status">ONLINE</span>
+        </a>
+        <a href="#" class="feed-item">
+          <span class="feed-dot red"></span>
+          <span class="feed-name">CAM-003</span>
+          <span class="feed-status">ONLINE</span>
+        </a>
+        <a href="#" class="feed-item">
+          <span class="feed-dot orange"></span>
+          <span class="feed-name">CAM-004</span>
+          <span class="feed-status">WEAK</span>
+        </a>
+      </div>
+
+
+      <div class="sidebar-footer">
+        <span class="status-dot green"></span>
+        <div>
+          <div class="node-name">Node: PH-MNL-QC</div>
+          <div class="node-sub">Auth Protocol: V3.12 Secure</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <header class="header-row">
+        <div class="breadcrumb">Monitoring <span>›</span> <strong>Live Feeds</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search camera or location...">
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge">2</span>
+          </button>
+          <div class="profile-menu">
+            <button class="user-chip user-chip-button">
+              <img src="https://picsum.photos/seed/avatar/80/80" alt="Admin avatar">
+              <div>
+                <div class="user-name">Admin Principal</div>
+                <div class="user-role">System Administrator</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-title-row">
+        <div>
+          <h1>Live Waterway Monitoring</h1>
+          <div class="updated-row"><span class="live-dot"></span> Live Stream · 4 Active Sources</div>
+        </div>
+        <div class="page-title-actions">
+          <button class="date-btn">Grid (2×2)</button>
+          <button class="date-btn">Full Screen Mode</button>
+        </div>
+      </div>
+
+      <div class="alert-banner high">
+        <div class="alert-icon">⚠</div>
+        <div class="alert-text">
+          <strong>SEVERE WASTE DETECTION</strong>
+          <div class="alert-sub">CAM-003 · Main Sluice Gate · Immediate intervention recommended</div>
+        </div>
+        <div class="alert-pill">HIGH PRIORITY</div>
+        <div style="font-size:12px;color:var(--muted)">Detected 2 mins ago</div>
+      </div>
+
+      <section class="feeds-grid">
+        <article class="feed-card">
+          <div class="feed-thumb" style="background-image:url('https://picsum.photos/seed/cam001/1200/800')">
+            <div class="feed-overlay-bottom">
+              <div class="cam-id">CAM-001</div>
+              <div class="cam-title">Buwaya Creek (Main)</div>
+            </div>
+            <span class="cam-time">2023-10-19 14:28:45</span>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb" style="background-image:url('https://picsum.photos/seed/cam002/1200/800')">
+            <div class="feed-overlay-bottom">
+              <div class="cam-id">CAM-002</div>
+              <div class="cam-title">Buwaya Creek (North)</div>
+            </div>
+            <span class="cam-time">2023-10-19 14:28:45</span>
+          </div>
+        </article>
+
+        <article class="feed-card highlight">
+          <div class="feed-thumb" style="background-image:url('https://picsum.photos/seed/cam003/1200/800')">
+            <div class="feed-overlay-bottom">
+              <div class="cam-id">CAM-003</div>
+              <div class="cam-title">Tres Kantos Creek</div>
+            </div>
+            <span class="cam-time">2023-10-19 14:28:45</span>
+          </div>
+        </article>
+
+        <article class="feed-card">
+          <div class="feed-thumb" style="background-image:url('https://picsum.photos/seed/cam004/1200/800')">
+            <div class="feed-overlay-bottom">
+              <div class="cam-id">CAM-004</div>
+              <div class="cam-title">Marilag Creek</div>
+            </div>
+            <span class="cam-time">2023-10-19 14:28:45</span>
+          </div>
+        </article>
+      </section>
+
+      <div class="footer-panel">
+        <div class="system-status">System Secure · 256-bit Encryption · All Nodes Operational</div>
+        <div class="latency">Latency: 12ms</div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Minimal interactivity placeholder
+    document.querySelectorAll('.feed-card').forEach(card => {
+      card.addEventListener('click', () => {
+        card.classList.toggle('expanded');
+      });
+    });
+  </script>
+
+</body>
+</html>
