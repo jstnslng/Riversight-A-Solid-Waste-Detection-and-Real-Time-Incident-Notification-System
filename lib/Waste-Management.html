@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiverSight — Waste Detection Module</title>
+<link rel="stylesheet" href="../css/Live-Monitoring.css">
+<link rel="stylesheet" href="../css/Waste-Management.css">
+</head>
+<body>
+
+  <div class="topbar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    Waste Detection Module
+  </div>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="../assets/Riversight-logo.png" alt="RiverSight logo" class="brand-logo">
+        <div class="brand-name">RiverSight</div>
+        <div class="brand-tagline">Creek Waterway Monitoring</div>
+      </div>
+
+      <nav class="nav">
+        <a href="Live-Monitoring.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a>
+        <a href="Waste-Management.html" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6l1 4H8l1-4Z"/><path d="M5 7h14l-1.2 13.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 7Z"/><path d="M10 11v6M14 11v6"/></svg>
+          Waste Detection
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 7.5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z"/><path d="M15 10l6-3.2v10.4L15 14"/></svg>
+          Camera Nodes
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M15 2.5V7h4"/><path d="M8 12h8M8 15.5h8M8 18.5h5"/></svg>
+          Incident Archives
+        </a>
+
+        <div class="nav-section-label">Active Node Status</div>
+        <div class="node-status-item">
+          <span class="status-dot green"></span>
+          <span class="node-status-name">CAM-001</span>
+          <span class="node-status-pill good">MONITORING</span>
+        </div>
+        <div class="node-status-item">
+          <span class="status-dot orange"></span>
+          <span class="node-status-name">CAM-042</span>
+          <span class="node-status-pill warn">ALERTS ON</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot green"></span>
+        <div>
+          <div class="node-name">Node: PH-MNL-QC</div>
+          <div class="node-sub">Auth Protocol: V3.12 Secure</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+
+      <header class="header-row">
+        <div class="breadcrumb">Monitoring <span>›</span> <strong>Waste Detection Module</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search detections, tags, or logs...">
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge">5</span>
+          </button>
+          <div class="user-chip">
+            <img src="https://i.pravatar.cc/64?img=12" alt="Admin avatar">
+            <div>
+              <div class="user-name">Admin Principal</div>
+              <div class="user-role">System Administrator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-title-row">
+        <div>
+          <h1>AI Waste Detection Console</h1>
+          <div class="updated-row">
+            <span class="live-dot"></span> ACTIVE STREAM: CAM-001
+            <span class="dot-sep">•</span> PROCESSING
+            <span class="yolo-pill">YOLOv8 Real-time</span>
+          </div>
+        </div>
+        <div class="page-title-actions">
+          <button class="date-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
+            Today
+          </button>
+          <button class="export-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="btn-icon"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 18v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
+            Export Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Content grid: feed + summary -->
+      <section class="content-grid">
+        <div class="left-col">
+
+          <!-- Live feed -->
+          <div class="card feed-card">
+            <div class="feed-frame">
+              <img src="https://picsum.photos/seed/riversight-canal/900/420" alt="Live camera feed — Main North Inlet Sector" class="feed-img">
+
+              <div class="feed-tag feed-tag-live">
+                <span class="rec-dot"></span> LIVE 4K FEED
+              </div>
+              <div class="feed-tag feed-tag-rec">● REC</div>
+              <div class="feed-sector-label">Main North Inlet Sector</div>
+
+              <div class="detect-box" style="top:38%; left:6%; width:15%; height:22%;">
+                <span class="detect-label label-red">Plastic Bottle - 94.2%</span>
+              </div>
+              <div class="detect-box box-red" style="top:20%; left:38%; width:22%; height:24%;">
+                <span class="detect-label label-red">Styrofoam Block - 91.0%</span>
+              </div>
+              <div class="detect-box box-orange" style="top:44%; left:52%; width:20%; height:20%;">
+                <span class="detect-label label-orange">Organic Debris - 84.5%</span>
+              </div>
+
+              <button class="feed-expand" title="Expand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H3v6M15 3h6v6M15 21h6v-6M9 21H3v-6"/></svg>
+              </button>
+              <button class="feed-capture" title="Capture">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.4"/><path d="M8 6l1.4-2.2h5.2L16 6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Detection timeline -->
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="title-icon"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg> Detection Timeline</h3>
+                <div class="card-sub">Frequency of waste events per hour</div>
+              </div>
+              <div class="timeline-legend">
+                <span><i class="dot dot-red"></i>HIGH CONF</span>
+                <span><i class="dot dot-orange"></i>LOW CONF</span>
+              </div>
+            </div>
+
+            <svg class="timeline-chart" viewBox="0 0 640 190" preserveAspectRatio="none">
+              <line x1="30" y1="10" x2="30" y2="150" stroke="#e2e2e2" stroke-width="1"/>
+              <line x1="30" y1="150" x2="620" y2="150" stroke="#e2e2e2" stroke-width="1"/>
+              <line x1="30" y1="80" x2="620" y2="80" stroke="#f0f0f0" stroke-width="1"/>
+              <text x="4" y="14" class="axis-label">100</text>
+              <text x="10" y="84" class="axis-label">50</text>
+
+              <path d="M30,120 C90,100 140,60 190,55 C240,50 260,90 310,95 C360,100 390,60 440,45 C480,33 520,40 560,55 C585,64 605,75 620,80 L620,150 L30,150 Z" fill="#e2433c" fill-opacity="0.08"/>
+              <path d="M30,120 C90,100 140,60 190,55 C240,50 260,90 310,95 C360,100 390,60 440,45 C480,33 520,40 560,55 C585,64 605,75 620,80" fill="none" stroke="#e2433c" stroke-width="2.2"/>
+
+              <path d="M30,135 C80,128 130,110 180,108 C230,106 260,120 310,118 C360,116 400,95 450,90 C500,85 540,95 580,100 C595,102 610,105 620,108" fill="none" stroke="#e0a020" stroke-width="2" stroke-dasharray="5 4"/>
+
+              <text x="26" y="168" class="axis-label">00h</text>
+              <text x="75" y="168" class="axis-label">02h</text>
+              <text x="122" y="168" class="axis-label">04h</text>
+              <text x="170" y="168" class="axis-label">06h</text>
+              <text x="218" y="168" class="axis-label">08h</text>
+              <text x="262" y="168" class="axis-label">10h</text>
+              <text x="308" y="168" class="axis-label">12h</text>
+              <text x="354" y="168" class="axis-label">14h</text>
+              <text x="400" y="168" class="axis-label">16h</text>
+              <text x="446" y="168" class="axis-label">18h</text>
+              <text x="492" y="168" class="axis-label">20h</text>
+              <text x="538" y="168" class="axis-label">22h</text>
+            </svg>
+          </div>
+
+          <!-- AI processor status -->
+          <div class="processor-status">
+            <span class="proc-dot"></span>
+            <span class="proc-text"><strong>AI Processor Status: OPTIMAL</strong> • Nodes Synchronized</span>
+            <span class="proc-uptime">UPTIME: 142h 28m</span>
+          </div>
+
+          <!-- Recent snapshots -->
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="title-icon"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.4"/></svg> Recent Snapshot Captures</h3>
+              </div>
+              <a href="#" class="link-sm">View All Captures</a>
+            </div>
+            <div class="snapshot-grid">
+              <div class="snapshot" style="background-image:url('https://picsum.photos/seed/snap1-waste/200/140');">
+                <span class="snap-time">15:30:07</span>
+              </div>
+              <div class="snapshot" style="background-image:url('https://picsum.photos/seed/snap2-leaves/200/140');">
+                <span class="snap-time">15:24:46</span>
+              </div>
+              <div class="snapshot" style="background-image:url('https://picsum.photos/seed/snap3-water/200/140');">
+                <span class="snap-time">15:19:03</span>
+              </div>
+              <div class="snapshot snapshot-more">+24 More</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="right-col">
+
+          <!-- Detection summary -->
+          <div class="card">
+            <h3>Detection Summary</h3>
+            <div class="summary-pills">
+              <div class="summary-pill pill-total">
+                <div class="pill-label">TOTAL TODAY</div>
+                <div class="pill-value">1,482</div>
+              </div>
+              <div class="summary-pill pill-eff">
+                <div class="pill-label">EFFICIENCY</div>
+                <div class="pill-value">94.8%</div>
+              </div>
+            </div>
+
+            <div class="breakdown-label">BREAKDOWN BY TYPE</div>
+
+            <div class="breakdown-item">
+              <div class="breakdown-row"><span>Plastic Bottles</span><span class="breakdown-count">642 units</span></div>
+              <div class="progress-track"><div class="progress-fill fill-red" style="width:78%"></div></div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-row"><span>Organic Debris</span><span class="breakdown-count">418 units</span></div>
+              <div class="progress-track"><div class="progress-fill fill-orange" style="width:52%"></div></div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-row"><span>Styrofoam</span><span class="breakdown-count">312 units</span></div>
+              <div class="progress-track"><div class="progress-fill fill-blue" style="width:40%"></div></div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-row"><span>Chemical Runoff</span><span class="breakdown-count">110 events</span></div>
+              <div class="progress-track"><div class="progress-fill fill-purple" style="width:18%"></div></div>
+            </div>
+          </div>
+
+          <!-- Detection history -->
+          <div class="card">
+            <div class="card-head">
+              <h3>Detection History</h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon-sm"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+            </div>
+
+            <div class="history-item">
+              <div class="history-thumb" style="background-image:url('https://picsum.photos/seed/hist1-plastic/100/100');"></div>
+              <div class="history-info">
+                <div class="history-title">Plastic Bottle Cluster</div>
+                <div class="history-meta">CAM-001 • North Sector</div>
+                <div class="history-time">15:41:05 (Just now)</div>
+              </div>
+              <span class="severity-badge critical">CRITICAL</span>
+            </div>
+
+            <div class="history-item">
+              <div class="history-thumb" style="background-image:url('https://picsum.photos/seed/hist2-branch/100/100');"></div>
+              <div class="history-info">
+                <div class="history-title">Tree Branch / Debris</div>
+                <div class="history-meta">CAM-042 • Bridge Sector</div>
+                <div class="history-time">15:33:12 (7m ago)</div>
+              </div>
+              <span class="severity-badge caution">CAUTION</span>
+            </div>
+
+            <div class="history-item">
+              <div class="history-thumb" style="background-image:url('https://picsum.photos/seed/hist3-foam/100/100');"></div>
+              <div class="history-info">
+                <div class="history-title">Chemical Foam</div>
+                <div class="history-meta">CAM-009 • Outlet A</div>
+                <div class="history-time">15:26:44 (19m ago)</div>
+              </div>
+              <span class="severity-badge critical">CRITICAL</span>
+            </div>
+
+            <div class="history-item">
+              <div class="history-thumb" style="background-image:url('https://picsum.photos/seed/hist4-styro/100/100');"></div>
+              <div class="history-info">
+                <div class="history-title">Styrofoam Fragments</div>
+                <div class="history-meta">CAM-001 • North Sector</div>
+                <div class="history-time">15:22:10 (24m ago)</div>
+              </div>
+              <span class="severity-badge low">LOW</span>
+            </div>
+
+            <button class="load-older-btn">Load Older History</button>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>
