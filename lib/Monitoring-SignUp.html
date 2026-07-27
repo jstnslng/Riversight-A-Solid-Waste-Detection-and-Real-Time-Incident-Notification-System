@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <div class="topbar">Monitoring Personnel Sign Up Module</div>
+  <div class="topbar">Monitoring Personnel Sign Up</div>
 
   <div class="bg-decor">
     <div class="ring ring1"></div>
@@ -30,7 +30,7 @@
         <div class="form-subtitle">Register for field access to waterway monitoring and reporting tools.</div>
 
         <div class="field">
-          <label for="fullname">Full Name</label>
+          <label for="fullname">Full Name <span class="required">*</span></label>
           <div class="input-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <circle cx="12" cy="8" r="4"/>
@@ -41,35 +41,24 @@
         </div>
 
         <div class="field">
-          <label for="username">Username</label>
-          <div class="input-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <rect x="3" y="4" width="18" height="16" rx="2"/>
-              <path d="M3 8h18"/>
-            </svg>
-            <input type="text" id="username" name="username" placeholder="Choose a username" autocomplete="username" required>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="sector">Assigned Sector</label>
+         <label for="barangay">Barangay <span class="required">*</span></label>
           <div class="input-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/>
               <circle cx="12" cy="9.5" r="2.4"/>
             </svg>
-            <select id="sector" name="sector" required>
-              <option value="" disabled selected>Select sector</option>
-              <option value="north">Main North Inlet</option>
-              <option value="buwaya">Buwaya</option>
-              <option value="tres-kantos">Tres Kantos</option>
+            <select id="barangay" name="barangay" required>
+              <option value="" disabled selected>Select barangay</option>
+              <option value="bagumbayan">Bagumbayan</option>
               <option value="marilag">Marilag</option>
+              <option value="quirino-3a">Quirino 3A</option>
+              <option value="quirino-3b">Quirino 3B</option>
             </select>
           </div>
         </div>
 
         <div class="field">
-          <label for="password">Password</label>
+          <label for="password">Password <span class="required">*</span></label>
           <div class="input-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <rect x="5" y="11" width="14" height="9" rx="2"/>
@@ -86,8 +75,7 @@
         </div>
 
         <div class="field">
-          <label for="confirmPassword">Confirm Password</label>
-          <div class="input-wrap">
+<label for="confirmPassword">Confirm Password <span class="required">*</span></label>          <div class="input-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <rect x="5" y="11" width="14" height="9" rx="2"/>
               <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
