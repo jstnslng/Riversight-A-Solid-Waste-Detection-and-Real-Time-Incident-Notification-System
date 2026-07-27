@@ -161,6 +161,17 @@ body {
   width: 100%;
   color: var(--ink);
 }
+.input-wrap select {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  padding: 11px 8px;
+  width: 100%;
+  color: var(--ink);
+  appearance: none;
+  cursor: pointer;
+}
 .toggle-visibility {
   cursor: pointer;
   display: flex;
@@ -168,6 +179,13 @@ body {
   color: var(--muted);
   background: none;
   border: none;
+}
+
+.field-error {
+  font-size: 11.5px;
+  color: #d33c3c;
+  margin-top: 6px;
+  min-height: 14px;
 }
 
 .remember-row {

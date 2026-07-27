@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiverSight — Monitoring Personnel Sign Up</title>
+<link rel="stylesheet" href="../css/Monitoring-SignUp.css">
+</head>
+<body>
+
+  <div class="topbar">Monitoring Personnel Sign Up Module</div>
+
+  <div class="bg-decor">
+    <div class="ring ring1"></div>
+    <div class="ring ring2"></div>
+    <div class="ring ring3"></div>
+    <div class="ring ring4"></div>
+  </div>
+
+  <div class="main">
+    <div class="card">
+      <div class="logo-badge">
+        <img src="../assets/Riversight-logo.png" alt="RiverSight logo">
+      </div>
+      <div class="brand-name">RiverSight</div>
+      <div class="brand-tagline">Creek Waterway Monitoring</div>
+
+      <form id="signupForm">
+        <div class="form-title">Create Monitoring Account</div>
+        <div class="form-subtitle">Register for field access to waterway monitoring and reporting tools.</div>
+
+        <div class="field">
+          <label for="fullname">Full Name</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+            <input type="text" id="fullname" name="fullname" placeholder="Juan Dela Cruz" autocomplete="name" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="username">Username</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="4" width="18" height="16" rx="2"/>
+              <path d="M3 8h18"/>
+            </svg>
+            <input type="text" id="username" name="username" placeholder="Choose a username" autocomplete="username" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="sector">Assigned Sector</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 21s7-6.3 7-11.5A7 7 0 0 0 5 9.5C5 14.7 12 21 12 21Z"/>
+              <circle cx="12" cy="9.5" r="2.4"/>
+            </svg>
+            <select id="sector" name="sector" required>
+              <option value="" disabled selected>Select sector</option>
+              <option value="north">Main North Inlet</option>
+              <option value="buwaya">Buwaya</option>
+              <option value="tres-kantos">Tres Kantos</option>
+              <option value="marilag">Marilag</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="5" y="11" width="14" height="9" rx="2"/>
+              <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+            </svg>
+            <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="new-password" required>
+            <button type="button" class="toggle-visibility" data-target="password" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="5" y="11" width="14" height="9" rx="2"/>
+              <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+            </svg>
+            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" autocomplete="new-password" required>
+            <button type="button" class="toggle-visibility" data-target="confirmPassword" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="field-error" id="passwordError"></div>
+        </div>
+
+        <div class="remember-row">
+          <input type="checkbox" id="terms" name="terms" required>
+          <label for="terms">I agree to the data handling and access policy</label>
+        </div>
+
+        <button type="submit" class="login-btn">
+          Create Account
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 6l6 6-6 6"/>
+          </svg>
+        </button>
+
+        <div class="signup-row">
+          Already have an account?
+          <a href="Monitoring-Login.html" class="signup-link">Log In</a>
+        </div>
+      </form>
+
+      <div class="card-footer">
+        <div class="avatar-stack">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="card-footer-text">QC River Monitoring Team Access Only</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-info">
+    Node: RV-MNL-00-WAR<br>
+    Audit Protocol #103 · Secure Bridge
+  </div>
+
+  <script>
+    document.querySelectorAll('.toggle-visibility').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.target);
+        input.type = input.type === 'password' ? 'text' : 'password';
+      });
+    });
+
+    document.getElementById('signupForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const errorEl = document.getElementById('passwordError');
+
+      if (password !== confirmPassword) {
+        errorEl.textContent = 'Passwords do not match.';
+        return;
+      }
+      errorEl.textContent = '';
+
+      // TODO: connect to RiverSight backend registration endpoint
+      window.location.href = 'Monitoring-Login.html';
+    });
+  </script>
+
+</body>
+</html>
