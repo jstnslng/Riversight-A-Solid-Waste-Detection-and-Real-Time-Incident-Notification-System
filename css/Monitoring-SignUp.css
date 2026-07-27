@@ -124,6 +124,12 @@ body {
   color: var(--ink);
   display: block;
   margin-bottom: 6px;
+  
+  .required {
+  color: #d33c3c;
+  margin-left: 2px;
+}
+
 }
 .forgot-link {
   font-size: 11.5px;
