@@ -48,9 +48,10 @@ body {
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  padding: 32px 18px 24px;
-  gap: 24px;
+  padding: 28px 18px 20px;
+  gap: 20px;
   flex-shrink: 0;
+  overflow-y: auto;
 }
 
 .brand {
@@ -99,25 +100,25 @@ body {
 .nav-menu {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 11px 16px;
+  gap: 12px;
+  padding: 10px 14px;
   border-radius: 10px;
   color: #4b5563;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   transition: all 0.15s ease;
 }
 
 .nav-item svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 
@@ -130,8 +131,8 @@ body {
 .map-layers-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .section-title {
@@ -146,7 +147,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 9px 12px;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
@@ -155,7 +156,7 @@ body {
 .layer-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .layer-item.active-sensors {
@@ -201,7 +202,7 @@ body {
   background-color: #f9fafb;
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -553,7 +554,6 @@ body {
   font-weight: 800;
 }
 
-/* Response Workflow Timeline */
 .workflow-section {
   display: flex;
   flex-direction: column;
@@ -658,7 +658,6 @@ body {
   height: 16px;
 }
 
-/* Location History Chart */
 .chart-section {
   border-top: 1px solid var(--border-color);
   padding-top: 14px;
