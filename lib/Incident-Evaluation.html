@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiverSight — Incident Evaluation Module</title>
+  <link rel="stylesheet" href="../css/Incident-Evaluation.css">
+</head>
+<body>
+
+  <div class="top-strip">Incident Evaluation Module</div>
+
+  <div class="layout">
+    
+   <aside class="sidebar">
+
+    <div class="brand">
+        <img src="../assets/Riversight-logo.png" class="brand-logo" alt="RiverSight logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="brand-logo-fallback" style="display:none;">RS</div>
+        <div class="brand-title">RiverSight</div>
+        <div class="brand-sub">CREEK WATERWAY MONITORING</div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="Live-Monitoring.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a>
+        <a href="Waste-Detection.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          Waste Detection
+        </a>
+        <a href="GIS-Monitoring.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          GIS Monitoring
+        </a>
+        <a href="Incident-Evaluation.html" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Incident Evaluation
+        </a>
+        <a href="Incident-Reports.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Incident Reports
+        </a>
+      </nav>
+
+      <div class="nodes-section">
+        <div class="section-title">ACTIVE NODE STATUS</div>
+        <div class="node-item">
+          <div class="node-left">
+            <span class="status-dot green"></span>
+            <span class="node-name">CAM-001</span>
+          </div>
+          <span class="node-badge green">MONITORING</span>
+        </div>
+        <div class="node-item">
+          <div class="node-left">
+            <span class="status-dot green"></span>
+            <span class="node-name">CAM-042</span>
+          </div>
+          <span class="node-badge orange">ALERTS ON</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+
+        <header class="header-bar">
+        <div class="breadcrumb">Monitoring &rsaquo; <strong>Incident Evaluation & Notification</strong></div>
+        <div class="header-right">
+          <button class="icon-btn">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span class="badge-count">2</span>
+          </button>
+          <div class="user-chip">
+            <img class="user-avatar" src="https://picsum.photos/seed/admin/80/80" alt="Admin Avatar">
+            <div class="user-info">
+              <div class="user-name">Admin Principal</div>
+              <div class="user-role">System Administrator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="console-header">
+        <div class="console-title">
+          <h1>Active Incident Console</h1>
+          <p>Evaluate real-time detections and escalate to local response units.</p>
+        </div>
+        <div class="threshold-badge">
+          ALERT TRIGGER SENSITIVITY
+          <span>Detection Threshold: &gt; 10 items</span>
+          <button>MODIFY</button>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        
+        <div class="card detection-card">
+          <div class="detection-header">
+            <div>
+              <div class="detection-id">Detection ID: EV-8892-X</div>
+              <div class="detection-sub">Captured by CAM-001 &bull; 15:42:01</div>
+            </div>
+            <span class="badge-critical">CRITICAL INCIDENT</span>
+          </div>
+
+          <div class="video-frame">
+            <img src="https://picsum.photos/seed/creek-waste/1000/600" alt="Camera Feed">
+            <div class="bounding-box">
+              <span class="bounding-label">High Density Waste Block - 99.1%</span>
+            </div>
+            <div class="live-badge">
+              <span class="live-dot-green"></span>
+              Live Stream Active
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="action-instruction">
+              <strong>Protocol Action</strong>
+              Select response for this detected anomaly.
+            </div>
+            <div class="action-buttons">
+              <button class="btn btn-secondary">Dismiss False Positive</button>
+              <button class="btn btn-warning">🚩 Flag for Review</button>
+              <button class="btn btn-danger">🚀 Escalate to LGU</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Incident Data</h2>
+          <div class="data-list">
+            <div class="data-row">
+              <span class="data-label">Location Node</span>
+              <span class="data-value">PH-MNL-QC (North)</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">AI Confidence Score</span>
+              <span class="data-value green">98.42%</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Est. Waste Volume</span>
+              <span class="data-value">&sim;12.5 kg (Massive)</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Primary Material</span>
+              <span class="data-value red">Mixed Plastic Poly</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Timestamp</span>
+              <span class="data-value">2023-10-19 15:42:01</span>
+            </div>
+          </div>
+
+          <div class="protocol-box">
+            <span>⚠️</span>
+            <div>
+              <strong>LGU Alert Protocol:</strong> This detection exceeds the safety threshold for Sector 4. Immediate intervention recommended.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card workflow-card">
+        <h3>Escalation Workflow Status</h3>
+        <div class="stepper">
+          <div class="stepper-line"></div>
+          <div class="stepper-progress"></div>
+          
+          <div class="step-item active">
+            <div class="step-icon">✓</div>
+            <span class="step-label">Detection Captured</span>
+          </div>
+          <div class="step-item">
+            <div class="step-icon">🔍</div>
+            <span class="step-label">Review Active</span>
+          </div>
+          <div class="step-item">
+            <div class="step-icon">🔔</div>
+            <span class="step-label">LGU Notification Sent</span>
+          </div>
+          <div class="step-item">
+            <div class="step-icon">✔</div>
+            <span class="step-label">Resolution Confirmed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-strip">
+        <div class="status-indicator">
+          <span class="status-dot green"></span>
+          <span>Incident Engine: ACTIVE</span>
+        </div>
+        <span class="critical-text">12 CRITICAL UNRESOLVED</span>
+        <span class="sync-text">LAST SYNC: 1s AGO</span>
+      </div>
+
+      <div class="dashboard-grid">
+        
+        <div class="card chart-card">
+          <h2>Severity Classification Trends</h2>
+          <p>Distribution of escalated incidents over last 7 days</p>
+
+          <div class="bar-chart">
+            <div class="chart-col">
+              <div class="bar-stack stack-60">
+                <div class="segment-blue seg-50"></div>
+                <div class="segment-yellow seg-30"></div>
+                <div class="segment-red seg-20"></div>
+              </div>
+              <span class="col-label">Mon</span>
+            </div>
+            <div class="chart-col">
+              <div class="bar-stack stack-70">
+                <div class="segment-blue seg-50"></div>
+                <div class="segment-yellow seg-30"></div>
+                <div class="segment-red seg-20"></div>
+              </div>
+              <span class="col-label">Tue</span>
+            </div>
+            <div class="chart-col">
+              <div class="bar-stack stack-75">
+                <div class="segment-blue seg-45"></div>
+                <div class="segment-yellow seg-35"></div>
+                <div class="segment-red seg-20"></div>
+              </div>
+              <span class="col-label">Wed</span>
+            </div>
+            <div class="chart-col">
+              <div class="bar-stack stack-85">
+                <div class="segment-blue seg-50"></div>
+                <div class="segment-yellow seg-30"></div>
+                <div class="segment-red seg-20"></div>
+              </div>
+              <span class="col-label">Thu</span>
+            </div>
+            <div class="chart-col">
+              <div class="bar-stack stack-95">
+                <div class="segment-blue seg-55"></div>
+                <div class="segment-yellow seg-30"></div>
+                <div class="segment-red seg-15"></div>
+              </div>
+              <span class="col-label">Fri</span>
+            </div>
+            <div class="chart-col">
+              <div class="bar-stack stack-90">
+                <div class="segment-blue seg-60"></div>
+                <div class="segment-yellow seg-25"></div>
+                <div class="segment-red seg-15"></div>
+              </div>
+              <span class="col-label">Sat</span>
+            </div>
+            <div class="chart-col">
+              <div class="bar-stack stack-80">
+                <div class="segment-blue seg-50"></div>
+                <div class="segment-yellow seg-30"></div>
+                <div class="segment-red seg-20"></div>
+              </div>
+              <span class="col-label">Sun</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Alert Configuration</h2>
+          
+          <div class="control-group">
+            <div class="control-label">
+              <span>Detection Volume Trigger</span>
+              <span class="highlight-val">10 Units</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill fill-60"></div>
+            </div>
+
+            <div class="control-label mt-10">
+              <span>Confidence Required</span>
+              <span class="highlight-val">85%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill fill-85"></div>
+            </div>
+
+            <button class="btn btn-full">Open Advanced Settings</button>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+</body>
+</html>
