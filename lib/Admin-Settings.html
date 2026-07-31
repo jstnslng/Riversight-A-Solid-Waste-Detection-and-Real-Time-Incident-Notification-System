@@ -95,8 +95,8 @@
           <div class="updated-row"><span class="live-dot"></span> Placeholder preferences ready for backend integration</div>
         </div>
         <div class="page-title-actions">
-          <button class="date-btn" type="button">Reset View</button>
-          <button class="export-btn" type="button">Save Settings</button>
+          <button class="secondary-btn" type="button">Reset to Default</button>
+          <button class="primary-btn" type="button">Save Settings</button>
         </div>
       </div>
 
@@ -107,20 +107,17 @@
               <h3>Account Settings</h3>
               <div class="card-sub">Credential changes for the current administrator account</div>
             </div>
+            <button class="secondary-btn" type="button" id="editInfoBtn">Change Information</button>
           </div>
 
           <div class="settings-columns">
             <label class="setting-row">
               <span>Change Username</span>
-              <input type="text" value="admin" placeholder="Change Username">
+              <input type="text" value="admin" placeholder="Change Username" id="accountUsername" disabled>
             </label>
             <label class="setting-row">
               <span>Change Email</span>
-              <input type="email" value="admin@riversight.gov.ph" placeholder="Change Email">
-            </label>
-            <label class="setting-row">
-              <span>Change Password</span>
-              <input type="password" value="placeholder-password" placeholder="Change Password">
+              <input type="email" value="admin@riversight.gov.ph" placeholder="Change Email" id="accountEmail" disabled>
             </label>
           </div>
         </section>
@@ -166,21 +163,21 @@
                 <strong>Email Notifications</strong>
                 <span>Placeholder toggle for account email alerts</span>
               </div>
-              <span class="toggle"></span>
+              <button type="button" class="toggle" aria-label="Toggle Email Notifications"></button>
             </div>
             <div class="switch-item">
               <div class="switch-copy">
                 <strong>System Alerts</strong>
                 <span>Placeholder toggle for platform maintenance warnings</span>
               </div>
-              <span class="toggle"></span>
+              <button type="button" class="toggle" aria-label="Toggle System Alerts"></button>
             </div>
             <div class="switch-item">
               <div class="switch-copy">
                 <strong>Detection Alerts</strong>
                 <span>Placeholder toggle for incident and waste detection notices</span>
               </div>
-              <span class="toggle"></span>
+              <button type="button" class="toggle" aria-label="Toggle Detection Alerts"></button>
             </div>
           </div>
         </section>
@@ -199,33 +196,78 @@
                 <strong>Two-Factor Authentication</strong>
                 <span>Placeholder setting for a second login verification step</span>
               </div>
-              <span class="toggle off"></span>
+              <button type="button" class="toggle off" aria-label="Toggle Two-Factor Authentication"></button>
             </div>
             <div class="switch-item">
               <div class="switch-copy">
                 <strong>Session Timeout</strong>
                 <span>Placeholder setting for automatic logout timing</span>
               </div>
-              <span class="toggle"></span>
+              <button type="button" class="toggle" aria-label="Toggle Session Timeout"></button>
             </div>
           </div>
 
           <div class="security-actions">
-            <button class="secondary-btn" type="button">Change Password</button>
+            <button class="secondary-btn" type="button" id="openPasswordModal">Change Password</button>
           </div>
 
           <div class="security-note">These controls are non-persistent placeholders until backend account preferences are connected.</div>
-
-          <div class="button-row">
-            <button class="secondary-btn" type="button">Reset to Default</button>
-            <button class="primary-btn" type="button">Save Settings</button>
-          </div>
         </section>
       </section>
     </main>
   </div>
 
+  <!-- Step 1: Confirmation Modal Popup -->
+  <div class="modal-overlay" id="confirmPasswordModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>Are you sure?</h3>
+        <button type="button" class="close-btn" id="closeConfirmModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description">
+          Are you sure you want to change your password? You will need to verify your current password in the next step.
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-btn" type="button" id="cancelConfirmModal">Cancel</button>
+        <button class="primary-btn" type="button" id="proceedPasswordModal">Yes, Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Change Password Modal Popup -->
+  <div class="modal-overlay" id="passwordModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>Change Password</h3>
+        <button type="button" class="close-btn" id="closePasswordModal">&times;</button>
+      </div>
+      <form id="changePasswordForm">
+        <div class="modal-body">
+          <label class="setting-row">
+            <span>Current Password</span>
+            <input type="password" placeholder="Enter current password" required>
+          </label>
+          <label class="setting-row">
+            <span>New Password</span>
+            <input type="password" placeholder="Enter new password" required>
+          </label>
+          <label class="setting-row">
+            <span>Confirm New Password</span>
+            <input type="password" placeholder="Confirm new password" required>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-btn" type="button" id="cancelPasswordModal">Cancel</button>
+          <button class="primary-btn" type="submit">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
+    // Profile Menu Toggle
     const profileMenu = document.querySelector('[data-profile-menu]');
     const profileToggle = document.querySelector('[data-profile-toggle]');
     const logoutLink = document.querySelector('[data-logout-link]');
@@ -257,6 +299,67 @@
       localStorage.removeItem('riversightAdminSession');
       sessionStorage.removeItem('riversightAdminSession');
       window.location.href = logoutLink.href;
+    });
+
+    // Toggle interactive functionality
+    document.querySelectorAll('.toggle').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        toggle.classList.toggle('off');
+      });
+    });
+
+    // Account settings information editing toggle
+    const editInfoBtn = document.getElementById('editInfoBtn');
+    const usernameInput = document.getElementById('accountUsername');
+    const emailInput = document.getElementById('accountEmail');
+
+    editInfoBtn.addEventListener('click', () => {
+      const isDisabled = usernameInput.disabled;
+      usernameInput.disabled = !isDisabled;
+      emailInput.disabled = !isDisabled;
+      editInfoBtn.textContent = isDisabled ? 'Lock Information' : 'Change Information';
+      if (isDisabled) usernameInput.focus();
+    });
+
+    // Confirmation & Password Modal Flow Logic
+    const confirmPasswordModal = document.getElementById('confirmPasswordModal');
+    const passwordModal = document.getElementById('passwordModal');
+    const openPasswordModalBtn = document.getElementById('openPasswordModal');
+    
+    // Step 1: Confirmation Modal Controls
+    const closeConfirmModalBtn = document.getElementById('closeConfirmModal');
+    const cancelConfirmModalBtn = document.getElementById('cancelConfirmModal');
+    const proceedPasswordModalBtn = document.getElementById('proceedPasswordModal');
+
+    // Step 2: Password Modal Controls
+    const closePasswordModalBtn = document.getElementById('closePasswordModal');
+    const cancelPasswordModalBtn = document.getElementById('cancelPasswordModal');
+
+    const openModal = (modal) => modal.classList.add('active');
+    const closeModal = (modal) => modal.classList.remove('active');
+
+    // Open Step 1 (Confirmation Modal)
+    openPasswordModalBtn.addEventListener('click', () => openModal(confirmPasswordModal));
+
+    // Cancel / Close Step 1 Modal
+    closeConfirmModalBtn.addEventListener('click', () => closeModal(confirmPasswordModal));
+    cancelConfirmModalBtn.addEventListener('click', () => closeModal(confirmPasswordModal));
+
+    // Confirm Step 1 -> Transition to Step 2 (Password Form)
+    proceedPasswordModalBtn.addEventListener('click', () => {
+      closeModal(confirmPasswordModal);
+      openModal(passwordModal);
+    });
+
+    // Cancel / Close Step 2 Modal
+    closePasswordModalBtn.addEventListener('click', () => closeModal(passwordModal));
+    cancelPasswordModalBtn.addEventListener('click', () => closeModal(passwordModal));
+
+    // Backdrop Click Handling
+    [confirmPasswordModal, passwordModal].forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal(modal);
+      });
     });
   </script>
 
