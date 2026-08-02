@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RiverSight — Monitoring Personnel Login</title>
-<link rel="stylesheet" href="../css/Monitoring-Login.css">
+<link rel="stylesheet" href="../../css/monitoring/Monitoring-Login.css">
+<link rel="stylesheet" href="../../css/shared/global.css">
 </head>
 <body>
 
@@ -20,14 +21,14 @@
   <div class="main">
     <div class="card">
       <div class="logo-badge">
-        <img src="../assets/Riversight-logo.png" alt="RiverSight logo">
+        <img src="../../assets/Riversight-logo.png" alt="RiverSight logo">
       </div>
       <div class="brand-name">RiverSight</div>
       <div class="brand-tagline">Creek Waterway Monitoring</div>
 
       <form id="loginForm">
         <div class="form-title">Monitoring Personnel Login</div>
-        <div class="form-subtitle">Secure access for waterway monitoring and field reporting.</div>
+        <div class="form-subtitle">Please enter your credentials to access the live monitor.</div>
 
         <div class="field">
           <label for="username">Username</label>
@@ -72,10 +73,10 @@
           </svg>
         </button>
 
-        <div class="signup-row">
+        <!-- <div class="signup-row">
           Don't have an account?
           <a href="Monitoring-SignUp.html" class="signup-link">Sign Up</a>
-        </div>
+        </div> -->
       </form>
 
       <div class="card-footer">
@@ -92,6 +93,7 @@
     Audit Protocol #103 · Secure Bridge
   </div>
 
+  <script src="../../js/shared/global.js"></script>
   <script>
     const pwInput = document.getElementById('password');
     const toggleBtn = document.getElementById('togglePw');
@@ -108,7 +110,7 @@
       } else {
         localStorage.removeItem('riversightMonitoringSession');
       }
-      window.location.href = 'Admin-Dashboard.html';
+      window.location.href = '../admin/Admin-Dashboard.html';
     });
   </script>
 

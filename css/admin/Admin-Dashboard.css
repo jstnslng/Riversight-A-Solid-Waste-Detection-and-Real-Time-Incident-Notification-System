@@ -273,11 +273,7 @@ body {
   flex-wrap: wrap;
   gap: 14px;
 }
-.page-title-row h1 { 
-  font-size: 24px; 
-  font-weight: 700; 
-}
-
+.page-title-row h1 { font-size: 24px; font-weight: 700; }
 .updated-row {
   font-size: 12px;
   color: var(--muted);
