@@ -267,7 +267,6 @@
   </div>
 
   <script>
-    // Profile Menu Toggle
     const profileMenu = document.querySelector('[data-profile-menu]');
     const profileToggle = document.querySelector('[data-profile-toggle]');
     const logoutLink = document.querySelector('[data-logout-link]');
@@ -301,14 +300,12 @@
       window.location.href = logoutLink.href;
     });
 
-    // Toggle interactive functionality
     document.querySelectorAll('.toggle').forEach(toggle => {
       toggle.addEventListener('click', () => {
         toggle.classList.toggle('off');
       });
     });
 
-    // Account settings information editing toggle
     const editInfoBtn = document.getElementById('editInfoBtn');
     const usernameInput = document.getElementById('accountUsername');
     const emailInput = document.getElementById('accountEmail');
@@ -321,41 +318,33 @@
       if (isDisabled) usernameInput.focus();
     });
 
-    // Confirmation & Password Modal Flow Logic
     const confirmPasswordModal = document.getElementById('confirmPasswordModal');
     const passwordModal = document.getElementById('passwordModal');
     const openPasswordModalBtn = document.getElementById('openPasswordModal');
     
-    // Step 1: Confirmation Modal Controls
     const closeConfirmModalBtn = document.getElementById('closeConfirmModal');
     const cancelConfirmModalBtn = document.getElementById('cancelConfirmModal');
     const proceedPasswordModalBtn = document.getElementById('proceedPasswordModal');
 
-    // Step 2: Password Modal Controls
     const closePasswordModalBtn = document.getElementById('closePasswordModal');
     const cancelPasswordModalBtn = document.getElementById('cancelPasswordModal');
 
     const openModal = (modal) => modal.classList.add('active');
     const closeModal = (modal) => modal.classList.remove('active');
 
-    // Open Step 1 (Confirmation Modal)
     openPasswordModalBtn.addEventListener('click', () => openModal(confirmPasswordModal));
 
-    // Cancel / Close Step 1 Modal
     closeConfirmModalBtn.addEventListener('click', () => closeModal(confirmPasswordModal));
     cancelConfirmModalBtn.addEventListener('click', () => closeModal(confirmPasswordModal));
 
-    // Confirm Step 1 -> Transition to Step 2 (Password Form)
     proceedPasswordModalBtn.addEventListener('click', () => {
       closeModal(confirmPasswordModal);
       openModal(passwordModal);
     });
 
-    // Cancel / Close Step 2 Modal
     closePasswordModalBtn.addEventListener('click', () => closeModal(passwordModal));
     cancelPasswordModalBtn.addEventListener('click', () => closeModal(passwordModal));
 
-    // Backdrop Click Handling
     [confirmPasswordModal, passwordModal].forEach(modal => {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) closeModal(modal);
