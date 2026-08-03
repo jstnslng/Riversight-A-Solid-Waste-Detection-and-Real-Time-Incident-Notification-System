@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RiverSight — Profile</title>
-<link rel="stylesheet" href="../../css/admin/Admin-Dashboard.css">
-<link rel="stylesheet" href="../../css/admin/Admin-Profile.css">
-<link rel="stylesheet" href="../../css/shared/global.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiverSight — Profile</title>
+  <link rel="stylesheet" href="../../css/admin/Admin-Dashboard.css">
+  <link rel="stylesheet" href="../../css/admin/Admin-Profile.css">
+  <link rel="stylesheet" href="../../css/shared/global.css">
+  <script type="module" src="../../js/admin/admin-profile.js"></script>
 </head>
+
 <body>
 
   <div class="topbar">Administrator Profile</div>
@@ -22,19 +25,37 @@
 
       <nav class="nav">
         <a href="./Admin-Dashboard.html" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
           Dashboard
         </a>
         <a href="./UserManagement.html" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M14.8 14.2c2.4.2 4.7 2.3 4.7 5.8"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="8" cy="8" r="3.2" />
+            <path d="M2.5 20c0-3.6 2.7-6 5.5-6s5.5 2.4 5.5 6" />
+            <circle cx="17" cy="9" r="2.6" />
+            <path d="M14.8 14.2c2.4.2 4.7 2.3 4.7 5.8" />
+          </svg>
           User Management
         </a>
         <a href="./Admin-Reports.html" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M15 2.5V7h4"/><path d="M8 12h8M8 15.5h8M8 18.5h5"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z" />
+            <path d="M15 2.5V7h4" />
+            <path d="M8 12h8M8 15.5h8M8 18.5h5" />
+          </svg>
           Reports
         </a>
         <a href="./Admin-System-Monitoring.html" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="2.6" />
+            <path
+              d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z" />
+          </svg>
           System Monitoring
         </a>
       </nav>
@@ -48,22 +69,34 @@
       </div>
     </aside>
 
-    <main class="main">
+    <div id="loadingOverlay"
+      style="display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif;">
+      <p>Loading profile details...</p>
+    </div>
+
+    <main class="main" id="profileMain" style="display: none;">
       <header class="header-row">
-        <div class="breadcrumb">Home <span>›</span> <strong>Profile</strong></div>
+        <div class="breadcrumb">Home <span></span> <strong>Profile</strong></div>
 
         <div class="search-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
           <input type="text" placeholder="Search profile, station, settings...">
         </div>
 
         <div class="header-right">
           <button class="icon-btn" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+            </svg>
             <span class="badge">2</span>
           </button>
           <div class="profile-menu" data-profile-menu>
-            <button class="user-chip user-chip-button" type="button" data-profile-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Open profile menu">
+            <button class="user-chip user-chip-button" type="button" data-profile-toggle aria-haspopup="menu"
+              aria-expanded="false" aria-label="Open profile menu">
               <img src="../../assets/admin-profile-pic.jpg" alt="Admin avatar">
               <div>
                 <div class="user-name">Admin</div>
@@ -73,16 +106,27 @@
 
             <div class="profile-dropdown" role="menu" aria-label="Profile menu">
               <a href="./Admin-Profile.html" role="menuitem">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
                 Profile
               </a>
               <a href="./Admin-Settings.html" role="menuitem">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <circle cx="12" cy="12" r="2.6" />
+                  <path
+                    d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z" />
+                </svg>
                 Settings
               </a>
               <div class="dropdown-divider"></div>
               <a href="./Admin-Login.html" class="danger" role="menuitem" data-logout-link>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 16l-4-4 4-4"/><path d="M6 12h11"/><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M10 16l-4-4 4-4" />
+                  <path d="M6 12h11" />
+                  <path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" />
+                </svg>
                 Logout
               </a>
             </div>
@@ -93,7 +137,8 @@
       <div class="page-title-row">
         <div>
           <h1>Profile Overview</h1>
-          <div class="updated-row"><span class="live-dot"></span> Placeholder account data ready for backend binding</div>
+          <div class="updated-row"><span class="live-dot"></span> Placeholder account data ready for backend binding
+          </div>
         </div>
         <div class="page-title-actions">
           <button class="date-btn" type="button" data-edit-profile>Edit Profile</button>
@@ -138,7 +183,8 @@
             </label>
             <label class="field-group">
               <span>Email Address</span>
-              <input type="email" value="admin@riversight.gov.ph" placeholder="Email Address" data-editable-field disabled>
+              <input type="email" value="admin@riversight.gov.ph" placeholder="Email Address" data-editable-field
+                disabled>
             </label>
             <label class="field-group">
               <span>Phone Number</span>
@@ -188,90 +234,7 @@
     </main>
   </div>
 
-  <script>
-    const profileMenu = document.querySelector('[data-profile-menu]');
-    const profileToggle = document.querySelector('[data-profile-toggle]');
-    const logoutLink = document.querySelector('[data-logout-link]');
-    const editButton = document.querySelector('[data-edit-profile]');
-    const saveButton = document.querySelector('[data-save-profile]');
-    const cancelButton = document.querySelector('[data-cancel-profile]');
-    const editableFields = Array.from(document.querySelectorAll('[data-editable-field]'));
-    const systemFields = Array.from(document.querySelectorAll('[data-system-field]'));
-    const originalValues = editableFields.map((field) => field.value);
-    let isEditing = false;
-
-    const setEditingState = (editing) => {
-      isEditing = editing;
-      editableFields.forEach((field) => {
-        field.disabled = !editing;
-      });
-
-      systemFields.forEach((field) => {
-        field.readOnly = true;
-      });
-
-      editButton.style.display = editing ? 'none' : '';
-      if (editing) {
-        saveButton.removeAttribute('hidden');
-        cancelButton.removeAttribute('hidden');
-      } else {
-        saveButton.setAttribute('hidden', '');
-        cancelButton.setAttribute('hidden', '');
-      }
-    };
-
-    const restoreOriginalValues = () => {
-      editableFields.forEach((field, index) => {
-        field.value = originalValues[index];
-      });
-    };
-
-    const closeProfileMenu = () => {
-      profileMenu.classList.remove('open');
-      profileToggle.setAttribute('aria-expanded', 'false');
-    };
-
-    profileToggle.addEventListener('click', () => {
-      const isOpen = profileMenu.classList.toggle('open');
-      profileToggle.setAttribute('aria-expanded', String(isOpen));
-    });
-
-    document.addEventListener('click', (event) => {
-      if (!profileMenu.contains(event.target)) {
-        closeProfileMenu();
-      }
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        closeProfileMenu();
-      }
-    });
-
-    editButton.addEventListener('click', () => {
-      setEditingState(true);
-    });
-
-    saveButton.addEventListener('click', () => {
-      originalValues.splice(0, originalValues.length, ...editableFields.map((field) => field.value));
-      setEditingState(false);
-    });
-
-    cancelButton.addEventListener('click', () => {
-      restoreOriginalValues();
-      setEditingState(false);
-    });
-
-    setEditingState(false);
-
-    logoutLink.addEventListener('click', (event) => {
-      event.preventDefault();
-      localStorage.removeItem('riversightAdminSession');
-      sessionStorage.removeItem('riversightAdminSession');
-      window.location.href = logoutLink.href;
-    });
-  </script>
-
-<script src="../../js/shared/global.js"></script>
+  <script src="../../js/shared/global.js"></script>
 </body>
+
 </html>

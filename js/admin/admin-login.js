@@ -1,6 +1,3 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import {
     signInWithEmailAndPassword,
     setPersistence,
@@ -8,6 +5,7 @@ import {
     browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { auth, db } from "../shared/firebase-config.js";
 
 // firebase initialization
 const firebaseConfig = {
@@ -19,10 +17,6 @@ const firebaseConfig = {
     appId: "1:121340461725:web:a3cfe19a633780b98d8a74",
     measurementId: "G-8YPDR5JWXW"
 };
-
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
 
 // authentication
 const loginForm = document.getElementById('loginForm');
