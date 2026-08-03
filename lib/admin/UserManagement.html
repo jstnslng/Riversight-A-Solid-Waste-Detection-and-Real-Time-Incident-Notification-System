@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../../css/admin/Admin-Dashboard.css">
 <link rel="stylesheet" href="../../css/admin/UserManagement.css">
 <link rel="stylesheet" href="../../css/shared/global.css">
+<script type="module" src="../../js/admin/usermanagement.js" defer></script>
 </head>
 <body>
 
@@ -49,10 +50,15 @@
       </div>
     </aside>
 
-    <main class="main">
+    <div id="loadingOverlay"
+      style="display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: sans-serif;">
+      <p>Loading profile details...</p>
+    </div>
+
+    <main class="main" id="usermanagement-Main" style="display: none;">
 
       <header class="header-row">
-        <div class="breadcrumb">Home <span>›</span> <strong>User Management</strong></div>
+        <div class="breadcrumb">Home <span></span> <strong>User Management</strong></div>
 
         <div class="search-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -294,64 +300,6 @@
 
     </main>
   </div>
-
-  <script>
-    const toggles = document.querySelectorAll('.table-toggles .toggle-pill');
-    const rows = document.querySelectorAll('#userTable tbody tr');
-
-    toggles.forEach(btn => {
-      btn.addEventListener('click', () => {
-        toggles.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const filter = btn.dataset.filter;
-
-        rows.forEach(row => {
-          if (filter === 'all' || row.dataset.status === filter) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
-        });
-      });
-    });
-
-    document.getElementById('addUserBtn').addEventListener('click', () => {
-      alert('Connect this button to your backend "create user" endpoint.');
-    });
-
-    const profileMenu = document.querySelector('[data-profile-menu]');
-    const profileToggle = document.querySelector('[data-profile-toggle]');
-    const logoutLink = document.querySelector('[data-logout-link]');
-
-    const closeProfileMenu = () => {
-      profileMenu.classList.remove('open');
-      profileToggle.setAttribute('aria-expanded', 'false');
-    };
-
-    profileToggle.addEventListener('click', () => {
-      const isOpen = profileMenu.classList.toggle('open');
-      profileToggle.setAttribute('aria-expanded', String(isOpen));
-    });
-
-    document.addEventListener('click', (event) => {
-      if (!profileMenu.contains(event.target)) {
-        closeProfileMenu();
-      }
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        closeProfileMenu();
-      }
-    });
-
-    logoutLink.addEventListener('click', (event) => {
-      event.preventDefault();
-      localStorage.removeItem('riversightAdminSession');
-      sessionStorage.removeItem('riversightAdminSession');
-      window.location.href = logoutLink.href;
-    });
-  </script>
 
 <script src="../../js/shared/global.js"></script>
 </body>
