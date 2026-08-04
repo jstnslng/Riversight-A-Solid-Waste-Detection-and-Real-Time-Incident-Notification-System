@@ -142,7 +142,7 @@ body {
 
 .charts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; }
 .chart-card { min-height: 270px; }
-.trend-chart { width: 100%; height: 180px; margin-top: 8px; }
+.chart-canvas { width: 100%; height: 180px; margin-top: 8px; }
 .axis-label { font-size: 8.5px; fill: var(--muted); }
 .bar-chart, .camera-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 .bar-row, .camera-bar {
@@ -218,6 +218,6 @@ body {
   .field-wide { grid-column: span 1; }
   .page-title-actions { width: 100%; }
   .export-actions { margin-left: 0; }
-  .export-btn, .ghost-btn { flex: 1 1 120px; }
+  .export-btn, .ghost-btn, .forecast-toggle { flex: 1 1 120px; }
   .table-card .card-head { padding: 0 16px; }
 }

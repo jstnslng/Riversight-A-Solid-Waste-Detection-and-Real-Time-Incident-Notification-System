@@ -1,0 +1,135 @@
+/* Audit Trail page-specific overrides built on the shared admin dashboard and reports styles. */
+
+.stats-grid {
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 18px;
+}
+
+.audit-card {
+  margin-bottom: 18px;
+}
+
+.audit-card .card-head {
+  margin-bottom: 12px;
+}
+
+.audit-model-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.audit-model-item {
+  background: #fafafa;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.audit-model-item h4 {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.audit-model-path {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #efefef;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.audit-model-item ul {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.audit-model-item li strong {
+  color: var(--ink);
+}
+
+.audit-table .audit-action-badge,
+.audit-table .audit-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.audit-action-badge.login { background: #eef7ef; color: var(--green); }
+.audit-action-badge.logout { background: #fbeaea; color: var(--red); }
+.audit-action-badge.profile { background: #eaf1fb; color: var(--blue); }
+.audit-action-badge.export { background: #fff7e6; color: var(--orange); }
+.audit-action-badge.incident { background: #fbeaea; color: var(--red); }
+.audit-action-badge.camera { background: #f1f1f1; color: #555; }
+.audit-action-badge.config { background: #f1eafb; color: #7a3fd6; }
+
+.audit-status-badge.success { background: #eef7ef; color: var(--green); }
+.audit-status-badge.review { background: #fff7e6; color: var(--orange); }
+.audit-status-badge.failed { background: #fbeaea; color: var(--red); }
+.audit-status-badge.recorded { background: #eef1fb; color: var(--blue); }
+
+.audit-user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.audit-user-cell .u-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.audit-user-cell .u-email {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.audit-target {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.audit-target strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.audit-target span {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.audit-footer-note {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+
+@media (max-width: 1100px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .audit-model-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

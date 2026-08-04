@@ -1,26 +1,23 @@
-import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { auth, db } from "../shared/firebase-config.js";
 
 const loadingOverlay = document.getElementById('loadingOverlay');
 const mainContent = document.getElementById('profileMain');
 
-const fullNameInput = document.querySelector('input[placeholder="Full Name"]');
 const usernameInput = document.querySelector('input[placeholder="Username"]');
 const emailInput = document.querySelector('input[placeholder="Email Address"]');
 const phoneInput = document.querySelector('input[placeholder="Phone Number"]');
-const roleInput = document.querySelector('input[value="System Administrator"]');
-const stationInput = document.querySelector('input[value="PH-MNL-QC"]');
 
 const heroName = document.querySelector('.profile-summary h2');
-const heroRole = document.querySelector('.profile-summary .card-sub');
-const heroStation = document.querySelector('.profile-summary .meta-line');
+const heroStatus = document.querySelector('[data-profile-status]');
+const heroRole = document.querySelector('[data-profile-role]');
+const heroStation = document.querySelector('[data-profile-station]');
+const heroLastLogin = document.querySelector('[data-profile-last-login]');
 const headerName = document.querySelector('.user-name');
 const headerRole = document.querySelector('.user-role');
-const userIdPill = document.querySelector('.pill-red');
-const userIdDisplay = document.querySelectorAll('.info-item strong')[1];
-const dateJoinedDisplay = document.querySelectorAll('.info-item strong')[2];
-const lastLoginDisplay = document.querySelectorAll('.info-item strong')[3];
+const userIdDisplay = document.querySelector('[data-profile-user-id]');
+const dateJoinedDisplay = document.querySelector('[data-profile-date-joined]');
 
 const editButton = document.querySelector('[data-edit-profile]');
 const saveButton = document.querySelector('[data-save-profile]');
@@ -32,6 +29,7 @@ const profileToggle = document.querySelector('[data-profile-toggle]');
 
 let currentUserRef = null;
 let originalValues = [];
+const editableFields = [usernameInput, emailInput, phoneInput].filter(Boolean);
 
 function formatTimestamp(timestamp) {
     if (!timestamp) return 'N/A';
@@ -98,30 +96,27 @@ onAuthStateChanged(auth, async (user) => {
             return;
         }
 
-        fullNameInput.value = data.fullname || '';
         usernameInput.value = data.username || '';
         emailInput.value = data.email_address || user.email || '';
         phoneInput.value = data.phone_no || '';
-        roleInput.value = data.role || '';
-        stationInput.value = data.assigned_station || '';
 
-        heroName.textContent = data.fullname || '';
-        heroRole.textContent = data.role || '';
-        heroStation.textContent = `Assigned monitoring station: ${data.assigned_station || ''}`;
-        headerName.textContent = data.fullname || '';
-        headerRole.textContent = data.role || '';
+        const accountStatus = data.status || 'Active';
+        const fullName = data.fullname || 'Administrator';
+        const role = data.role || 'System Administrator';
+        const assignedStation = data.assigned_station || 'PH-MNL-QC';
 
-        if (userIdPill) userIdPill.textContent = `User ID: ${user.uid.substring(0, 8)}`;
+        if (heroStatus) heroStatus.textContent = accountStatus;
+        heroName.textContent = fullName;
+        if (heroRole) heroRole.textContent = role;
+        if (heroStation) heroStation.textContent = `Assigned monitoring station: ${assignedStation}`;
+        if (heroLastLogin) heroLastLogin.textContent = `Last login: ${formatTimestamp(data.last_login)}`;
+        headerName.textContent = fullName;
+        headerRole.textContent = role;
+
         if (userIdDisplay) userIdDisplay.textContent = user.uid.substring(0, 8);
         if (dateJoinedDisplay) dateJoinedDisplay.textContent = formatTimestamp(data.date_joined);
-        if (lastLoginDisplay) lastLoginDisplay.textContent = formatTimestamp(data.last_login);
 
-        originalValues = [
-            fullNameInput.value,
-            usernameInput.value,
-            emailInput.value,
-            phoneInput.value
-        ];
+        originalValues = editableFields.map(field => field.value);
 
         if (loadingOverlay) loadingOverlay.style.display = 'none';
         if (mainContent) mainContent.style.display = 'block';
@@ -133,7 +128,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 function setEditingState(isEditing) {
-    [fullNameInput, usernameInput, emailInput, phoneInput].forEach(field => {
+    editableFields.forEach(field => {
         field.disabled = !isEditing;
     });
 
@@ -145,7 +140,9 @@ function setEditingState(isEditing) {
 editButton.addEventListener('click', () => setEditingState(true));
 
 cancelButton.addEventListener('click', () => {
-    [fullNameInput.value, usernameInput.value, emailInput.value, phoneInput.value] = originalValues;
+    editableFields.forEach((field, index) => {
+        field.value = originalValues[index] || '';
+    });
     setEditingState(false);
 });
 
@@ -157,7 +154,6 @@ saveButton.addEventListener('click', async () => {
 
     try {
         const updatedData = {
-            fullname: fullNameInput.value.trim(),
             username: usernameInput.value.trim(),
             email_address: emailInput.value.trim(),
             phone_no: phoneInput.value.trim()
@@ -165,9 +161,7 @@ saveButton.addEventListener('click', async () => {
 
         await updateDoc(currentUserRef, updatedData);
 
-        originalValues = [updatedData.fullname, updatedData.username, updatedData.email_address, updatedData.phone_no];
-        heroName.textContent = updatedData.fullname;
-        headerName.textContent = updatedData.fullname;
+        originalValues = editableFields.map(field => field.value);
 
         setEditingState(false);
     } catch (error) {
