@@ -1,6 +1,12 @@
-import { collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { auth, db } from "../shared/firebase-config.js";
+import { collection, getDocs, doc, deleteDoc, updateDoc, addDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signOut as authSignOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { auth, db, firebaseConfig } from "../shared/firebase-config.js";
 
 const loadingOverlay = document.getElementById('loadingOverlay');
 const mainContent = document.getElementById('usermanagement-Main');
@@ -20,6 +26,19 @@ const activeNowStat = document.querySelectorAll('.stat-value')[1];
 const adminsStat = document.querySelectorAll('.stat-value')[2];
 const pendingStat = document.querySelectorAll('.stat-value')[3];
 const totalAccountsSub = document.querySelector('.updated-row');
+
+const addUserBtn = document.getElementById('addUserBtn');
+const addUserModal = document.getElementById('addUserModal');
+const addUserForm = document.getElementById('addUserForm');
+const closeAddModalBtn = document.getElementById('closeAddModalBtn');
+const cancelAddBtn = document.getElementById('cancelAddBtn');
+
+const statusFilterSelect = document.getElementById('statusFilterSelect');
+const roleFilterSelect = document.getElementById('roleFilterSelect');
+const barangayFilterSelect = document.getElementById('barangayFilterSelect');
+
+const secondaryApp = initializeApp(firebaseConfig, "SecondaryAuthApp");
+const secondaryAuth = getAuth(secondaryApp);
 
 let allUsersData = [];
 let currentFilter = 'all';
@@ -48,8 +67,8 @@ function formatLastActive(timestamp) {
 function getRoleBadgeClass(role = '') {
     const r = role.toLowerCase();
     if (r.includes('admin')) return 'admin';
-    if (r.includes('operator')) return 'operator';
-    return 'operator';
+    if (r.includes('monitoring')) return 'monitoring';
+    return 'monitoring';
 }
 
 function renderUsersTable(usersToRender) {
@@ -116,23 +135,46 @@ function updateStats(users) {
 }
 
 function applyFilters() {
-    const query = (globalSearchInput?.value || '').toLowerCase().trim();
+    const searchQuery = (globalSearchInput?.value || '').toLowerCase().trim();
+    const selectedStatus = (statusFilterSelect?.value || 'all').toLowerCase();
+    const selectedRole = (roleFilterSelect?.value || 'all').toLowerCase();
+    const selectedBarangay = (barangayFilterSelect?.value || 'all').toLowerCase();
 
-    const filtered = allUsersData.filter(user => {
-        const statusMatch = currentFilter === 'all' || (user.status || 'active').toLowerCase() === currentFilter;
+    const filteredUsers = allUsersData.filter(user => {
+        const userStatus = (user.status || 'active').toLowerCase();
+        const statusMatch = (selectedStatus === 'all') || (userStatus === selectedStatus);
+
+        const userRole = (user.role || '').toLowerCase();
+        const roleMatch = (selectedRole === 'all') || userRole.includes(selectedRole);
+
+        const userBarangay = (user.barangay || '').toLowerCase();
+        const userStation = (user.assigned_station || '').toLowerCase();
+        const barangayMatch = (selectedBarangay === 'all') ||
+            userBarangay.includes(selectedBarangay) ||
+            userStation.includes(selectedBarangay);
 
         const name = (user.fullname || '').toLowerCase();
         const email = (user.email_address || user.email || '').toLowerCase();
-        const sector = (user.assigned_station || user.assigned_sector || '').toLowerCase();
-        const role = (user.role || '').toLowerCase();
+        const username = (user.username || '').toLowerCase();
 
-        const searchMatch = !query || name.includes(query) || email.includes(query) || sector.includes(query) || role.includes(query);
+        const searchMatch = !searchQuery ||
+            name.includes(searchQuery) ||
+            email.includes(searchQuery) ||
+            username.includes(searchQuery) ||
+            userBarangay.includes(searchQuery) ||
+            userStation.includes(searchQuery) ||
+            userRole.includes(searchQuery);
 
-        return statusMatch && searchMatch;
+        return statusMatch && roleMatch && barangayMatch && searchMatch;
     });
 
-    renderUsersTable(filtered);
+    renderUsersTable(filteredUsers);
 }
+
+statusFilterSelect?.addEventListener('change', applyFilters);
+roleFilterSelect?.addEventListener('change', applyFilters);
+barangayFilterSelect?.addEventListener('change', applyFilters);
+globalSearchInput?.addEventListener('input', applyFilters);
 
 async function fetchUsers() {
     try {
@@ -181,7 +223,8 @@ function attachRowActionListeners() {
     document.querySelectorAll('.edit-user-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const userId = e.currentTarget.dataset.id;
-            alert(`Edit user modal/action triggered for ID: ${userId}`);
+            const targetUser = allUsersData.find(u => u.id === userId);
+            if (targetUser) openEditModal(targetUser);
         });
     });
 }
@@ -208,10 +251,6 @@ if (globalSearchInput) {
     globalSearchInput.addEventListener('input', applyFilters);
 }
 
-document.getElementById('addUserBtn')?.addEventListener('click', () => {
-    alert('Trigger Add User Modal / Navigation');
-});
-
 const closeProfileMenu = () => {
     if (profileMenu && profileToggle) {
         profileMenu.classList.remove('open');
@@ -234,6 +273,131 @@ if (profileToggle && profileMenu) {
         if (e.key === 'Escape') closeProfileMenu();
     });
 }
+
+function openEditModal(user) {
+    document.getElementById('editUserId').value = user.id;
+    document.getElementById('editUsername').value = user.username || '';
+    document.getElementById('editFullname').value = user.fullname || '';
+    document.getElementById('editEmail').value = user.email_address || user.email || '';
+    document.getElementById('editPhone').value = user.phone_no || '';
+    document.getElementById('editBarangay').value = user.barangay || 'Bagumbuhay';
+    document.getElementById('editStatus').value = (user.status || 'active').toLowerCase();
+    document.getElementById('editAssignedStation').value = user.assigned_station || 'PH-MNL-QC';
+
+    editUserModal.style.display = 'flex';
+}
+
+function closeEditModal() {
+    editUserModal.style.display = 'none';
+    editUserForm.reset();
+}
+
+editUserForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const userId = document.getElementById('editUserId').value;
+    const updatedPayload = {
+        username: document.getElementById('editUsername').value.trim(),
+        fullname: document.getElementById('editFullname').value.trim(),
+        email_address: document.getElementById('editEmail').value.trim(),
+        phone_no: document.getElementById('editPhone').value.trim(),
+        barangay: document.getElementById('editBarangay').value,
+        status: document.getElementById('editStatus').value,
+        assigned_station: document.getElementById('editAssignedStation').value
+    };
+
+    const saveBtn = document.getElementById('saveEditBtn');
+    saveBtn.disabled = true;
+    saveBtn.innerText = 'Saving...';
+
+    try {
+        const userDocRef = doc(db, "users", userId);
+        await updateDoc(userDocRef, updatedPayload);
+
+        const index = allUsersData.findIndex(u => u.id === userId);
+        if (index !== -1) {
+            allUsersData[index] = { ...allUsersData[index], ...updatedPayload };
+        }
+
+        updateStats(allUsersData);
+        applyFilters();
+        closeEditModal();
+    } catch (err) {
+        console.error("Error updating user document:", err);
+        alert("Failed to update user record.");
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'Save Changes';
+    }
+});
+
+closeEditModalBtn?.addEventListener('click', closeEditModal);
+cancelEditBtn?.addEventListener('click', closeEditModal);
+
+function openAddModal() {
+    if (addUserModal) addUserModal.style.display = 'flex';
+}
+
+function closeAddModal() {
+    if (addUserModal) {
+        addUserModal.style.display = 'none';
+        addUserForm.reset();
+    }
+}
+
+addUserBtn?.addEventListener('click', openAddModal);
+closeAddModalBtn?.addEventListener('click', closeAddModal);
+cancelAddBtn?.addEventListener('click', closeAddModal);
+
+addUserForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const saveAddBtn = document.getElementById('saveAddBtn');
+    saveAddBtn.disabled = true;
+    saveAddBtn.innerText = 'Creating...';
+
+    const email = document.getElementById('addEmail').value.trim();
+    const password = document.getElementById('addPassword').value;
+
+    try {
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        const newUid = userCredential.user.uid;
+
+        await authSignOut(secondaryAuth);
+
+        const newUserPayload = {
+            username: document.getElementById('addUsername').value.trim(),
+            fullname: document.getElementById('addFullname').value.trim(),
+            email_address: email,
+            phone_no: document.getElementById('addPhone').value.trim(),
+            role: document.getElementById('addRole').value,
+            barangay: document.getElementById('addBarangay').value,
+            status: document.getElementById('addStatus').value,
+            assigned_station: document.getElementById('addAssignedStation').value,
+            created_at: serverTimestamp(),
+            last_login: null
+        };
+
+        await setDoc(doc(db, "users", newUid), newUserPayload);
+
+        allUsersData.unshift({
+            id: newUid,
+            ...newUserPayload
+        });
+
+        updateStats(allUsersData);
+        applyFilters();
+        closeAddModal();
+        alert("User account successfully created!");
+
+    } catch (err) {
+        console.error("Error creating user in Auth/Firestore:", err);
+        alert(`Failed to create user: ${err.message}`);
+    } finally {
+        saveAddBtn.disabled = false;
+        saveAddBtn.innerText = 'Create User';
+    }
+});
 
 if (logoutLink) {
     logoutLink.addEventListener('click', async (e) => {
