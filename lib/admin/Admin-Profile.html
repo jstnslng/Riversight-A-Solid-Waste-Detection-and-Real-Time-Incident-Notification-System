@@ -58,6 +58,10 @@
           </svg>
           System Monitoring
         </a>
+        <a href="./Admin-Audit-Trail.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4"/><path d="M9 12h6M9 15.5h6M9 19h3"/></svg>
+          Audit Trail
+        </a>
       </nav>
 
       <div class="sidebar-footer">
@@ -151,14 +155,11 @@
         <div class="profile-hero">
           <img class="profile-avatar" src="../../assets/admin-profile-pic.jpg" alt="Admin profile picture">
           <div class="profile-summary">
-            <span class="status-pill">Active</span>
+            <span class="status-pill" data-profile-status>Active</span>
             <h2>Admin</h2>
-            <div class="card-sub">System Administrator</div>
-            <div class="meta-line">Assigned monitoring station: PH-MNL-QC</div>
-            <div class="summary-pills">
-              <span class="pill-red">User ID: ADM-0001</span>
-              <span class="status-pill">Last login: Just now</span>
-            </div>
+            <div class="card-sub" data-profile-role>System Administrator</div>
+            <div class="meta-line" data-profile-station>Assigned monitoring station: PH-MNL-QC</div>
+            <div class="meta-line" data-profile-last-login>Last login: Just now</div>
           </div>
         </div>
       </section>
@@ -168,15 +169,11 @@
           <div class="card-head">
             <div>
               <h3>Profile Information</h3>
-              <div class="card-sub">Core account details and monitoring assignment</div>
+              <div class="card-sub">Editable contact details for the current administrator account</div>
             </div>
           </div>
 
           <div class="profile-details">
-            <label class="field-group">
-              <span>Full Name</span>
-              <input type="text" value="Admin User" placeholder="Full Name" data-editable-field disabled>
-            </label>
             <label class="field-group">
               <span>Username</span>
               <input type="text" value="admin" placeholder="Username" data-editable-field disabled>
@@ -190,14 +187,6 @@
               <span>Phone Number</span>
               <input type="tel" value="+63 912 345 6789" placeholder="Phone Number" data-editable-field disabled>
             </label>
-            <label class="field-group">
-              <span>Role</span>
-              <input type="text" value="System Administrator" readonly data-system-field>
-            </label>
-            <label class="field-group">
-              <span>Assigned Monitoring Station</span>
-              <input type="text" value="PH-MNL-QC" readonly data-system-field>
-            </label>
           </div>
         </section>
 
@@ -205,27 +194,19 @@
           <div class="card-head">
             <div>
               <h3>Account Information</h3>
-              <div class="card-sub">Access state and identity reference</div>
+              <div class="card-sub">Identity reference and onboarding metadata</div>
             </div>
           </div>
 
           <div class="account-details">
             <div class="info-grid">
               <div class="info-item">
-                <span>Account Status</span>
-                <strong>Active</strong>
-              </div>
-              <div class="info-item">
                 <span>User ID</span>
-                <strong>ADM-0001</strong>
+                <strong data-profile-user-id>ADM-0001</strong>
               </div>
               <div class="info-item">
                 <span>Date Joined</span>
-                <strong>May 12, 2025</strong>
-              </div>
-              <div class="info-item">
-                <span>Last Login</span>
-                <strong>Jul 17, 2026 14:32</strong>
+                <strong data-profile-date-joined>May 12, 2025</strong>
               </div>
             </div>
           </div>
