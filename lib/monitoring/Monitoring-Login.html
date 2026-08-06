@@ -6,6 +6,7 @@
 <title>RiverSight — Monitoring Personnel Login</title>
 <link rel="stylesheet" href="../../css/monitoring/Monitoring-Login.css">
 <link rel="stylesheet" href="../../css/shared/global.css">
+<script type="module" src="../../js/monitoring/monitoring-login.js" defer></script>
 </head>
 <body>
 
@@ -66,7 +67,7 @@
           <label for="remember">Remember this device for 30 days</label>
         </div>
 
-        <button type="submit" class="login-btn">
+        <button type="submit" class="login-btn" id="submitBtn">
           Log In to Monitor
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M5 12h14M13 6l6 6-6 6"/>
@@ -94,25 +95,5 @@
   </div>
 
   <script src="../../js/shared/global.js"></script>
-  <script>
-    const pwInput = document.getElementById('password');
-    const toggleBtn = document.getElementById('togglePw');
-    toggleBtn.addEventListener('click', () => {
-      pwInput.type = pwInput.type === 'password' ? 'text' : 'password';
-    });
-
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const rememberDevice = document.getElementById('remember').checked;
-      sessionStorage.setItem('riversightMonitoringSession', 'active');
-      if (rememberDevice) {
-        localStorage.setItem('riversightMonitoringSession', 'active');
-      } else {
-        localStorage.removeItem('riversightMonitoringSession');
-      }
-      window.location.href = '../monitoring/Live-Monitoring.html';
-    });
-  </script>
-
 </body>
 </html>
