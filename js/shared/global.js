@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
       event.preventDefault();
       sessionStorage.clear();
       localStorage.clear();
-      window.location.href = '../../lib/admin/Admin-Login.html';
+      window.location.href = link.dataset.logoutTarget || '../../lib/admin/Admin-Login.html';
     });
   });
 });
