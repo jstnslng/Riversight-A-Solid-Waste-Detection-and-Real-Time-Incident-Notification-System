@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../../css/monitoring/Live-Monitoring.css">
   <link rel="stylesheet" href="../../css/shared/global.css">
 </head>
-<body>
+<body data-page="live-monitoring">
 
   <div class="topbar">Live Waterway Monitoring</div>
 
@@ -91,8 +91,8 @@
             <button class="user-chip user-chip-button" type="button" data-profile-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Open profile menu">
               <img src="../../assets/admin-profile-pic.jpg" alt="Admin avatar">
               <div>
-                <div class="user-name">Admin Principal</div>
-                <div class="user-role">System Administrator</div>
+                <div class="user-name">Live Monitoring</div>
+                <div class="user-role">Monitoring Personnel</div>
               </div>
             </button>
 
@@ -120,52 +120,12 @@
           <div class="updated-row"><span class="live-dot"></span> Live Stream · 4 Active Sources</div>
         </div>
         <div class="page-title-actions">
-          <button class="date-btn">Grid (2×2)</button>
-          <button class="date-btn">Full Screen Mode</button>
+          <button class="date-btn active" type="button" data-view-mode="grid" aria-pressed="true">Grid (2×2)</button>
+          <button class="date-btn" type="button" data-view-mode="fullscreen" aria-pressed="false">Full Screen Mode</button>
         </div>
       </div>
 
-      <section class="feeds-grid">
-        <article class="feed-card">
-          <div class="feed-thumb" style="background-image:url('https://picsum.photos/seed/cam001/1200/800')">
-            <div class="feed-overlay-bottom">
-              <div class="cam-id">CAM-001</div>
-              <div class="cam-title">Buwaya Creek (Main)</div>
-            </div>
-            <span class="cam-time">2023-10-19 14:28:45</span>
-          </div>
-        </article>
-
-        <article class="feed-card">
-          <div class="feed-thumb" style="background-image:url('https://picsum.photos/seed/cam002/1200/800')">
-            <div class="feed-overlay-bottom">
-              <div class="cam-id">CAM-002</div>
-              <div class="cam-title">Buwaya Creek (North)</div>
-            </div>
-            <span class="cam-time">2023-10-19 14:28:45</span>
-          </div>
-        </article>
-
-        <article class="feed-card highlight">
-          <div class="feed-thumb" style="background-image:url('https://picsum.photos/seed/cam003/1200/800')">
-            <div class="feed-overlay-bottom">
-              <div class="cam-id">CAM-003</div>
-              <div class="cam-title">Tres Kantos Creek</div>
-            </div>
-            <span class="cam-time">2023-10-19 14:28:45</span>
-          </div>
-        </article>
-
-        <article class="feed-card">
-          <div class="feed-thumb" style="background-image:url('https://picsum.photos/seed/cam004/1200/800')">
-            <div class="feed-overlay-bottom">
-              <div class="cam-id">CAM-004</div>
-              <div class="cam-title">Marilag Creek</div>
-            </div>
-            <span class="cam-time">2023-10-19 14:28:45</span>
-          </div>
-        </article>
-      </section>
+      <section class="feeds-grid" id="feedsGrid"></section>
 
       <div class="footer-panel">
         <div class="system-status">System Secure · 256-bit Encryption · All Nodes Operational</div>
@@ -176,31 +136,19 @@
   </div>
 
   <script>
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-    document.querySelectorAll('.feed-card').forEach(card => {
-      card.addEventListener('click', () => {
-        card.classList.toggle('expanded');
-      });
-    });
+    const logoutLink = document.querySelector('[data-logout-link]');
 
     if (logoutLink) {
-      logoutLink.addEventListener('click', async (e) => {
-          e.preventDefault();
-          sessionStorage.removeItem('riversightAdminSession');
-          localStorage.removeItem('riversightAdminSession');
-
-          try {
-              await signOut(auth);
-          } catch (err) {
-              console.error("Sign out error:", err);
-          } finally {
-              window.location.href = './Admin-Login.html';
-          }
+      logoutLink.addEventListener('click', (event) => {
+        event.preventDefault();
+        sessionStorage.removeItem('riversightAdminSession');
+        localStorage.removeItem('riversightAdminSession');
+        window.location.href = './Monitoring-Login.html';
       });
     }
   </script>
 
+<script src="../../js/monitoring/camera-feed-module.js"></script>
 <script src="../../js/monitoring/monitoring-nav.js"></script>
 <script src="../../js/shared/global.js"></script>
 </body>

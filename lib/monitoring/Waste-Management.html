@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="../../css/monitoring/Waste-Management.css">
 <link rel="stylesheet" href="../../css/shared/global.css">
 </head>
-<body>
+<body data-page="waste-detection">
 
   <div class="topbar">Waste Detection Module</div>
 
@@ -103,9 +103,9 @@
 
       <div class="page-title-row">
         <div>
-          <h1>AI Waste Detection Console</h1>
+          <h1 data-camera-title>AI Waste Detection Console</h1>
           <div class="updated-row">
-            <span class="live-dot"></span> ACTIVE STREAM: CAM-001
+            <span class="live-dot"></span> <span data-camera-stream-tag>ACTIVE STREAM: CAM-001</span>
             <span class="dot-sep">•</span> PROCESSING
             <span class="yolo-pill">YOLOv8 Real-time</span>
           </div>
@@ -126,14 +126,14 @@
         <div class="left-col">
 
           <div class="card feed-card">
-            <div class="feed-frame">
+            <div class="feed-frame" data-camera-feed-frame>
               <img src="https://picsum.photos/seed/riversight-canal/900/420" alt="Live camera feed — Main North Inlet Sector" class="feed-img">
 
               <div class="feed-tag feed-tag-live">
                 <span class="rec-dot"></span> LIVE 4K FEED
               </div>
               <div class="feed-tag feed-tag-rec">● REC</div>
-              <div class="feed-sector-label">Main North Inlet Sector</div>
+              <div class="feed-sector-label" data-camera-sector-label>Main North Inlet Sector</div>
 
               <div class="detect-box" style="top:38%; left:6%; width:15%; height:22%;">
                 <span class="detect-label label-red">Plastic Bottle - 94.2%</span>
@@ -312,6 +312,7 @@
     </main>
   </div>
 
+<script src="../../js/monitoring/camera-feed-module.js"></script>
 <script src="../../js/monitoring/monitoring-nav.js"></script>
 <script src="../../js/shared/global.js"></script>
 </body>
