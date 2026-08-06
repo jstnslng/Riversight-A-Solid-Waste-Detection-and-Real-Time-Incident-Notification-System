@@ -303,7 +303,8 @@ editUserForm?.addEventListener('submit', async (e) => {
         phone_no: document.getElementById('editPhone').value.trim(),
         barangay: document.getElementById('editBarangay').value,
         status: document.getElementById('editStatus').value,
-        assigned_station: document.getElementById('editAssignedStation').value
+        assigned_station: document.getElementById('editAssignedStation').value,
+        updated_at: serverTimestamp()
     };
 
     const saveBtn = document.getElementById('saveEditBtn');

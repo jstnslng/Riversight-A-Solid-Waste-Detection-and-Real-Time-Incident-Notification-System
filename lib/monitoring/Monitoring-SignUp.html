@@ -6,6 +6,7 @@
 <title>RiverSight — Monitoring Personnel Sign Up</title>
 <link rel="stylesheet" href="../../css/monitoring/Monitoring-SignUp.css">
 <link rel="stylesheet" href="../../css/shared/global.css">
+<script type="module" src="../../js/monitoring/monitoring-signup.js" defer></script>
 </head>
 <body>
 
@@ -97,7 +98,7 @@
           <label for="terms">I agree to the data handling and access policy</label>
         </div>
 
-        <button type="submit" class="login-btn">
+        <button type="submit" class="login-btn" id="signupBtn">
           Create Account
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M5 12h14M13 6l6 6-6 6"/>
@@ -123,32 +124,6 @@
     Node: RV-MNL-00-WAR<br>
     Audit Protocol #103 · Secure Bridge
   </div>
-
-  <script>
-    document.querySelectorAll('.toggle-visibility').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const input = document.getElementById(btn.dataset.target);
-        input.type = input.type === 'password' ? 'text' : 'password';
-      });
-    });
-
-    document.getElementById('signupForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-
-      const password = document.getElementById('password').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
-      const errorEl = document.getElementById('passwordError');
-
-      if (password !== confirmPassword) {
-        errorEl.textContent = 'Passwords do not match.';
-        return;
-      }
-      errorEl.textContent = '';
-
-      // TODO: connect to RiverSight backend registration endpoint
-      window.location.href = 'Monitoring-Login.html';
-    });
-  </script>
 
 <script src="../../js/shared/global.js"></script>
 </body>
