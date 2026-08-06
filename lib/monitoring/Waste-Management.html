@@ -26,7 +26,7 @@
       </div>
 
       <nav class="nav">
-        <a href="Live-Monitoring.html" class="nav-item">
+        <a href="./Live-Monitoring.html" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
           Live Monitoring
         </a>
@@ -34,19 +34,14 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6l1 4H8l1-4Z"/><path d="M5 7h14l-1.2 13.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 7Z"/><path d="M10 11v6M14 11v6"/></svg>
           Waste Detection
         </a>
-         <a href="GIS-Monitoring.html" class="nav-item">
+         <a href="./GIS-Monitoring.html" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4.5 3.5 6.5v13L9 17.5l6 2 5.5-2v-13l-5.5 2-6-2Z"/><path d="M9 4.5v13M15 6.5v13"/></svg>
           GIS Monitoring
         </a>
-        <a href="Incident-Evaluation.html" class="nav-item">
+        <a href="./Incident-Reports.html" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5Z"/></svg>
-          Incident Evaluation
-        </a>
-       <a href="Incident-Reports.html" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2.5h9l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M15 2.5V7h4"/></svg>
           Incident Reports
         </a>
-
         <div class="nav-section-label">Active Node Status</div>
         <div class="node-status-item">
           <span class="status-dot green"></span>
@@ -85,11 +80,28 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
             <span class="badge">5</span>
           </button>
-          <div class="user-chip">
-            <img src="https://i.pravatar.cc/64?img=12" alt="Admin avatar">
-            <div>
-              <div class="user-name">Admin Principal</div>
-              <div class="user-role">System Administrator</div>
+          <div class="profile-menu" data-profile-menu>
+            <button class="user-chip user-chip-button" type="button" data-profile-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Open profile menu">
+              <img src="../../assets/admin-profile-pic.jpg" alt="Admin avatar">
+              <div>
+                <div class="user-name">Admin Principal</div>
+                <div class="user-role">System Administrator</div>
+              </div>
+            </button>
+
+            <div class="profile-dropdown" role="menu" aria-label="Profile menu">
+              <a href="./Monitoring-Profile.html" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                Profile
+              </a>
+              <a href="./Monitoring-Settings.html" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+                Settings
+              </a>
+              <a href="./Monitoring-Login.html" class="danger" role="menuitem" data-logout-link data-logout-target="./Monitoring-Login.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 16l-4-4 4-4"/><path d="M6 12h11"/><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg>
+                Logout
+              </a>
             </div>
           </div>
         </div>
@@ -313,6 +325,7 @@
     </main>
   </div>
 
+<script src="../../js/monitoring/monitoring-nav.js"></script>
 <script src="../../js/shared/global.js"></script>
 </body>
 </html>
