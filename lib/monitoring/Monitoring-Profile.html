@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiverSight — Monitoring Profile</title>
+  <link rel="stylesheet" href="../../css/monitoring/Monitoring-Profile.css">
+  <link rel="stylesheet" href="../../css/shared/global.css">
+</head>
+<body>
+
+  <div class="topbar">Monitoring Profile</div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="../../assets/Riversight-logo.png" class="brand-logo" alt="RiverSight logo">
+        <div class="brand-name">RiverSight</div>
+        <div class="brand-tagline">Creek Waterway Monitoring</div>
+      </div>
+
+      <nav class="nav">
+        <a href="./Live-Monitoring.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M1 12s4.5-7.5 11-7.5S23 12 23 12s-4.5 7.5-11 7.5S1 12 1 12Z"/></svg>
+          Live Monitoring
+        </a>
+        <a href="./Waste-Management.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="M11 3v16M3 11h16"/></svg>
+          Waste Detection
+        </a>
+        <a href="./GIS-Monitoring.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4.5 3.5 6.5v13L9 17.5l6 2 5.5-2v-13l-5.5 2-6-2Z"/><path d="M9 4.5v13M15 6.5v13"/></svg>
+          GIS Monitoring
+        </a>
+        <a href="./Incident-Reports.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Incident Reports
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot green"></span>
+        <div>
+          <div class="node-name">Node: PH-MNL-QC</div>
+          <div class="node-sub">Auth Protocol: V3.12 Secure</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="header-row">
+        <div class="breadcrumb">Monitoring <span>›</span> <strong>Profile</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search profile, station, or account details...">
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge">1</span>
+          </button>
+          <div class="profile-menu" data-profile-menu>
+            <button class="user-chip user-chip-button" type="button" data-profile-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Open profile menu">
+              <img src="../../assets/admin-profile-pic.jpg" alt="Admin avatar">
+              <div>
+                <div class="user-name">Admin Principal</div>
+                <div class="user-role">System Administrator</div>
+              </div>
+            </button>
+
+            <div class="profile-dropdown" role="menu" aria-label="Profile menu">
+              <a href="./Monitoring-Profile.html" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                Profile
+              </a>
+              <a href="./Monitoring-Settings.html" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
+                Settings
+              </a>
+              <a href="./Monitoring-Login.html" class="danger" role="menuitem" data-logout-link data-logout-target="./Monitoring-Login.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 16l-4-4 4-4"/><path d="M6 12h11"/><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg>
+                Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-title-row">
+        <div>
+          <h1>Profile Overview</h1>
+          <div class="updated-row"><span class="live-dot"></span> Administrator account details and identity reference</div>
+        </div>
+        <div class="page-title-actions">
+          <button class="date-btn" type="button">Edit Profile</button>
+          <button class="export-btn" type="button">Save Changes</button>
+        </div>
+      </div>
+
+      <section class="content-grid" style="grid-template-columns: 1.1fr 0.9fr; align-items: start;">
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h3>Account Details</h3>
+              <div class="card-sub">Current monitoring account identity and contact information</div>
+            </div>
+          </div>
+
+          <div style="display: grid; gap: 14px;">
+            <label class="field-group" style="display: grid; gap: 6px;">
+              <span>Display Name</span>
+              <input type="text" value="Admin Principal" placeholder="Display Name">
+            </label>
+            <label class="field-group" style="display: grid; gap: 6px;">
+              <span>Email Address</span>
+              <input type="email" value="admin@riversight.gov.ph" placeholder="Email Address">
+            </label>
+            <label class="field-group" style="display: grid; gap: 6px;">
+              <span>Phone Number</span>
+              <input type="tel" value="+63 912 345 6789" placeholder="Phone Number">
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h3>Account Info</h3>
+              <div class="card-sub">Reference data for the current monitoring administrator</div>
+            </div>
+          </div>
+
+          <div style="display: grid; gap: 12px;">
+            <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
+              <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Role</div>
+              <strong>System Administrator</strong>
+            </div>
+            <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
+              <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Assigned Station</div>
+              <strong>PH-MNL-QC</strong>
+            </div>
+            <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
+              <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Last Login</div>
+              <strong>Just now</strong>
+            </div>
+            <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
+              <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">User ID</div>
+              <strong>ADM-0001</strong>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../js/monitoring/monitoring-nav.js"></script>
+  <script src="../../js/shared/global.js"></script>
+</body>
+</html>
