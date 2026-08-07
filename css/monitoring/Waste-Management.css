@@ -340,3 +340,151 @@
   background: #f7f7f7;
   opacity: 1;
 }
+
+/* Waste Buildup Level card */
+.info-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #f7f7f7;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: help;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.info-tooltip .tooltip-text {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  max-width: 220px;
+  background: rgba(17, 24, 39, 0.94);
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  transform: translateY(4px);
+  z-index: 10;
+}
+
+.info-tooltip:hover .tooltip-text,
+.info-tooltip:focus-visible .tooltip-text {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.gauge-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 220px;
+  height: 120px; /* explicit fallback so gauge-center always has something to anchor to */
+  aspect-ratio: 2 / 1;
+  margin: 4px auto 6px;
+}
+
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.gauge-track,
+.gauge-arc {
+  fill: none;
+  stroke-width: 14;
+  stroke-linecap: round;
+}
+
+.gauge-track {
+  stroke: #edf2f7;
+}
+
+.gauge-arc {
+  stroke: var(--gauge-color, #e0a020);
+  transition: stroke 0.25s ease, stroke-dashoffset 0.35s ease;
+}
+
+.gauge-center {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  width: 80%;
+  text-align: center;
+}
+
+.gauge-percentage {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.gauge-risk-label {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.buildup-stats {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.stat-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.trend-positive { color: var(--red); }
+.trend-negative { color: var(--green); }
+
+.stat-row strong { font-weight: 700; }
+
+.dispatch-btn {
+  width: 100%;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.dispatch-btn:hover { opacity: 0.88; }
+.dispatch-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
