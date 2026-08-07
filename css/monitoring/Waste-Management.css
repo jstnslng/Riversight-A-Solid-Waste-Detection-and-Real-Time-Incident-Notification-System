@@ -311,13 +311,18 @@
   align-items: center;
   gap: 6px;
   width: auto;
-  height: 52px;
-  padding: 0 16px;
+  height: auto;
+  padding: 10px 16px;
   background: var(--ink);
   color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 12.5px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.page-title-actions .date-btn:hover {
+  opacity: 0.9;
 }
 .page-title-actions .date-btn svg {
   width: 16px;
@@ -331,10 +336,12 @@
   background: #fff;
   color: var(--ink);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0 14px;
-  height: 52px;
-  font-size: 12.5px;
+  border-radius: 8px;
+  padding: 10px 16px;
+  height: auto;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
 }
 .page-title-actions .export-btn:hover {
   background: #f7f7f7;
