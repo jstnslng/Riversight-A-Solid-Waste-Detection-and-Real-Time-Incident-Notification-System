@@ -538,6 +538,11 @@
       title.textContent = `AI Waste Detection Console · ${camera.id}`;
     }
 
+    const incidentEvalLink = document.querySelector('[data-incident-eval-link]');
+    if (incidentEvalLink) {
+      incidentEvalLink.href = `./Incident-Reports.html?cameraId=${encodeURIComponent(camera.id)}`;
+    }
+
     if (streamTag) {
       streamTag.textContent = `ACTIVE STREAM: ${camera.id}`;
     }
@@ -596,3 +601,71 @@
 
   document.addEventListener('DOMContentLoaded', initializePage);
 })();
+
+const WASTE_BUILDUP_THRESHOLDS = [
+  { max: 39, label: 'LOW RISK', color: '#1a9e57' },
+  { max: 69, label: 'MODERATE RISK', color: '#e0a020' },
+  { max: 100, label: 'HIGH RISK', color: '#d33c3c' }
+];
+
+function getWasteBuildupRisk(percentage) {
+  return WASTE_BUILDUP_THRESHOLDS.find((t) => percentage <= t.max) || WASTE_BUILDUP_THRESHOLDS[WASTE_BUILDUP_THRESHOLDS.length - 1];
+}
+
+function renderWasteBuildupGauge(options = {}) {
+  const container = document.querySelector('[data-waste-buildup-gauge]');
+  if (!container) return;
+
+  // TODO: replace stubbed values with real data source
+  const data = { percentage: 68, trend: 12, trendDirection: 'increasing', estFillTime: '1h 20m', ...options };
+  const { percentage, trend, trendDirection, estFillTime } = data;
+  const risk = getWasteBuildupRisk(percentage);
+
+  const wrapper = container.querySelector('.gauge-wrapper');
+  const arc = container.querySelector('.gauge-arc');
+  const percentageLabel = container.querySelector('[data-gauge-percentage]');
+  const riskLabel = container.querySelector('[data-gauge-risk-label]');
+  const trendIcon = container.querySelector('[data-trend-icon]');
+  const trendValue = container.querySelector('[data-trend-value]');
+  const trendLabel = container.querySelector('[data-trend-label]');
+  const fillTimeLabel = container.querySelector('[data-fill-time]');
+
+  if (arc) {
+    const pathLength = arc.getTotalLength();
+    arc.style.strokeDasharray = pathLength;
+    arc.style.strokeDashoffset = pathLength * (1 - Math.min(Math.max(percentage, 0), 100) / 100);
+    wrapper.style.setProperty('--gauge-color', risk.color);
+  }
+
+  if (percentageLabel) percentageLabel.textContent = `${Math.round(percentage)}%`;
+  if (riskLabel) {
+    riskLabel.textContent = risk.label;
+    riskLabel.style.color = risk.color;
+  }
+
+  const improving = trendDirection === 'decreasing';
+  if (trendIcon) {
+    trendIcon.textContent = improving ? '↘' : '↗';
+    trendIcon.classList.toggle('trend-positive', !improving);
+    trendIcon.classList.toggle('trend-negative', improving);
+    trendIcon.style.color = improving ? '#1a9e57' : risk.color;
+  }
+  if (trendValue) trendValue.textContent = `${trend >= 0 ? '+' : ''}${trend}%/hr`;
+  if (trendLabel) {
+    trendLabel.textContent = improving ? 'Improving' : 'Increasing';
+    trendLabel.style.color = improving ? '#1a9e57' : risk.color;
+  }
+  if (fillTimeLabel) fillTimeLabel.textContent = estFillTime;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderWasteBuildupGauge();
+
+  const dispatchBtn = document.querySelector('[data-dispatch-cleanup]');
+  if (dispatchBtn) {
+    dispatchBtn.addEventListener('click', () => {
+      // TODO: wire to real dispatch/incident-creation flow
+      alert('Cleanup team alert request sent.');
+    });
+  }
+});

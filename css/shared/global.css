@@ -124,3 +124,34 @@ body.js-ready {
   background: var(--border);
   margin: 6px 4px;
 }
+
+.card {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  padding: 18px 20px;
+}
+
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.card-head h3 {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.card > h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}

@@ -44,9 +44,19 @@
           <span class="node-status-pill good">MONITORING</span>
         </div>
         <div class="node-status-item">
-          <span class="status-dot orange"></span>
-          <span class="node-status-name">CAM-042</span>
-          <span class="node-status-pill warn">ALERTS ON</span>
+          <span class="status-dot green"></span>
+          <span class="node-status-name">CAM-002</span>
+          <span class="node-status-pill good">MONITORING</span>
+        </div>
+        <div class="node-status-item">
+          <span class="status-dot green"></span>
+          <span class="node-status-name">CAM-003</span>
+          <span class="node-status-pill good">MONITORING</span>
+        </div>
+        <div class="node-status-item">
+          <span class="status-dot green"></span>
+          <span class="node-status-name">CAM-004</span>
+          <span class="node-status-pill good">MONITORING</span>
         </div>
       </nav>
 
@@ -115,10 +125,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
             Today
           </button>
-          <button class="export-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="btn-icon"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 18v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
-            Export Data
-          </button>
+          <a href="./Incident-Reports.html" class="export-btn" data-incident-eval-link title="View this camera's detections in the Incident Evaluation module">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="btn-icon"><path d="M9 3h6l1 4H8l1-4Z"/><path d="M5 7h14l-1.2 13.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 7Z"/><path d="M10 11v6M14 11v6"/></svg>
+          View in Incident Evaluation
+          </a>
         </div>
       </div>
 
@@ -229,7 +239,7 @@
             <div class="summary-pills">
               <div class="summary-pill pill-total">
                 <div class="pill-label">TOTAL TODAY</div>
-                <div class="pill-value">1,482</div>
+                <div class="pill-value">48</div>
               </div>
               <div class="summary-pill pill-eff">
                 <div class="pill-label">EFFICIENCY</div>
@@ -237,73 +247,59 @@
               </div>
             </div>
 
-            <div class="breakdown-label">BREAKDOWN BY TYPE</div>
+            <div class="breakdown-label">BREAKDOWN BY SEVERITY</div>
 
             <div class="breakdown-item">
-              <div class="breakdown-row"><span>Plastic Bottles</span><span class="breakdown-count">642 units</span></div>
-              <div class="progress-track"><div class="progress-fill fill-red" style="width:78%"></div></div>
+              <div class="breakdown-row"><span>Low Severity</span><span class="breakdown-count">34 events</span></div>
+              <div class="progress-track"><div class="progress-fill fill-blue" style="width:72%"></div></div>
             </div>
             <div class="breakdown-item">
-              <div class="breakdown-row"><span>Organic Debris</span><span class="breakdown-count">418 units</span></div>
+              <div class="breakdown-row"><span>Medium Severity</span><span class="breakdown-count">9 events</span></div>
               <div class="progress-track"><div class="progress-fill fill-orange" style="width:52%"></div></div>
             </div>
             <div class="breakdown-item">
-              <div class="breakdown-row"><span>Styrofoam</span><span class="breakdown-count">312 units</span></div>
-              <div class="progress-track"><div class="progress-fill fill-blue" style="width:40%"></div></div>
-            </div>
-            <div class="breakdown-item">
-              <div class="breakdown-row"><span>Chemical Runoff</span><span class="breakdown-count">110 events</span></div>
-              <div class="progress-track"><div class="progress-fill fill-purple" style="width:18%"></div></div>
+              <div class="breakdown-row"><span>Severe</span><span class="breakdown-count">4 events</span></div>
+              <div class="progress-track"><div class="progress-fill fill-red" style="width:38%"></div></div>
             </div>
           </div>
 
-          <div class="card">
+          <div class="card buildup-card">
             <div class="card-head">
-              <h3>Detection History</h3>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon-sm"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+              <h3>Waste Buildup Level</h3>
+              <button class="info-tooltip" type="button" aria-label="Waste buildup metric info">
+                ?
+                <span class="tooltip-text">Estimated waste accumulation based on detection frequency and debris density in the monitored area.</span>
+              </button>
             </div>
 
-            <div class="history-item">
-              <div class="history-thumb" style="background-image:url('https://picsum.photos/seed/hist1-plastic/100/100');"></div>
-              <div class="history-info">
-                <div class="history-title">Plastic Bottle Cluster</div>
-                <div class="history-meta">CAM-001 • North Sector</div>
-                <div class="history-time">15:41:05 (Just now)</div>
+            <div class="buildup-gauge" data-waste-buildup-gauge>
+              <div class="gauge-wrapper">
+                <svg viewBox="0 0 200 110" class="gauge-svg" aria-hidden="true">
+                  <path class="gauge-track" d="M20 100 A80 80 0 0 1 180 100"/>
+                  <path class="gauge-arc" d="M20 100 A80 80 0 0 1 180 100"/>
+                </svg>
+                <div class="gauge-center">
+                  <div class="gauge-percentage" data-gauge-percentage>68%</div>
+                  <div class="gauge-risk-label" data-gauge-risk-label>MODERATE RISK</div>
+                </div>
               </div>
-              <span class="severity-badge critical">CRITICAL</span>
-            </div>
 
-            <div class="history-item">
-              <div class="history-thumb" style="background-image:url('https://picsum.photos/seed/hist2-branch/100/100');"></div>
-              <div class="history-info">
-                <div class="history-title">Tree Branch / Debris</div>
-                <div class="history-meta">CAM-042 • Bridge Sector</div>
-                <div class="history-time">15:33:12 (7m ago)</div>
+              <div class="buildup-stats">
+                <div class="stat-row stat-trend">
+                  <span class="stat-icon trend-positive" data-trend-icon aria-hidden="true">↗</span>
+                  <span><strong>Trend:</strong> <span class="trend-value" data-trend-value>+12%/hr</span> <span class="trend-label" data-trend-label>Increasing</span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-icon" aria-hidden="true">🕐</span>
+                  <span><strong>Est. Fill Time:</strong> <span class="fill-time" data-fill-time>1h 20m</span></span>
+                </div>
               </div>
-              <span class="severity-badge caution">CAUTION</span>
-            </div>
 
-            <div class="history-item">
-              <div class="history-thumb" style="background-image:url('https://picsum.photos/seed/hist3-foam/100/100');"></div>
-              <div class="history-info">
-                <div class="history-title">Chemical Foam</div>
-                <div class="history-meta">CAM-009 • Outlet A</div>
-                <div class="history-time">15:26:44 (19m ago)</div>
-              </div>
-              <span class="severity-badge critical">CRITICAL</span>
+              <button class="dispatch-btn" type="button" data-dispatch-cleanup>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="8" width="14" height="9" rx="1.5"/><path d="M15 11h4l3 3v3h-7z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
+                Alert Cleanup Team
+              </button>
             </div>
-
-            <div class="history-item">
-              <div class="history-thumb" style="background-image:url('https://picsum.photos/seed/hist4-styro/100/100');"></div>
-              <div class="history-info">
-                <div class="history-title">Styrofoam Fragments</div>
-                <div class="history-meta">CAM-001 • North Sector</div>
-                <div class="history-time">15:22:10 (24m ago)</div>
-              </div>
-              <span class="severity-badge low">LOW</span>
-            </div>
-
-            <button class="load-older-btn">Load Older History</button>
           </div>
 
         </div>
