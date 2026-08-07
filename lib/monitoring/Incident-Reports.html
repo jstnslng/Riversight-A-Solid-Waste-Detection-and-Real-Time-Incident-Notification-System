@@ -3,212 +3,343 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RiverSight — Incident Reports Module</title>
+<title>RiverSight — Reports &amp; Analytics</title>
 <link rel="stylesheet" href="../../css/monitoring/Incident-Reports.css">
-<link rel="stylesheet" href="../../css/shared/global.css">
 </head>
 <body>
 
-  <div class="top-strip">Incident Reports Module</div>
+  <div class="topbar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+    Personnel Reports Module
+  </div>
 
   <div class="layout">
+
+    <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="brand">
-        <img src="../../assets/Riversight-logo.png" class="brand-logo" alt="RiverSight logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-        <div class="brand-logo-fallback" style="display:none;">RS</div>
-        <div class="brand-title">RiverSight</div>
-        <div class="brand-sub">CREEK WATERWAY MONITORING</div>
+      <div class="sidebar-brand">
+        <img src="../../assets/Riversight-logo.png" alt="RiverSight logo" class="brand-logo">
+        <div class="brand-name">RiverSight</div>
+        <div class="brand-tagline">Creek Waterway Monitoring</div>
       </div>
 
-      <nav class="nav-menu">
-        <a href="./Live-Monitoring.html" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+      <nav class="nav">
+        <a href="Live-Monitoring.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
           Live Monitoring
         </a>
-        <a href="./Waste-Management.html" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        <a href="Waste-Management.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
           Waste Detection
         </a>
-        <a href="./GIS-Monitoring.html" class="nav-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-          GIS Monitoring
+        <a href="Incident-Evaluation.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 1 21h22L12 3Z"/><path d="M12 9.5v5M12 17.5h.01"/></svg>
+          Incident Evaluation
         </a>
-        <a href="./Incident-Reports.html" class="nav-item active">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <a href="Incident-Reports.html" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5Z"/></svg>
           Incident Reports
         </a>
       </nav>
 
-      <div class="nodes-section">
-        <div class="section-title">ACTIVE NODE STATUS</div>
-        <div class="node-item">
-          <div class="node-left">
-            <span class="status-dot green"></span>
-            <span class="node-name">CAM-001</span>
-          </div>
-          <span class="node-badge green">MONITORING</span>
-        </div>
-        <div class="node-item">
-          <div class="node-left">
-            <span class="status-dot green"></span>
-            <span class="node-name">CAM-042</span>
-          </div>
-          <span class="node-badge orange">ALERTS ON</span>
+      <div class="sidebar-footer">
+        <span class="status-dot green"></span>
+        <div>
+          <div class="node-name">Node: PH-MNL-QC</div>
+          <div class="node-sub">Auth Protocol: V3.12 Secure</div>
         </div>
       </div>
     </aside>
 
-    <main class="main-content">
-      <header class="header-bar">
-        <div class="breadcrumb">Monitoring &rsaquo; <strong>Incident Reports</strong></div>
-        <div class="header-right">
-          <button class="icon-btn" type="button">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <span class="badge-count">2</span>
-          </button>
-          <div class="profile-menu" data-profile-menu>
-            <button class="user-chip user-chip-button" type="button" data-profile-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Open profile menu">
-              <img class="user-avatar" src="../../assets/admin-profile-pic.jpg" alt="Admin Avatar">
-              <div class="user-info">
-                <div class="user-name">Admin Principal</div>
-                <div class="user-role">System Administrator</div>
-              </div>
-            </button>
+    <!-- Main content -->
+    <main class="main">
 
-            <div class="profile-dropdown" role="menu" aria-label="Profile menu">
-              <a href="./Monitoring-Profile.html" role="menuitem">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                Profile
-              </a>
-              <a href="./Monitoring-Settings.html" role="menuitem">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.2-1.5-2.6-1.9.6a7.3 7.3 0 0 0-1.3-.75L16 5.8h-3l-.3 2.25c-.47.18-.9.43-1.3.75l-1.9-.6-1.5 2.6 1.6 1.2c-.1.5-.1 1 0 1.5l-1.6 1.2 1.5 2.6 1.9-.6c.4.32.83.57 1.3.75L13 20.2h3l.3-2.25c.47-.18.9-.43 1.3-.75l1.9.6 1.5-2.6-1.6-1.2Z"/></svg>
-                Settings
-              </a>
-              <a href="./Monitoring-Login.html" class="danger" role="menuitem" data-logout-link data-logout-target="./Monitoring-Login.html">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 16l-4-4 4-4"/><path d="M6 12h11"/><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg>
-                Logout
-              </a>
+      <header class="header-row">
+        <div class="breadcrumb">Home <span>›</span> <strong>Reports Module</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search reports or incidents...">
+        </div>
+
+        <div class="header-right">
+          <button class="icon-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge">2</span>
+          </button>
+          <div class="user-chip">
+            <img src="../../assets/admin-profile-pic.jpg" alt="Admin avatar">
+              <div>
+             <div class="user-name">Live Monitoring</div>
+              <div class="user-role">Monitoring Personnel</div>
             </div>
           </div>
         </div>
       </header>
 
-      <div class="console-header">
-        <div class="console-title">
-          <h1>Incident Reports Center</h1>
-          <p>Review, export, and track incident report records across the monitoring module.</p>
+      <div class="page-title-row">
+        <div>
+          <h1>Reports &amp; Analytics</h1>
+          <div class="updated-row">Detailed performance metrics and incident archives</div>
         </div>
-        <div class="threshold-badge">
-          REPORT FILTER SENSITIVITY
-          <span>Display Threshold: &gt; 10 items</span>
-          <button>MODIFY</button>
+        <div class="page-title-actions">
+          <button class="date-range-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
+            Oct 01, 2023 - Oct 31, 2023
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chevron"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <button class="pdf-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            Export PDF
+          </button>
+          <button class="csv-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 18v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
+            Export CSV
+          </button>
         </div>
       </div>
 
-      <div class="dashboard-grid">
-        <div class="card detection-card">
-          <div class="detection-header">
+      <!-- Stat cards -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Total Detections</span>
+            <span class="stat-icon icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4.5-7.5 11-7.5S23 12 23 12s-4.5 7.5-11 7.5S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">4,821 <span class="stat-sub good">↑ 18%</span></div>
+          <div class="stat-note">vs previous month (4,085)</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Active Incidents</span>
+            <span class="stat-icon icon-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 1 21h22L12 3Z"/><path d="M12 9.5v5M12 17.5h.01"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">12 <span class="stat-sub pill-red">HIGH RISK</span></div>
+          <div class="stat-note">Requiring immediate dispatch</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Avg Response Time</span>
+            <span class="stat-icon icon-yellow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">14.2m <span class="stat-sub good">↑ 5%</span></div>
+          <div class="stat-note">Target: &lt; 15 minutes</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Cleanup Success</span>
+            <span class="stat-icon icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 7.5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z"/><path d="M15 10l6-3.2v10.4L15 14"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">96.4% <span class="stat-sub good">+0.2%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:96.4%"></div></div>
+        </div>
+      </section>
+
+      <!-- Charts -->
+      <section class="content-grid">
+        <div class="card">
+          <div class="card-head">
             <div>
-              <div class="detection-id">Report ID: RPT-2026-0717-001</div>
-              <div class="detection-sub">Captured by CAM-001 &bull; 15:42:01</div>
+              <h3>Waste Detection Trends</h3>
+              <div class="card-sub">Weekly volume across all sectors</div>
             </div>
-            <span class="badge-critical">CRITICAL REPORT</span>
-          </div>
-
-          <div class="video-frame">
-            <img src="https://picsum.photos/seed/creek-waste/1000/600" alt="Report preview">
-            <div class="bounding-box">
-              <span class="bounding-label">High Density Waste Block - 99.1%</span>
-            </div>
-            <div class="live-badge">
-              <span class="live-dot-green"></span>
-              Report Snapshot
+            <div class="chart-toggles">
+              <button class="toggle-pill active">Lines</button>
+              <button class="toggle-pill">Bars</button>
             </div>
           </div>
 
-          <div class="action-row">
-            <div class="action-instruction">
-              <strong>Report Action</strong>
-              Review and export the incident report record.
-            </div>
-            <div class="action-buttons">
-              <button class="btn btn-secondary">Mark Reviewed</button>
-              <button class="btn btn-warning">Export PDF</button>
-              <button class="btn btn-danger">Archive Report</button>
-            </div>
+          <svg class="trend-chart" viewBox="0 0 560 220" preserveAspectRatio="none">
+            <line x1="34" y1="10" x2="34" y2="180" stroke="#e2e2e2" stroke-width="1"/>
+            <line x1="34" y1="180" x2="540" y2="180" stroke="#e2e2e2" stroke-width="1"/>
+            <text x="6" y="14" class="axis-label">1500</text>
+            <text x="6" y="94" class="axis-label">1000</text>
+            <text x="14" y="174" class="axis-label">500</text>
+
+            <path d="M34,90 C130,55 180,50 270,72 C350,90 400,105 460,85 C490,76 515,68 536,64" fill="none" stroke="#2f6fd6" stroke-width="2.4"/>
+            <path d="M34,150 C130,120 180,115 270,132 C350,146 400,150 460,128 C490,118 515,112 536,110" fill="none" stroke="#1a9e57" stroke-width="2.4"/>
+            <path d="M34,90 C130,55 180,50 270,72 C350,90 400,105 460,85 C490,76 515,68 536,64 L536,180 L34,180 Z" fill="#2f6fd6" fill-opacity="0.06"/>
+
+            <text x="30" y="198" class="axis-label">Week 1</text>
+            <text x="150" y="198" class="axis-label">Week 2</text>
+            <text x="270" y="198" class="axis-label">Week 3</text>
+            <text x="390" y="198" class="axis-label">Week 4</text>
+          </svg>
+
+          <div class="legend-row">
+            <span><i class="dot dot-blue"></i>Plastic Waste</span>
+            <span><i class="dot dot-green"></i>Organic Debris</span>
           </div>
         </div>
 
         <div class="card">
-          <h2 class="card-title">Report Data</h2>
-          <div class="data-list">
-            <div class="data-row">
-              <span class="data-label">Location Node</span>
-              <span class="data-value">PH-MNL-QC (North)</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Severity Level</span>
-              <span class="data-value green">Critical</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Report Type</span>
-              <span class="data-value">Incident Report</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Primary Material</span>
-              <span class="data-value red">Mixed Plastic Poly</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Timestamp</span>
-              <span class="data-value">2023-10-19 15:42:01</span>
-            </div>
-          </div>
-
-          <div class="protocol-box">
-            <span>⚠️</span>
+          <div class="card-head">
             <div>
-              <strong>Report Handling Note:</strong> This record should be reviewed by the monitoring supervisor before archiving.
+              <h3>Incident Severity Distribution</h3>
+              <div class="card-sub">Monthly categorized incidents</div>
             </div>
           </div>
+
+          <div class="donut-wrap">
+            <svg viewBox="0 0 42 42" class="donut">
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0a020" stroke-width="6.5"
+                stroke-dasharray="51.4 48.6" stroke-dashoffset="25"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#c7c7c7" stroke-width="6.5"
+                stroke-dasharray="25.7 74.3" stroke-dashoffset="-26.4"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0602a" stroke-width="6.5"
+                stroke-dasharray="16.5 83.5" stroke-dashoffset="-52.1"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#d33c3c" stroke-width="6.5"
+                stroke-dasharray="4.6 95.4" stroke-dashoffset="-68.6"></circle>
+            </svg>
+            <div class="donut-center">51.4%</div>
+          </div>
+
+          <div class="legend-list">
+            <span><i class="dot dot-yellow"></i>Medium</span>
+            <span><i class="dot dot-gray"></i>Low</span>
+            <span><i class="dot dot-orange"></i>High</span>
+            <span><i class="dot dot-red"></i>Critical</span>
+          </div>
         </div>
+      </section>
+
+      <!-- Archive table -->
+      <section class="card table-card">
+        <div class="card-head">
+          <div>
+            <h3>Incident &amp; Detection Archive</h3>
+            <div class="card-sub">Detailed log of all system activities</div>
+          </div>
+          <div class="table-filters">
+            <button class="filter-pill">Severity: All <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+            <button class="filter-pill">Status: Resolved <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>ID / Date</th>
+                <th>Location Node</th>
+                <th>Detection Type</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="report-id">EV-8892-X</div>
+                  <div class="report-date">Oct 28, 2023 • 15:42</div>
+                </td>
+                <td><span class="status-dot red inline"></span>Sector 4 · CAM-001</td>
+                <td>
+                  <div class="detect-type">Large Plastic Blockage</div>
+                  <div class="detect-conf good">98.4% Confidence</div>
+                </td>
+                <td><span class="severity-pill critical">CRITICAL</span></td>
+                <td><span class="status-text blue"><i class="dot dot-blue"></i>Dispatched</span></td>
+                <td class="action-cell">
+                  <button class="kebab-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+                  </button>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div class="report-id">EV-8874-A</div>
+                  <div class="report-date">Oct 28, 2023 • 12:15</div>
+                </td>
+                <td><span class="status-dot green inline"></span>Sector 2 · CAM-018</td>
+                <td>
+                  <div class="detect-type">Chemical Runoff</div>
+                  <div class="detect-conf good">94.5% Confidence</div>
+                </td>
+                <td><span class="severity-pill high">HIGH</span></td>
+                <td><span class="status-text green"><i class="dot dot-green"></i>Resolved</span></td>
+                <td class="action-cell">
+                  <button class="kebab-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+                  </button>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div class="report-id">EV-8840-C</div>
+                  <div class="report-date">Oct 27, 2023 • 09:30</div>
+                </td>
+                <td><span class="status-dot green inline"></span>Sector 3 · CAM-009</td>
+                <td>
+                  <div class="detect-type">Organic Debris (Medium)</div>
+                  <div class="detect-conf">82.1% Confidence</div>
+                </td>
+                <td><span class="severity-pill medium">MEDIUM</span></td>
+                <td><span class="status-text green"><i class="dot dot-green"></i>Resolved</span></td>
+                <td class="action-cell">
+                  <button class="kebab-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+                  </button>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div class="report-id">EV-8835-B</div>
+                  <div class="report-date">Oct 27, 2023 • 08:45</div>
+                </td>
+                <td><span class="status-dot orange inline"></span>Sector 1 · CAM-042</td>
+                <td>
+                  <div class="detect-type">Floating Trash (Small)</div>
+                  <div class="detect-conf">92.0% Confidence</div>
+                </td>
+                <td><span class="severity-pill low">LOW</span></td>
+                <td><span class="status-text gray"><i class="dot dot-gray"></i>Monitoring</span></td>
+                <td class="action-cell">
+                  <button class="kebab-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <span class="results-count">Showing 1-4 of 142 results</span>
+          <div class="pagination">
+            <button class="page-btn">Previous</button>
+            <button class="page-num active">1</button>
+            <button class="page-num">2</button>
+            <button class="page-num">3</button>
+            <button class="page-btn">Next</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="secure-strip">
+        <span class="status-dot green"></span> System Secure · 256-bit Encryption
+        <span class="secure-sep">•</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        AUTO-SYNC ACTIVE
       </div>
 
-      <div class="card workflow-card">
-        <h3>Report Workflow Status</h3>
-        <div class="stepper">
-          <div class="stepper-line"></div>
-          <div class="stepper-progress"></div>
-          <div class="step-item active">
-            <div class="step-icon">✓</div>
-            <span class="step-label">Report Generated</span>
-          </div>
-          <div class="step-item">
-            <div class="step-icon">🔍</div>
-            <span class="step-label">Review Pending</span>
-          </div>
-          <div class="step-item">
-            <div class="step-icon">🔔</div>
-            <span class="step-label">Notification Sent</span>
-          </div>
-          <div class="step-item">
-            <div class="step-icon">✔</div>
-            <span class="step-label">Archived</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="status-strip">
-        <div class="status-indicator">
-          <span class="status-dot green"></span>
-          <span>Reports Engine: ACTIVE</span>
-        </div>
-        <span class="critical-text">12 REPORTS UNRESOLVED</span>
-        <span class="sync-text">LAST SYNC: 1s AGO</span>
-      </div>
     </main>
   </div>
 
-  <script src="../../js/monitoring/monitoring-nav.js"></script>
-  <script src="../../js/shared/global.js"></script>
 </body>
 </html>
