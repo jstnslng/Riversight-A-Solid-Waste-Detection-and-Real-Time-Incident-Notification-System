@@ -1,72 +1,18 @@
-(function () {
-  const cameras = [
-    {
-      id: 'CAM-001',
-      title: 'Buwaya Creek (Main)',
-      location: 'Main North Inlet Sector',
-      image: 'https://picsum.photos/seed/cam001/1200/800',
-      time: '2023-10-19 14:28:45',
-      status: 'ONLINE',
-      statusClass: 'green',
-      sectorLabel: 'Main North Inlet Sector',
-      detections: [
-        { label: 'Plastic Bottle - 94.2%', className: 'box-red', style: { top: '38%', left: '6%', width: '15%', height: '22%' } },
-        { label: 'Styrofoam Block - 91.0%', className: 'box-red', style: { top: '20%', left: '38%', width: '22%', height: '24%' } },
-        { label: 'Organic Debris - 84.5%', className: 'box-orange', style: { top: '44%', left: '52%', width: '20%', height: '20%' } }
-      ]
-    },
-    {
-      id: 'CAM-002',
-      title: 'Buwaya Creek (North)',
-      location: 'North Channel',
-      image: 'https://picsum.photos/seed/cam002/1200/800',
-      time: '2023-10-19 14:28:45',
-      status: 'ONLINE',
-      statusClass: 'green',
-      sectorLabel: 'North Channel',
-      detections: [
-        { label: 'Floating Debris - 87.4%', className: 'box-orange', style: { top: '28%', left: '16%', width: '18%', height: '24%' } },
-        { label: 'Plastic Bag Cluster - 90.1%', className: 'box-red', style: { top: '40%', left: '48%', width: '22%', height: '20%' } }
-      ]
-    },
-    {
-      id: 'CAM-003',
-      title: 'Tres Kantos Creek',
-      location: 'East Basin',
-      image: 'https://picsum.photos/seed/cam003/1200/800',
-      time: '2023-10-19 14:28:45',
-      status: 'ONLINE',
-      statusClass: 'red',
-      sectorLabel: 'East Basin',
-      detections: [
-        { label: 'Styrofoam Block - 92.6%', className: 'box-red', style: { top: '24%', left: '20%', width: '26%', height: '24%' } },
-        { label: 'Branch Debris - 81.8%', className: 'box-orange', style: { top: '50%', left: '54%', width: '18%', height: '20%' } }
-      ]
-    },
-    {
-      id: 'CAM-004',
-      title: 'Marilag Creek',
-      location: 'West Outflow',
-      image: 'https://picsum.photos/seed/cam004/1200/800',
-      time: '2023-10-19 14:28:45',
-      status: 'WEAK',
-      statusClass: 'orange',
-      sectorLabel: 'West Outflow',
-      detections: [
-        { label: 'Organic Debris - 83.0%', className: 'box-orange', style: { top: '34%', left: '12%', width: '18%', height: '20%' } },
-        { label: 'Plastic Bottle - 88.4%', className: 'box-red', style: { top: '46%', left: '42%', width: '22%', height: '22%' } }
-      ]
-    }
-  ];
+import { auth, db } from "../shared/firebase-config.js";
+import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const cameraLookup = Object.fromEntries(cameras.map((camera) => [camera.id, camera]));
+(function () {
+  let cameras = [];
+  let cameraLookup = {};
+
   const modeStorageKey = 'riversightViewMode';
   const cameraStorageKey = 'riversightSelectedCameraId';
   const MAX_ZOOM = 8;
   const MIN_ZOOM = 1;
   const ZOOM_STEP = 0.25;
+  
   const spotlightState = {
-    activeCameraId: cameras[0].id,
+    activeCameraId: null,
     mainZoom: MIN_ZOOM,
     mainPanX: 0,
     mainPanY: 0
@@ -113,14 +59,6 @@
     return cameraLookup[cameraId] || cameras[0];
   }
 
-  function getTileState(cameraId) {
-    if (!tileStates[cameraId]) {
-      tileStates[cameraId] = { zoom: MIN_ZOOM, panX: 0, panY: 0 };
-    }
-
-    return tileStates[cameraId];
-  }
-
   function resetMainStageZoom() {
     spotlightState.mainZoom = MIN_ZOOM;
     spotlightState.mainPanX = 0;
@@ -128,12 +66,13 @@
   }
 
   function getInitialState() {
+    if (cameras.length === 0) return { cameraId: null, viewMode: 'grid' };
     const params = new URLSearchParams(window.location.search);
     const cameraId = params.get('cameraId') || readStoredValue(cameraStorageKey, cameras[0].id);
     const viewMode = readStoredValue(modeStorageKey, 'grid');
 
     return {
-      cameraId: getCameraById(cameraId).id,
+      cameraId: getCameraById(cameraId) ? getCameraById(cameraId).id : cameras[0].id,
       viewMode: viewMode === 'fullscreen' ? 'fullscreen' : 'grid'
     };
   }
@@ -247,8 +186,8 @@
               <div class="main-stage-badge overlay-pill feed-tag feed-tag-rec">● REC</div>
             </div>
             <div class="feed-sector-label overlay-pill">${camera.sectorLabel}</div>
-            ${camera.detections.map((detection) => `
-              <div class="detect-box ${detection.className}" style="top:${detection.style.top}; left:${detection.style.left}; width:${detection.style.width}; height:${detection.style.height};">
+            ${(camera.detections || []).map((detection) => `
+              <div class="detect-box ${detection.className}" style="top:${detection.style?.top || '10%'}; left:${detection.style?.left || '10%'}; width:${detection.style?.width || '20%'}; height:${detection.style?.height || '20%'};">
                 <span class="detect-label overlay-pill ${detection.className === 'box-orange' ? 'label-orange' : 'label-red'}">${detection.label}</span>
               </div>
             `).join('')}
@@ -281,20 +220,14 @@
     const zoomOutButton = article.querySelector('[data-zoom-out]');
     const resetButton = article.querySelector('[data-reset-zoom]');
     let dragActive = false;
-    let startX = 0;
-    let startY = 0;
-    let startPanX = 0;
-    let startPanY = 0;
-    let autoHideTimer = null;
+    let startX = 0, startY = 0, startPanX = 0, startPanY = 0, autoHideTimer = null;
 
     const setZoomLabel = () => {
       if (spotlightState.mainZoom > MIN_ZOOM) {
         zoomLabel.textContent = `${spotlightState.mainZoom.toFixed(1)}x`;
         zoomLabel.classList.add('is-visible');
         window.clearTimeout(autoHideTimer);
-        autoHideTimer = window.setTimeout(() => {
-          zoomLabel.classList.remove('is-visible');
-        }, 1100);
+        autoHideTimer = window.setTimeout(() => zoomLabel.classList.remove('is-visible'), 1100);
       } else {
         zoomLabel.classList.remove('is-visible');
       }
@@ -310,20 +243,11 @@
 
     const applyTransform = () => {
       feedLayer.style.transform = `translate(${spotlightState.mainPanX}px, ${spotlightState.mainPanY}px)`;
-      feedLayer.style.transformOrigin = 'center center';
       feedLayer.style.willChange = 'transform';
       feedImage.style.transform = `scale(${spotlightState.mainZoom})`;
-      feedImage.style.transformOrigin = 'center center';
       feedImage.style.willChange = 'transform';
       article.classList.toggle('feed-card--zoomed', spotlightState.mainZoom > MIN_ZOOM);
       setZoomLabel();
-    };
-
-    const resetView = () => {
-      spotlightState.mainZoom = MIN_ZOOM;
-      spotlightState.mainPanX = 0;
-      spotlightState.mainPanY = 0;
-      applyTransform();
     };
 
     const setZoom = (nextZoom) => {
@@ -337,92 +261,9 @@
       applyTransform();
     };
 
-    const stopTileInteraction = (event) => {
-      event.stopPropagation();
-    };
-
-    zoomInButton.addEventListener('click', (event) => {
-      stopTileInteraction(event);
-      setZoom(spotlightState.mainZoom + ZOOM_STEP);
-    });
-
-    zoomOutButton.addEventListener('click', (event) => {
-      stopTileInteraction(event);
-      setZoom(spotlightState.mainZoom - ZOOM_STEP);
-    });
-
-    resetButton.addEventListener('click', (event) => {
-      stopTileInteraction(event);
-      resetView();
-    });
-
-    frame.addEventListener('wheel', (event) => {
-      if (spotlightState.mainZoom === MIN_ZOOM && event.deltaY > 0) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      const direction = event.deltaY < 0 ? 1 : -1;
-      setZoom(spotlightState.mainZoom + direction * ZOOM_STEP);
-    }, { passive: false });
-
-    frame.addEventListener('pointerdown', (event) => {
-      if (spotlightState.mainZoom <= MIN_ZOOM) {
-        return;
-      }
-      dragActive = true;
-      event.preventDefault();
-      event.stopPropagation();
-      startX = event.clientX;
-      startY = event.clientY;
-      startPanX = spotlightState.mainPanX;
-      startPanY = spotlightState.mainPanY;
-      frame.setPointerCapture(event.pointerId);
-      article.classList.add('is-dragging');
-    });
-
-    frame.addEventListener('pointermove', (event) => {
-      if (!dragActive) {
-        return;
-      }
-      event.preventDefault();
-      const deltaX = event.clientX - startX;
-      const deltaY = event.clientY - startY;
-      spotlightState.mainPanX = startPanX + deltaX;
-      spotlightState.mainPanY = startPanY + deltaY;
-      clampPan();
-      applyTransform();
-    });
-
-    const endDrag = () => {
-      if (!dragActive) {
-        return;
-      }
-      dragActive = false;
-      article.classList.remove('is-dragging');
-    };
-
-    frame.addEventListener('pointerup', endDrag);
-    frame.addEventListener('pointerleave', endDrag);
-    frame.addEventListener('pointercancel', endDrag);
-
-    article.addEventListener('mouseenter', () => {
-      article.classList.add('feed-card--hovered');
-    });
-
-    article.addEventListener('mouseleave', () => {
-      article.classList.remove('feed-card--hovered');
-    });
-
-    article.addEventListener('click', (event) => {
-      if (event.target.closest('[data-tile-controls], [data-zoom-in], [data-zoom-out], [data-reset-zoom], [data-waste-detection-action]')) {
-        return;
-      }
-      if (dragActive) {
-        dragActive = false;
-        article.classList.remove('is-dragging');
-      }
-    });
+    zoomInButton.addEventListener('click', (e) => { e.stopPropagation(); setZoom(spotlightState.mainZoom + ZOOM_STEP); });
+    zoomOutButton.addEventListener('click', (e) => { e.stopPropagation(); setZoom(spotlightState.mainZoom - ZOOM_STEP); });
+    resetButton.addEventListener('click', (e) => { e.stopPropagation(); spotlightState.mainZoom = MIN_ZOOM; spotlightState.mainPanX = 0; spotlightState.mainPanY = 0; applyTransform(); });
 
     const actionSlot = article.querySelector('.feed-action-slot');
     actionSlot.appendChild(createWasteDetectionButton(camera));
@@ -436,7 +277,6 @@
     article.type = 'button';
     article.className = `feed-card feed-card--spotlight-thumb${spotlightState.activeCameraId === camera.id ? ' is-active' : ''}`;
     article.dataset.cameraId = camera.id;
-    article.setAttribute('aria-label', `Show ${camera.title}`);
 
     article.innerHTML = `
       <div class="thumbnail-tile-inner">
@@ -455,9 +295,7 @@
     `;
 
     article.addEventListener('click', (event) => {
-      if (event.target.closest('[data-waste-detection-action]')) {
-        return;
-      }
+      if (event.target.closest('[data-waste-detection-action]')) return;
       event.stopPropagation();
       spotlightState.activeCameraId = camera.id;
       resetMainStageZoom();
@@ -472,9 +310,7 @@
 
   function renderLiveMonitoringPage(state) {
     const container = document.getElementById('feedsGrid');
-    if (!container) {
-      return;
-    }
+    if (!container || cameras.length === 0) return;
 
     updateBodyMode(state.viewMode);
     updateViewModeUI(state.viewMode);
@@ -486,7 +322,7 @@
 
     if (state.viewMode === 'fullscreen') {
       const mainCamera = getCameraById(spotlightState.activeCameraId || state.cameraId);
-      const thumbnails = cameras.filter((camera) => camera.id !== mainCamera.id);
+      const thumbnails = cameras.filter((cam) => cam.id !== mainCamera.id);
       const spotlightShell = document.createElement('div');
       spotlightShell.className = 'spotlight-shell';
 
@@ -496,9 +332,7 @@
 
       const thumbnailStrip = document.createElement('div');
       thumbnailStrip.className = 'spotlight-thumbnails';
-      thumbnails.forEach((camera) => {
-        thumbnailStrip.appendChild(buildThumbnailTile(camera));
-      });
+      thumbnails.forEach((cam) => thumbnailStrip.appendChild(buildThumbnailTile(cam)));
 
       spotlightShell.appendChild(mainStage);
       spotlightShell.appendChild(thumbnailStrip);
@@ -510,50 +344,6 @@
       const isActive = camera.id === state.cameraId;
       container.appendChild(buildFeedCard(camera, isActive));
     });
-  }
-
-  function renderWasteDetectionPage(state) {
-    const frame = document.querySelector('[data-camera-feed-frame]');
-    const title = document.querySelector('[data-camera-title]');
-    const streamTag = document.querySelector('[data-camera-stream-tag]');
-    const sectionLabel = document.querySelector('[data-camera-sector-label]');
-    const detailLabel = document.querySelector('[data-camera-detail-label]');
-    const camera = getCameraById(state.cameraId);
-
-    if (frame) {
-      frame.innerHTML = `
-        <img src="${camera.image}" alt="Live camera feed for ${camera.title}" class="feed-img">
-        <div class="feed-tag feed-tag-live"><span class="rec-dot"></span> LIVE 4K FEED</div>
-        <div class="feed-tag feed-tag-rec">● REC</div>
-        <div class="feed-sector-label">${camera.sectorLabel}</div>
-        ${camera.detections.map((detection) => `
-          <div class="detect-box ${detection.className}" style="top:${detection.style.top}; left:${detection.style.left}; width:${detection.style.width}; height:${detection.style.height};">
-            <span class="detect-label ${detection.className === 'box-orange' ? 'label-orange' : 'label-red'}">${detection.label}</span>
-          </div>
-        `).join('')}
-      `;
-    }
-
-    if (title) {
-      title.textContent = `AI Waste Detection Console · ${camera.id}`;
-    }
-
-    const incidentEvalLink = document.querySelector('[data-incident-eval-link]');
-    if (incidentEvalLink) {
-      incidentEvalLink.href = `./Incident-Reports.html?cameraId=${encodeURIComponent(camera.id)}`;
-    }
-
-    if (streamTag) {
-      streamTag.textContent = `ACTIVE STREAM: ${camera.id}`;
-    }
-
-    if (sectionLabel) {
-      sectionLabel.textContent = camera.sectorLabel;
-    }
-
-    if (detailLabel) {
-      detailLabel.textContent = camera.title;
-    }
   }
 
   function navigateToWasteDetection(cameraId) {
@@ -581,91 +371,83 @@
     });
   }
 
-  function initializePage() {
-    const state = getInitialState();
+  // --- Real-Time Firestore Sync ---
+// --- Real-Time Firestore Sync ---
+  function initializeFirestoreListener() {
     updateCamTimeLabels();
     window.clearInterval(window.__riversightCamTimeTimer);
     window.__riversightCamTimeTimer = window.setInterval(updateCamTimeLabels, 1000);
-    persistValue(cameraStorageKey, state.cameraId);
 
-    if (document.body.dataset.page === 'live-monitoring') {
-      renderLiveMonitoringPage(state);
-      attachViewModeHandlers(state);
-      return;
-    }
+    const cameraCollectionRef = collection(db, "camera_feeds");
 
-    if (document.body.dataset.page === 'waste-detection') {
-      renderWasteDetectionPage(state);
-    }
-  }
+    onSnapshot(cameraCollectionRef, (snapshot) => {
+      cameras = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        cameras.push({
+          id: data.camId || doc.id,
+          title: data.title || "Unknown Creek",
+          location: data.location || "General Sector",
+          image: data.thumbnailUrl || data.image || "https://picsum.photos/seed/default/1200/800",
+          time: data.timestamp || formatCurrentTimestamp(),
+          status: data.status || "ONLINE",
+          statusClass: data.statusClass ? data.statusClass : (data.status === 'OFFLINE' ? 'red' : (data.status === 'WEAK' ? 'orange' : 'green')),
+          sectorLabel: data.sectorLabel || data.location || "Monitoring Area",
+          detections: data.detections || []
+        });
+      });
 
-  document.addEventListener('DOMContentLoaded', initializePage);
-})();
+      cameraLookup = Object.fromEntries(cameras.map((cam) => [cam.id, cam]));
 
-const WASTE_BUILDUP_THRESHOLDS = [
-  { max: 39, label: 'LOW RISK', color: '#1a9e57' },
-  { max: 69, label: 'MODERATE RISK', color: '#e0a020' },
-  { max: 100, label: 'HIGH RISK', color: '#d33c3c' }
-];
+      // 1. DYNAMICALLY UPDATE SOURCE COUNT TEXT
+      const countLabel = document.getElementById('activeSourcesCount');
+      if (countLabel) {
+        countLabel.textContent = `${cameras.length} Active Source${cameras.length === 1 ? '' : 's'}`;
+      }
 
-function getWasteBuildupRisk(percentage) {
-  return WASTE_BUILDUP_THRESHOLDS.find((t) => percentage <= t.max) || WASTE_BUILDUP_THRESHOLDS[WASTE_BUILDUP_THRESHOLDS.length - 1];
-}
+      // 2. DYNAMICALLY UPDATE SIDEBAR SELECTOR LIST
+      const sidebarContainer = document.getElementById('sidebarFeedSelector');
+      if (sidebarContainer) {
+        // Keep only the label element, remove old listings
+        const labelEl = sidebarContainer.querySelector('.feed-selector-label');
+        sidebarContainer.innerHTML = '';
+        if (labelEl) sidebarContainer.appendChild(labelEl);
 
-function renderWasteBuildupGauge(options = {}) {
-  const container = document.querySelector('[data-waste-buildup-gauge]');
-  if (!container) return;
+        cameras.forEach((camera) => {
+          const state = getInitialState();
+          const isSelected = camera.id === state.cameraId;
+          
+          const a = document.createElement('a');
+          a.href = `./Live-Monitoring.html?cameraId=${encodeURIComponent(camera.id)}`;
+          a.className = `feed-item ${isSelected ? 'active' : ''}`;
+          a.innerHTML = `
+            <span class="feed-dot ${camera.statusClass}"></span>
+            <span class="feed-name">${camera.id}</span>
+            <span class="feed-status">${camera.status}</span>
+          `;
+          sidebarContainer.appendChild(a);
+        });
+      }
 
-  // TODO: replace stubbed values with real data source
-  const data = { percentage: 68, trend: 12, trendDirection: 'increasing', estFillTime: '1h 20m', ...options };
-  const { percentage, trend, trendDirection, estFillTime } = data;
-  const risk = getWasteBuildupRisk(percentage);
+      if (cameras.length > 0) {
+        if (!spotlightState.activeCameraId) {
+          spotlightState.activeCameraId = cameras[0].id;
+        }
+        const state = getInitialState();
+        persistValue(cameraStorageKey, state.cameraId);
 
-  const wrapper = container.querySelector('.gauge-wrapper');
-  const arc = container.querySelector('.gauge-arc');
-  const percentageLabel = container.querySelector('[data-gauge-percentage]');
-  const riskLabel = container.querySelector('[data-gauge-risk-label]');
-  const trendIcon = container.querySelector('[data-trend-icon]');
-  const trendValue = container.querySelector('[data-trend-value]');
-  const trendLabel = container.querySelector('[data-trend-label]');
-  const fillTimeLabel = container.querySelector('[data-fill-time]');
-
-  if (arc) {
-    const pathLength = arc.getTotalLength();
-    arc.style.strokeDasharray = pathLength;
-    arc.style.strokeDashoffset = pathLength * (1 - Math.min(Math.max(percentage, 0), 100) / 100);
-    wrapper.style.setProperty('--gauge-color', risk.color);
-  }
-
-  if (percentageLabel) percentageLabel.textContent = `${Math.round(percentage)}%`;
-  if (riskLabel) {
-    riskLabel.textContent = risk.label;
-    riskLabel.style.color = risk.color;
-  }
-
-  const improving = trendDirection === 'decreasing';
-  if (trendIcon) {
-    trendIcon.textContent = improving ? '↘' : '↗';
-    trendIcon.classList.toggle('trend-positive', !improving);
-    trendIcon.classList.toggle('trend-negative', improving);
-    trendIcon.style.color = improving ? '#1a9e57' : risk.color;
-  }
-  if (trendValue) trendValue.textContent = `${trend >= 0 ? '+' : ''}${trend}%/hr`;
-  if (trendLabel) {
-    trendLabel.textContent = improving ? 'Improving' : 'Increasing';
-    trendLabel.style.color = improving ? '#1a9e57' : risk.color;
-  }
-  if (fillTimeLabel) fillTimeLabel.textContent = estFillTime;
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  renderWasteBuildupGauge();
-
-  const dispatchBtn = document.querySelector('[data-dispatch-cleanup]');
-  if (dispatchBtn) {
-    dispatchBtn.addEventListener('click', () => {
-      // TODO: wire to real dispatch/incident-creation flow
-      alert('Cleanup team alert request sent.');
+        if (document.body.dataset.page === 'live-monitoring') {
+          renderLiveMonitoringPage(state);
+          attachViewModeHandlers(state);
+        }
+      } else {
+        // Clear grid view frame if collection holds zero documents
+        const container = document.getElementById('feedsGrid');
+        if (container) container.innerHTML = '<div style="padding:2rem;color:var(--text-muted)">No active operational sources connected.</div>';
+      }
+    }, (error) => {
+      console.error("Firestore sync error:", error);
     });
   }
-});
+    document.addEventListener('DOMContentLoaded', initializeFirestoreListener);
+})();

@@ -40,26 +40,7 @@
 
       <div class="feed-selector">
         <div class="feed-selector-label">ACTIVE FEED SELECTOR</div>
-        <a href="#" class="feed-item active">
-          <span class="feed-dot green"></span>
-          <span class="feed-name">CAM-001</span>
-          <span class="feed-status">ONLINE</span>
-        </a>
-        <a href="#" class="feed-item">
-          <span class="feed-dot green"></span>
-          <span class="feed-name">CAM-002</span>
-          <span class="feed-status">ONLINE</span>
-        </a>
-        <a href="#" class="feed-item">
-          <span class="feed-dot red"></span>
-          <span class="feed-name">CAM-003</span>
-          <span class="feed-status">ONLINE</span>
-        </a>
-        <a href="#" class="feed-item">
-          <span class="feed-dot orange"></span>
-          <span class="feed-name">CAM-004</span>
-          <span class="feed-status">WEAK</span>
-        </a>
+
       </div>
 
 
@@ -117,8 +98,7 @@
       <div class="page-title-row">
         <div>
           <h1>Live Waterway Monitoring</h1>
-          <div class="updated-row"><span class="live-dot"></span> Live Stream · 4 Active Sources</div>
-        </div>
+        <div class="updated-row"><span class="live-dot"></span> Live Stream · <span id="activeSourcesCount">0 Active Sources</span></div>        </div>
         <div class="page-title-actions">
           <button class="date-btn active" type="button" data-view-mode="grid" aria-pressed="true">Grid (2×2)</button>
           <button class="date-btn" type="button" data-view-mode="fullscreen" aria-pressed="false">Full Screen Mode</button>
@@ -148,7 +128,7 @@
     }
   </script>
 
-<script src="../../js/monitoring/camera-feed-module.js"></script>
+<script type="module" src="../../js/monitoring/camera-feed-module.js"></script>
 <script src="../../js/monitoring/monitoring-nav.js"></script>
 <script src="../../js/shared/global.js"></script>
 </body>
