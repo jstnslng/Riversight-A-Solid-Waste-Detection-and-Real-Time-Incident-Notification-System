@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RiverSight — Reports &amp; Analytics</title>
-<link rel="stylesheet" href="../../css/monitoring/Incident-Reports.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiverSight — Reports &amp; Analytics</title>
+  <link rel="stylesheet" href="../../css/monitoring/Incident-Reports.css">
 </head>
 <body>
 
@@ -69,8 +69,8 @@
           </button>
           <div class="user-chip">
             <img src="../../assets/admin-profile-pic.jpg" alt="Admin avatar">
-              <div>
-             <div class="user-name">Live Monitoring</div>
+            <div>
+              <div class="user-name">Live Monitoring</div>
               <div class="user-role">Monitoring Personnel</div>
             </div>
           </div>
@@ -83,11 +83,6 @@
           <div class="updated-row">Detailed performance metrics and incident archives</div>
         </div>
         <div class="page-title-actions">
-          <button class="date-range-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
-            Oct 01, 2026 - Oct 31, 2026
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chevron"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
           <button class="pdf-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
             Export PDF
@@ -108,8 +103,8 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4.5-7.5 11-7.5S23 12 23 12s-4.5 7.5-11 7.5S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
             </span>
           </div>
-          <div class="stat-value">4,821 <span class="stat-sub good">↑ 18%</span></div>
-          <div class="stat-note">vs previous month (4,085)</div>
+          <div class="stat-value" id="totalDetectionsCount">0</div>
+          <div class="stat-note">Dynamic sync from reports data</div>
         </div>
 
         <div class="stat-card">
@@ -119,8 +114,8 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 1 21h22L12 3Z"/><path d="M12 9.5v5M12 17.5h.01"/></svg>
             </span>
           </div>
-          <div class="stat-value">12 <span class="stat-sub pill-red">HIGH RISK</span></div>
-          <div class="stat-note">Requiring immediate dispatch</div>
+          <div class="stat-value" id="activeIncidentsCount">0 <span class="stat-sub good">Clear</span></div>
+          <div class="stat-note">Requiring immediate response</div>
         </div>
 
         <div class="stat-card">
@@ -141,8 +136,8 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 7.5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z"/><path d="M15 10l6-3.2v10.4L15 14"/></svg>
             </span>
           </div>
-          <div class="stat-value">96.4% <span class="stat-sub good">+0.2%</span></div>
-          <div class="progress-track"><div class="progress-fill" style="width:96.4%"></div></div>
+          <div class="stat-value" id="cleanupSuccessRate">0%</div>
+          <div class="progress-track"><div class="progress-fill" id="cleanupProgressBar" style="width:0%"></div></div>
         </div>
       </section>
 
@@ -155,26 +150,30 @@
               <div class="card-sub">Weekly volume across all sectors</div>
             </div>
             <div class="chart-toggles">
-              <button class="toggle-pill active">Lines</button>
-              <button class="toggle-pill">Bars</button>
+              <button class="toggle-pill active" id="btnShowLines">Lines</button>
+              <button class="toggle-pill" id="btnShowBars">Bars</button>
             </div>
           </div>
 
           <svg class="trend-chart" viewBox="0 0 560 220" preserveAspectRatio="none">
+            <!-- Grid & Axes Lines -->
             <line x1="34" y1="10" x2="34" y2="180" stroke="#e2e2e2" stroke-width="1"/>
             <line x1="34" y1="180" x2="540" y2="180" stroke="#e2e2e2" stroke-width="1"/>
-            <text x="6" y="14" class="axis-label">1500</text>
-            <text x="6" y="94" class="axis-label">1000</text>
-            <text x="14" y="174" class="axis-label">500</text>
+            <text x="6" y="14" class="axis-label">Max</text>
+            <text x="14" y="174" class="axis-label">0</text>
+            <text x="30" y="198" class="axis-label">Wk 1</text>
+            <text x="150" y="198" class="axis-label">Wk 2</text>
+            <text x="270" y="198" class="axis-label">Wk 3</text>
+            <text x="390" y="198" class="axis-label">Wk 4</text>
 
-            <path d="M34,90 C130,55 180,50 270,72 C350,90 400,105 460,85 C490,76 515,68 536,64" fill="none" stroke="#2f6fd6" stroke-width="2.4"/>
-            <path d="M34,150 C130,120 180,115 270,132 C350,146 400,150 460,128 C490,118 515,112 536,110" fill="none" stroke="#1a9e57" stroke-width="2.4"/>
-            <path d="M34,90 C130,55 180,50 270,72 C350,90 400,105 460,85 C490,76 515,68 536,64 L536,180 L34,180 Z" fill="#2f6fd6" fill-opacity="0.06"/>
+            <!-- GROUP 1: LINES (Populated via JS) -->
+            <g id="chartGroupLines">
+              <path d="" fill="none" stroke="#2f6fd6" stroke-width="2.4"/>
+              <path d="" fill="none" stroke="#1a9e57" stroke-width="2.4"/>
+            </g>
 
-            <text x="30" y="198" class="axis-label">Week 1</text>
-            <text x="150" y="198" class="axis-label">Week 2</text>
-            <text x="270" y="198" class="axis-label">Week 3</text>
-            <text x="390" y="198" class="axis-label">Week 4</text>
+            <!-- GROUP 2: BARS (Populated via JS) -->
+            <g id="chartGroupBars" style="display: none;"></g>
           </svg>
 
           <div class="legend-row">
@@ -193,16 +192,12 @@
 
           <div class="donut-wrap">
             <svg viewBox="0 0 42 42" class="donut">
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0a020" stroke-width="6.5"
-                stroke-dasharray="51.4 48.6" stroke-dashoffset="25"></circle>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#c7c7c7" stroke-width="6.5"
-                stroke-dasharray="25.7 74.3" stroke-dashoffset="-26.4"></circle>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0602a" stroke-width="6.5"
-                stroke-dasharray="16.5 83.5" stroke-dashoffset="-52.1"></circle>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#d33c3c" stroke-width="6.5"
-                stroke-dasharray="4.6 95.4" stroke-dashoffset="-68.6"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0a020" stroke-width="6.5"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#c7c7c7" stroke-width="6.5"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0602a" stroke-width="6.5"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#d33c3c" stroke-width="6.5"></circle>
             </svg>
-            <div class="donut-center">51.4%</div>
+            <div class="donut-center" id="donutPercentage">0%</div>
           </div>
 
           <div class="legend-list">
@@ -222,8 +217,20 @@
             <div class="card-sub">Detailed log of all system activities</div>
           </div>
           <div class="table-filters">
-            <button class="filter-pill">Severity: All <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
-            <button class="filter-pill">Status: Resolved <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+            <select class="filter-pill" id="severitySelect">
+              <option value="ALL" selected>Severity: All</option>
+              <option value="CRITICAL">Severity: Critical</option>
+              <option value="HIGH">Severity: High</option>
+              <option value="MEDIUM">Severity: Medium</option>
+              <option value="LOW">Severity: Low</option>
+            </select>
+
+            <select class="filter-pill" id="statusSelect">
+              <option value="ALL" selected>Status: All</option>
+              <option value="Resolved">Status: Resolved</option>
+              <option value="Evaluated">Status: Evaluated</option>
+              <option value="Dispatched">Status: Dispatched</option>
+            </select>
           </div>
         </div>
 
@@ -239,95 +246,15 @@
                 <th></th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <div class="report-id">EV-8892-X</div>
-                  <div class="report-date">Oct 28, 2023 • 15:42</div>
-                </td>
-                <td><span class="status-dot red inline"></span>Sector 4 · CAM-001</td>
-                <td>
-                  <div class="detect-type">Large Plastic Blockage</div>
-                  <div class="detect-conf good">98.4% Confidence</div>
-                </td>
-                <td><span class="severity-pill critical">CRITICAL</span></td>
-                <td><span class="status-text blue"><i class="dot dot-blue"></i>Dispatched</span></td>
-                <td class="action-cell">
-                  <button class="kebab-btn">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
-                  </button>
-                </td>
-              </tr>
-
-              <tr>
-                <td>
-                  <div class="report-id">EV-8874-A</div>
-                  <div class="report-date">Oct 28, 2023 • 12:15</div>
-                </td>
-                <td><span class="status-dot green inline"></span>Sector 2 · CAM-018</td>
-                <td>
-                  <div class="detect-type">Chemical Runoff</div>
-                  <div class="detect-conf good">94.5% Confidence</div>
-                </td>
-                <td><span class="severity-pill high">HIGH</span></td>
-                <td><span class="status-text green"><i class="dot dot-green"></i>Resolved</span></td>
-                <td class="action-cell">
-                  <button class="kebab-btn">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
-                  </button>
-                </td>
-              </tr>
-
-              <tr>
-                <td>
-                  <div class="report-id">EV-8840-C</div>
-                  <div class="report-date">Oct 27, 2023 • 09:30</div>
-                </td>
-                <td><span class="status-dot green inline"></span>Sector 3 · CAM-009</td>
-                <td>
-                  <div class="detect-type">Organic Debris (Medium)</div>
-                  <div class="detect-conf">82.1% Confidence</div>
-                </td>
-                <td><span class="severity-pill medium">MEDIUM</span></td>
-                <td><span class="status-text green"><i class="dot dot-green"></i>Resolved</span></td>
-                <td class="action-cell">
-                  <button class="kebab-btn">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
-                  </button>
-                </td>
-              </tr>
-
-              <tr>
-                <td>
-                  <div class="report-id">EV-8835-B</div>
-                  <div class="report-date">Oct 27, 2023 • 08:45</div>
-                </td>
-                <td><span class="status-dot orange inline"></span>Sector 1 · CAM-042</td>
-                <td>
-                  <div class="detect-type">Floating Trash (Small)</div>
-                  <div class="detect-conf">92.0% Confidence</div>
-                </td>
-                <td><span class="severity-pill low">LOW</span></td>
-                <td><span class="status-text gray"><i class="dot dot-gray"></i>Monitoring</span></td>
-                <td class="action-cell">
-                  <button class="kebab-btn">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
-                  </button>
-                </td>
-              </tr>
+            
+            <tbody id="incidentTableBody">
+              <!-- Rendered dynamically -->
             </tbody>
           </table>
         </div>
 
         <div class="table-footer">
-          <span class="results-count">Showing 1-4 of 142 results</span>
-          <div class="pagination">
-            <button class="page-btn">Previous</button>
-            <button class="page-num active">1</button>
-            <button class="page-num">2</button>
-            <button class="page-num">3</button>
-            <button class="page-btn">Next</button>
-          </div>
+          <span class="results-count">Live Streaming Synced Database Records</span>
         </div>
       </section>
 
@@ -341,5 +268,8 @@
     </main>
   </div>
 
+  <script type="module" src="../../js/monitoring/incident-reports-module.js"></script>
+  <script src="../../js/monitoring/monitoring-nav.js"></script>
+  <script src="../../js/shared/global.js"></script>
 </body>
 </html>
