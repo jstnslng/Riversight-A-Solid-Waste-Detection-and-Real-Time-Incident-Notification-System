@@ -298,6 +298,26 @@ function setupControlListeners() {
     });
   }
 
+  // --- Profile Dropdown Toggle Logic ---
+  const profileToggle = document.querySelector('[data-profile-toggle]');
+  const profileMenu = document.querySelector('[data-profile-menu]');
+
+  if (profileToggle && profileMenu) {
+    profileToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isActive = profileMenu.classList.toggle("active");
+      profileToggle.setAttribute("aria-expanded", isActive);
+    });
+
+    // Close menu when clicking outside of it
+    document.addEventListener("click", (e) => {
+      if (!profileMenu.contains(e.target)) {
+        profileMenu.classList.remove("active");
+        profileToggle.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
   const allButtons = Array.from(document.querySelectorAll("button"));
   
   const csvBtn = allButtons.find(el => el.textContent.trim().toUpperCase().includes("EXPORT CSV"));
