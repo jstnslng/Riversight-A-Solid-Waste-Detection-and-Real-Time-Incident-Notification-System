@@ -1,7 +1,5 @@
-// 1. Import instances from your shared configuration file
 import { auth, db as sharedDb } from "../shared/firebase-config.js";
 
-// 2. Import core Firestore tools from the CDN package
 import { 
   collection, 
   onSnapshot, 
@@ -13,7 +11,6 @@ import {
 let db = sharedDb; 
 let currentReportsData = []; 
 
-// Anti-Adblock Workaround & Race-Condition Safe Initialization
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", verifyAndInitializeApp);
 } else {
@@ -210,7 +207,6 @@ function updateDashboardMetrics(active, total, resolved, severities, trends) {
   const maxVal = Math.max(...trends.plastic, ...trends.organic, 5);
   const xCoords = [34, 150, 270, 390];
 
-  // 1. GENERATE FULLY DYNAMIC LINE CHART PATHS (Straight Point-To-Point Vector Geometry)
   const chartPaths = document.querySelectorAll("#chartGroupLines path");
   if (chartPaths.length >= 2) {
     const getLinePath = (dataPoints) => {
@@ -225,7 +221,6 @@ function updateDashboardMetrics(active, total, resolved, severities, trends) {
     chartPaths[1].setAttribute("d", getLinePath(trends.organic));
   }
 
-  // 2. GENERATE FULLY DYNAMIC BAR CHART BLOCKS
   const chartBarsGroup = document.getElementById("chartGroupBars");
   if (chartBarsGroup) {
     const xOffsets = [55, 165, 285, 405];
@@ -241,9 +236,8 @@ function updateDashboardMetrics(active, total, resolved, severities, trends) {
       const pY = 180 - pHeight;
       const oY = 180 - oHeight;
 
-      // Render Plastic node vector
       barsHTML += `<rect x="${x}" y="${pY}" width="16" height="${pHeight}" fill="#2f6fd6" rx="3"/>`;
-      // Render Organic node vector
+
       barsHTML += `<rect x="${x + 20}" y="${oY}" width="16" height="${oHeight}" fill="#1a9e57" rx="3"/>`;
     });
 
