@@ -8,7 +8,8 @@
 <link rel="stylesheet" href="../../css/admin/Admin-Reports.css">
 <link rel="stylesheet" href="../../css/admin/Admin-Audit-Trail.css">
 <link rel="stylesheet" href="../../css/shared/global.css">
-<script src="../../js/admin/admin-audit-trail.js" defer></script>
+<script type="module" src="../../js/admin/admin-audit-trail.js" defer></script>
+<script type="module" src="../../js/shared/header.js" defer></script>
 </head>
 <body>
 
@@ -102,7 +103,7 @@
           <div class="updated-row"><span class="live-dot"></span> Reviewable activity log for admin actions and system changes</div>
         </div>
         <div class="page-title-actions export-actions">
-          <button class="export-btn light" type="button">Refresh Logs</button>
+          <button class="export-btn light" type="button" id="reloadAuditLogs">Refresh Logs</button>
           <button class="export-btn" type="button">Export CSV</button>
         </div>
       </div>
@@ -150,17 +151,6 @@
           <label class="field">
             <span>Date Range End</span>
             <input type="date" id="auditEndDate">
-          </label>
-          <label class="field">
-            <span>User</span>
-            <select id="auditUserFilter">
-              <option value="all">All Users</option>
-              <option value="Admin Principal">Admin Principal</option>
-              <option value="Leah Santos">Leah Santos</option>
-              <option value="Mina Cruz">Mina Cruz</option>
-              <option value="Carlos Reyes">Carlos Reyes</option>
-              <option value="System">System</option>
-            </select>
           </label>
           <label class="field field-wide">
             <span>Action Type</span>

@@ -4,7 +4,7 @@ import {
     browserLocalPersistence,
     browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { auth, db } from "../shared/firebase-config.js";
 
 // authentication
@@ -54,7 +54,7 @@ loginForm.addEventListener('submit', async (e) => {
 
         if (userData.role !== "Administrator") {
             alert("Access Denied: Account does not have Administrator privileges.");
-            await auth.signOut();
+            await signOut(auth);
             return;
         }
 
@@ -67,6 +67,19 @@ loginForm.addEventListener('submit', async (e) => {
             localStorage.setItem('riversightAdminSession', 'active');
         }
 
+        const loginAudit = {
+            userId: auth.currentUser?.uid || "N/A",
+            username: userData.username || userData.email,
+            action: "Login",
+            timestamp: serverTimestamp(),
+            target: "Session",
+            details: `Administrator ${userData.username || userData.email} logged in.`,
+            role: userData.role || "Administrator",
+            status: "Success"
+        }
+
+        await addDoc(collection(db, "audit"), loginAudit);
+
         window.location.href = 'Admin-Dashboard.html';
 
     } catch (error) {
@@ -77,6 +90,17 @@ loginForm.addEventListener('submit', async (e) => {
             case 'auth/user-not-found':
             case 'auth/wrong-password':
                 alert("Invalid username/email or password.");
+                const loginAudit = {
+                    userId: "Unknown",
+                    username: email,
+                    action: "Login",
+                    timestamp: serverTimestamp(),
+                    target: "Session",
+                    details: `Failed login attempt for ${email}.`,
+                    role: "Administrator",
+                    status: "Failed"
+                }
+                await addDoc(collection(db, "audit"), loginAudit);
                 break;
             case 'auth/too-many-requests':
                 alert("Account temporarily locked due to too many failed attempts.");

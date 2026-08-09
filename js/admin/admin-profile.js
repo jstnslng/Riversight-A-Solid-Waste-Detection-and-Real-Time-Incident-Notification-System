@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { auth, db } from "../shared/firebase-config.js";
 
@@ -28,6 +28,7 @@ const profileMenu = document.querySelector('[data-profile-menu]');
 const profileToggle = document.querySelector('[data-profile-toggle]');
 
 let currentUserRef = null;
+let currentUserRole = null;
 let originalValues = [];
 const editableFields = [usernameInput, emailInput, phoneInput].filter(Boolean);
 
@@ -105,6 +106,8 @@ onAuthStateChanged(auth, async (user) => {
         const role = data.role || 'System Administrator';
         const assignedStation = data.assigned_station || 'PH-MNL-QC';
 
+        currentUserRole = role;
+
         if (heroStatus) heroStatus.textContent = accountStatus;
         heroName.textContent = fullName;
         if (heroRole) heroRole.textContent = role;
@@ -164,8 +167,32 @@ saveButton.addEventListener('click', async () => {
         originalValues = editableFields.map(field => field.value);
 
         setEditingState(false);
+
+        const auditEntry = {
+            timestamp: new Date(),
+            user: updatedData.username || 'Unknown User',
+            userId: auth.currentUser?.uid || 'N/A',
+            role: currentUserRole || 'Unknown Role',
+            action: 'update',
+            target: 'Profile',
+            details: `Profile updated by ${updatedData.username || 'Unknown User'}.`,
+            status: 'success'
+        };
+
+        await addDoc(collection(db, "audit"), auditEntry);
+
     } catch (error) {
         console.error("Error updating profile:", error);
+        await addDoc(collection(db, "audit"), {
+            timestamp: new Date(),
+            user: usernameInput.value.trim() || 'Unknown User',
+            userId: auth.currentUser?.uid || 'N/A',
+            role: currentUserRole || 'Unknown Role',
+            action: 'update',
+            target: 'Profile',
+            details: `Failed profile update attempt by ${usernameInput.value.trim() || 'Unknown User'}. Error: ${error.message}`,
+            status: 'failed'
+        });
         alert("Failed to update profile changes.");
     } finally {
         saveButton.disabled = false;

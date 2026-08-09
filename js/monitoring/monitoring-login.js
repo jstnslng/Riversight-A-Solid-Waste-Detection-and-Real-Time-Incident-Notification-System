@@ -4,7 +4,7 @@ import {
     browserLocalPersistence,
     browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { auth, db } from "../shared/firebase-config.js";
 
 const loginForm = document.getElementById('loginForm');
@@ -67,10 +67,34 @@ loginForm.addEventListener('submit', async (e) => {
             localStorage.setItem('riversightMonitoringSession', 'active');
         }
 
+        const loginAudit = {
+            userId: auth.currentUser?.uid || "N/A",
+            username: userData.username || userData.email,
+            action: "Login",
+            timestamp: serverTimestamp(),
+            target: "Session",
+            details: `Monitoring user ${userData.username || userData.email} logged in.`,
+            role: userData.role || "Monitoring",
+            status: "Success"
+        };
+
+        await addDoc(collection(db, "audit"), loginAudit);
+
         window.location.href = '../monitoring/Live-Monitoring.html';
 
     } catch (error) {
         console.error('Error during login:', error);
+        const loginAudit = {
+            userId: "Unknown",
+            username: email,
+            action: "Login",
+            timestamp: serverTimestamp(),
+            target: "Session",
+            details: `Failed login attempt for ${email}.`,
+            role: "Monitoring",
+            status: "Failed"
+        };
+        await addDoc(collection(db, "audit"), loginAudit);
         alert('Login failed. Please check your credentials and try again.');
     } finally {
             submitBtn.disabled = false;
