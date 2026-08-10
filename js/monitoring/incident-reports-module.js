@@ -33,6 +33,9 @@ function verifyAndInitializeApp() {
     console.error("Database initialization totally failed. Check imports in firebase-config.js");
     return;
   }
+  
+const tableBody = document.getElementById("incidentTableBody");
+if (!tableBody) return; // <--- SILENT EXIT HERE
 
   initializeReportsListener();
   setupControlListeners();
@@ -44,7 +47,8 @@ function initializeReportsListener() {
 
   try {
     const targetCollection = collection(db, "reports");
-    const baseQuery = query(targetCollection, orderBy("timestamp", "desc"));
+    // Listens to Firestore 'reports' collection
+    const baseQuery = query(targetCollection);
 
     console.log("Subscribing to Firestore updates...");
     
@@ -119,16 +123,29 @@ function processAndRenderDashboard() {
       severityCounts[item.severity]++;
     }
 
-    if (item.timestamp) {
-      const docDate = item.timestamp.toDate ? item.timestamp.toDate() : new Date(item.timestamp);
+    // --- Safe Date Parsing for Chart Trends ---
+    let docDate = null;
+    if (item.timestamp && typeof item.timestamp.toDate === "function") {
+      docDate = item.timestamp.toDate();
+    } else if (item.dateText) {
+      // Strips time strings and parses date portion e.g. "Aug 10, 2026"
+      const dateOnly = item.dateText.split('•')[0].trim();
+      docDate = new Date(dateOnly);
+    }
+
+    if (docDate && !isNaN(docDate.getTime())) {
       const day = docDate.getDate();
       let weekIdx = Math.min(Math.floor((day - 1) / 7), 3);
       
-      if (item.detectionType.toLowerCase().includes("plastic") || item.detectionType.toLowerCase().includes("trash")) {
+      const typeLower = item.detectionType.toLowerCase();
+      if (typeLower.includes("plastic") || typeLower.includes("trash") || typeLower.includes("waste")) {
         weeklyTrends.plastic[weekIdx]++;
       } else {
         weeklyTrends.organic[weekIdx]++;
       }
+    } else {
+      // Fallback: place in current week bin if date is unparseable
+      weeklyTrends.organic[0]++;
     }
 
     let dotColor = "green";
@@ -153,7 +170,7 @@ function processAndRenderDashboard() {
       <td><span class="severity-pill ${item.severity.toLowerCase()}">${item.severity}</span></td>
       <td><span class="status-text ${statusDotColor}"><i class="dot dot-${statusDotColor}"></i>${item.status}</span></td>
       <td class="action-cell">
-        <button class="kebab-btn">
+        <button class="kebab-btn" aria-label="Actions">
           <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
         </button>
       </td>
@@ -237,7 +254,6 @@ function updateDashboardMetrics(active, total, resolved, severities, trends) {
       const oY = 180 - oHeight;
 
       barsHTML += `<rect x="${x}" y="${pY}" width="16" height="${pHeight}" fill="#2f6fd6" rx="3"/>`;
-
       barsHTML += `<rect x="${x + 20}" y="${oY}" width="16" height="${oHeight}" fill="#1a9e57" rx="3"/>`;
     });
 
@@ -295,26 +311,6 @@ function setupControlListeners() {
       btnShowLines.classList.remove('active');
       chartLines.style.display = 'none';
       chartBars.style.display = 'block';
-    });
-  }
-
-  // --- Profile Dropdown Toggle Logic ---
-  const profileToggle = document.querySelector('[data-profile-toggle]');
-  const profileMenu = document.querySelector('[data-profile-menu]');
-
-  if (profileToggle && profileMenu) {
-    profileToggle.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const isActive = profileMenu.classList.toggle("active");
-      profileToggle.setAttribute("aria-expanded", isActive);
-    });
-
-    // Close menu when clicking outside of it
-    document.addEventListener("click", (e) => {
-      if (!profileMenu.contains(e.target)) {
-        profileMenu.classList.remove("active");
-        profileToggle.setAttribute("aria-expanded", "false");
-      }
     });
   }
 
