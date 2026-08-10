@@ -55,13 +55,32 @@ async function loadActiveIncidents() {
 
 // ---------- Resolved Incidents (this month) ----------
 async function loadResolvedThisMonth() {
-  const q = query(
-    collection(db, "reports"),
-    where("status", "==", "Resolved"),
-    where("createdAt", ">=", Timestamp.fromDate(startOfMonth()))
-  );
-  const snapshot = await getDocs(q);
-  setText("resolved-incidents", snapshot.size);
+    const now = new Date();
+
+    const start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1,
+        0, 0, 0, 0
+    );
+
+    const end = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        1,
+        0, 0, 0, 0
+    );
+
+    const q = query(
+        collection(db, "reports"),
+        where("status", "==", "Resolved"),
+        where("resolvedAt", ">=", Timestamp.fromDate(start)),
+        where("resolvedAt", "<", Timestamp.fromDate(end))
+    );
+
+    const snapshot = await getDocs(q);
+
+    setText("resolved-incidents", snapshot.size);
 }
 
 // ---------- Active Cameras (from camera_feeds) ----------
