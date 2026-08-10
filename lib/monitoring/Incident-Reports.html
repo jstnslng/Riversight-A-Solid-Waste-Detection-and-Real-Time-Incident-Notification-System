@@ -62,7 +62,7 @@
           <input type="text" placeholder="Search reports or incidents...">
         </div>
 
-<div class="header-right">
+        <div class="header-right">
           
           <!-- Notification Bell Dropdown -->
           <div class="notification-wrapper">
@@ -76,7 +76,7 @@
               <div class="dropdown-body">
                 <a href="./Incident-Reports.html" class="report-item">
                   <div class="report-title">
-                    <span class="critical">Critical: EV-8892-X</span>
+                    <span class="critical">Severe: EV-8892-X</span>
                     <span class="time">15:42:01</span>
                   </div>
                   <div class="report-desc">High Density Waste Block detected by CAM-001.</div>
@@ -232,19 +232,17 @@
 
           <div class="donut-wrap">
             <svg viewBox="0 0 42 42" class="donut">
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0a020" stroke-width="6.5"></circle>
               <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#c7c7c7" stroke-width="6.5"></circle>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0602a" stroke-width="6.5"></circle>
+              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0a020" stroke-width="6.5"></circle>
               <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#d33c3c" stroke-width="6.5"></circle>
             </svg>
             <div class="donut-center" id="donutPercentage">0%</div>
           </div>
 
           <div class="legend-list">
+            <span><i class="dot dot-gray"></i>Normal</span>
             <span><i class="dot dot-yellow"></i>Medium</span>
-            <span><i class="dot dot-gray"></i>Low</span>
-            <span><i class="dot dot-orange"></i>High</span>
-            <span><i class="dot dot-red"></i>Critical</span>
+            <span><i class="dot dot-red"></i>Severe</span>
           </div>
         </div>
       </section>
@@ -258,10 +256,9 @@
           <div class="table-filters">
             <select class="filter-pill" id="severitySelect">
               <option value="ALL" selected>Severity: All</option>
-              <option value="CRITICAL">Severity: Critical</option>
-              <option value="HIGH">Severity: High</option>
+              <option value="SEVERE">Severity: Severe</option>
               <option value="MEDIUM">Severity: Medium</option>
-              <option value="LOW">Severity: Low</option>
+              <option value="NORMAL">Severity: Normal</option>
             </select>
 
             <select class="filter-pill" id="statusSelect">
