@@ -58,7 +58,7 @@
 
         <div class="search-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" placeholder="Search system health, cameras, servers...">
+          <input type="text" placeholder="Search system health, cameras, servers..." id="systemSearchInput">
         </div>
 
         <div class="header-right">
@@ -97,11 +97,16 @@
       <div class="page-title-row">
         <div>
           <h1>System Monitoring</h1>
-          <div class="updated-row"><span class="live-dot"></span> Live placeholder metrics ready for backend binding</div>
+          <div class="updated-row"><span class="live-dot"></span> <span id="liveStatusText">Loading live metrics...</span></div>
         </div>
         <div class="page-title-actions">
-          <button class="export-btn light" type="button">Refresh Status</button>
-          <button class="export-btn" type="button">View Logs</button>
+          <button class="export-btn light" type="button" id="refreshStatusBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; display: inline; margin-right: 6px;">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+            </svg>
+            Refresh Status
+          </button>
+          <button class="export-btn" type="button" id="viewLogsBtn">View Logs</button>
         </div>
       </div>
 
@@ -109,101 +114,95 @@
         <div class="card-head">
           <div>
             <h3>Camera Monitoring</h3>
-            <div class="card-sub">Placeholder cards ready for live preview and remote control actions</div>
+            <div class="card-sub">Manage and monitor all connected cameras</div>
+          </div>
+          <button class="export-btn" type="button" id="addCameraBtn" style="margin-left: auto;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; display: inline; margin-right: 6px;">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Camera
+          </button>
+        </div>
+
+        <div class="camera-grid" id="cameraGrid">
+          <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--muted);">
+            <p>Loading cameras...</p>
           </div>
         </div>
+      </section>
 
-        <div class="camera-grid">
-          <article class="camera-card">
-            <div class="camera-preview"><span>Preview Unavailable</span></div>
-            <div class="camera-meta">
-              <div class="camera-title-row"><h4>CAM-001 Buwaya South</h4><span class="status-pill good">Online</span></div>
-              <div class="camera-details"><span>Station</span><strong>Buwaya</strong></div>
-              <div class="camera-details"><span>IP Address</span><strong>192.168.10.41</strong></div>
-              <div class="camera-details"><span>Resolution</span><strong>1920 x 1080</strong></div>
-              <div class="camera-details"><span>FPS</span><strong>30</strong></div>
-              <div class="camera-details"><span>Last Detection</span><strong>Plastic waste - 2m ago</strong></div>
-              <div class="camera-details"><span>Last Connected Time</span><strong>Just now</strong></div>
-            </div>
-            <div class="camera-actions">
-              <button type="button">View Camera</button>
-              <button type="button">Restart Camera</button>
-              <button type="button">Reconnect</button>
-              <button type="button" class="light">Settings</button>
-            </div>
-          </article>
-
-          <article class="camera-card">
-            <div class="camera-preview"><span>Preview Unavailable</span></div>
-            <div class="camera-meta">
-              <div class="camera-title-row"><h4>CAM-002 Buwaya North</h4><span class="status-pill good">Online</span></div>
-              <div class="camera-details"><span>Station</span><strong>Buwaya</strong></div>
-              <div class="camera-details"><span>IP Address</span><strong>192.168.10.42</strong></div>
-              <div class="camera-details"><span>Resolution</span><strong>1280 x 720</strong></div>
-              <div class="camera-details"><span>FPS</span><strong>24</strong></div>
-              <div class="camera-details"><span>Last Detection</span><strong>Organic debris - 11m ago</strong></div>
-              <div class="camera-details"><span>Last Connected Time</span><strong>2 mins ago</strong></div>
-            </div>
-            <div class="camera-actions">
-              <button type="button">View Camera</button>
-              <button type="button">Restart Camera</button>
-              <button type="button">Reconnect</button>
-              <button type="button" class="light">Settings</button>
-            </div>
-          </article>
-
-          <article class="camera-card">
-            <div class="camera-preview"><span>Preview Unavailable</span></div>
-            <div class="camera-meta">
-              <div class="camera-title-row"><h4>CAM-003 Tres Kantos</h4><span class="status-pill danger">Offline</span></div>
-              <div class="camera-details"><span>Station</span><strong>Tres Kantos</strong></div>
-              <div class="camera-details"><span>IP Address</span><strong>192.168.10.43</strong></div>
-              <div class="camera-details"><span>Resolution</span><strong>1920 x 1080</strong></div>
-              <div class="camera-details"><span>FPS</span><strong>30</strong></div>
-              <div class="camera-details"><span>Last Detection</span><strong>None recorded</strong></div>
-              <div class="camera-details"><span>Last Connected Time</span><strong>4h 12m ago</strong></div>
-            </div>
-            <div class="camera-actions">
-              <button type="button">View Camera</button>
-              <button type="button">Restart Camera</button>
-              <button type="button">Reconnect</button>
-              <button type="button" class="light">Settings</button>
-            </div>
-          </article>
-
-          <article class="camera-card">
-            <div class="camera-preview"><span>Preview Unavailable</span></div>
-            <div class="camera-meta">
-              <div class="camera-title-row"><h4>CAM-004 Marilag</h4><span class="status-pill warn">Weak Signal</span></div>
-              <div class="camera-details"><span>Station</span><strong>Marilag</strong></div>
-              <div class="camera-details"><span>IP Address</span><strong>192.168.10.44</strong></div>
-              <div class="camera-details"><span>Resolution</span><strong>1280 x 720</strong></div>
-              <div class="camera-details"><span>FPS</span><strong>20</strong></div>
-              <div class="camera-details"><span>Last Detection</span><strong>Mixed debris - 18m ago</strong></div>
-              <div class="camera-details"><span>Last Connected Time</span><strong>14 mins ago</strong></div>
-            </div>
-            <div class="camera-actions">
-              <button type="button">View Camera</button>
-              <button type="button">Restart Camera</button>
-              <button type="button">Reconnect</button>
-              <button type="button" class="light">Settings</button>
-            </div>
-          </article>
+      <section class="system-grid" id="systemMetricsGrid">
+        <div style="grid-column: 1 / -1; padding: 20px; text-align: center; color: var(--muted);">
+          Loading system metrics...
         </div>
       </section>
-
-      <section class="system-grid">
-        <div class="card system-card usage-card"><div class="card-head"><h3>CPU Usage</h3><span class="status-pill warn">78%</span></div><div class="meter"><span style="width:78%"></span></div><div class="card-sub">Average processor load</div></div>
-        <div class="card system-card usage-card"><div class="card-head"><h3>RAM Usage</h3><span class="status-pill warn">64%</span></div><div class="meter"><span style="width:64%"></span></div><div class="card-sub">Memory consumption</div></div>
-        <div class="card system-card usage-card"><div class="card-head"><h3>Disk Usage</h3><span class="status-pill good">41%</span></div><div class="meter"><span style="width:41%"></span></div><div class="card-sub">System disk utilization</div></div>
-        <div class="card system-card usage-card"><div class="card-head"><h3>Storage Usage</h3><span class="status-pill warn">72%</span></div><div class="meter"><span style="width:72%"></span></div><div class="card-sub">Archive and media storage</div></div>
-        <div class="card system-card status-card"><div class="card-head"><h3>Database Status</h3><span class="status-pill good">Online</span></div><div class="card-sub">Connected to reporting datastore</div><div class="mini-meta">Latency: 14 ms</div></div>
-        <div class="card system-card status-card"><div class="card-head"><h3>Server Status</h3><span class="status-pill good">Healthy</span></div><div class="card-sub">API and dashboard services responding</div><div class="mini-meta">Uptime: 18d 06h</div></div>
-        <div class="card system-card status-card"><div class="card-head"><h3>Camera Status</h3><span class="status-pill good">4 Online</span></div><div class="card-sub">All live feeds reporting</div><div class="mini-meta">1 camera awaiting sync</div></div>
-        <div class="card system-card status-card"><div class="card-head"><h3>YOLO Model Status</h3><span class="status-pill good">Loaded</span></div><div class="card-sub">Latest detection model deployed</div><div class="mini-meta">Version: v8.2.1</div></div>
-        <div class="card system-card status-card"><div class="card-head"><h3>System Uptime</h3><span class="status-pill good">Stable</span></div><div class="uptime-value">99d 12h</div><div class="card-sub">No restart events in the current window</div></div>
-      </section>
     </main>
+  </div>
+
+  <!-- Add Camera Modal -->
+  <div class="modal-overlay" id="addCameraModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add New Camera</h2>
+        <button class="modal-close" type="button" id="closeModalBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <form class="modal-form" id="addCameraForm">
+        <div class="form-group">
+          <label for="camId">Camera ID *</label>
+          <input type="text" id="camId" name="camId" placeholder="e.g., CAM-001" required>
+        </div>
+
+        <div class="form-group">
+          <label for="camTitle">Camera Title *</label>
+          <input type="text" id="camTitle" name="camTitle" placeholder="e.g., Buwaya South" required>
+        </div>
+
+        <div class="form-group">
+          <label for="camLocation">Location *</label>
+          <input type="text" id="camLocation" name="camLocation" placeholder="e.g., Buwaya" required>
+        </div>
+
+        <div class="form-group">
+          <label for="camIPAddress">IP Address *</label>
+          <input type="text" id="camIPAddress" name="ipAddress" placeholder="e.g., 192.168.10.41" required>
+        </div>
+
+        <div class="form-group">
+          <label for="camResolution">Resolution</label>
+          <input type="text" id="camResolution" name="resolution" placeholder="e.g., 1920 x 1080">
+        </div>
+
+        <div class="form-group">
+          <label for="camFPS">FPS</label>
+          <input type="number" id="camFPS" name="fps" placeholder="e.g., 30" min="1" max="60">
+        </div>
+
+        <div class="form-group">
+          <label for="camStatus">Status *</label>
+          <select id="camStatus" name="status" required>
+            <option value="ONLINE">Online</option>
+            <option value="OFFLINE">Offline</option>
+            <option value="WEAK">Weak Signal</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="camSectorLabel">Sector Label</label>
+          <input type="text" id="camSectorLabel" name="sectorLabel" placeholder="e.g., Monitoring Area">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn-submit">Add Camera</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -241,6 +240,7 @@
     });
   </script>
 
+<script type="module" src="../../js/admin/admin-system-monitoring.js"></script>
 <script src="../../js/shared/global.js"></script>
 </body>
 </html>
