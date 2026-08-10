@@ -43,8 +43,13 @@ async function loadTotalDetectionsToday() {
 
 // ---------- Active Incidents ----------
 async function loadActiveIncidents() {
-  const q = query(collection(db, "reports"), where("status", "==", "Active"));
+  const q = query(
+    collection(db, "reports"),
+    where("status", "in", ["Evaluated", "Dispatched"])
+  );
+
   const snapshot = await getDocs(q);
+
   setText("active-incidents", snapshot.size);
 }
 
