@@ -46,7 +46,7 @@ body {
   flex-shrink: 0;
 }
 .sidebar-brand { text-align: center; margin-bottom: 28px; }
-.brand-logo { width: 72px; height: 72px; object-fit: contain; margin-bottom: 8px; }
+.brand-logo { width: 180px; height: 72px; object-fit: contain; margin-bottom: 8px; }
 .brand-name { font-size: 16px; font-weight: 700; }
 .brand-tagline {
   font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase;
