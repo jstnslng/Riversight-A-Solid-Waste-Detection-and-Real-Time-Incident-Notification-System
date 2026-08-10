@@ -66,7 +66,7 @@ async function loadActiveCameras() {
 
   const onlineQuery = query(
     collection(db, "camera_feeds"),
-    where("status", "==", "online")
+    where("status", "==", "ONLINE")
   );
   const onlineSnapshot = await getDocs(onlineQuery);
 
