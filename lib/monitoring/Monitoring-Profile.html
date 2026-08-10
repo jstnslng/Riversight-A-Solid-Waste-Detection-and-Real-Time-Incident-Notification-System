@@ -6,6 +6,8 @@
   <title>RiverSight — Monitoring Profile</title>
   <link rel="stylesheet" href="../../css/monitoring/Monitoring-Profile.css">
   <link rel="stylesheet" href="../../css/shared/global.css">
+  <script type="module" src="../../js/monitoring/monitoring-profile.js" defer></script>
+  <script type="module" src="../../js/shared/header.js" defer></script>
 </head>
 <body>
 
@@ -94,9 +96,10 @@
           <div class="updated-row"><span class="live-dot"></span> Monitoring Personnel account details and identity reference</div>
         </div>
         <div class="page-title-actions">
-          <button class="date-btn" type="button">Edit Profile</button>
-          <button class="export-btn" type="button">Save Changes</button>
-        </div>
+          <button class="date-btn" type="button" data-edit-profile>Edit Profile</button>
+          <button class="export-btn" type="button" data-save-profile hidden>Save Changes</button>
+          <button class="date-btn" type="button" data-cancel-profile hidden>Cancel</button>
+      </div>
       </div>
 
       <section class="content-grid" style="grid-template-columns: 1.1fr 0.9fr; align-items: start;">
@@ -111,15 +114,15 @@
           <div style="display: grid; gap: 14px;">
             <label class="field-group" style="display: grid; gap: 6px;">
               <span>Display Name</span>
-              <input type="text" value="Username" placeholder="Display Name">
+              <input type="text" value="Username" placeholder="Display Name" id="displayNameInput" disabled>
             </label>
             <label class="field-group" style="display: grid; gap: 6px;">
               <span>Email Address</span>
-              <input type="email" value="juandelacruz@riversight.gov.ph" placeholder="Email Address">
+              <input type="email" value="juandelacruz@riversight.gov.ph" placeholder="Email Address" id="emailInput" disabled>
             </label>
             <label class="field-group" style="display: grid; gap: 6px;">
               <span>Phone Number</span>
-              <input type="tel" value="+63 912 345 6789" placeholder="Phone Number">
+              <input type="tel" value="+63 912 345 6789" placeholder="Phone Number" id="phoneInput" disabled>
             </label>
           </div>
         </section>
@@ -135,19 +138,19 @@
           <div style="display: grid; gap: 12px;">
             <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
               <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Role</div>
-              <strong>System Administrator</strong>
+              <strong id="roleOutput">System Administrator</strong>
             </div>
             <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
               <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Assigned Station</div>
-              <strong>PH-MNL-QC</strong>
+              <strong id="stationOutput">PH-MNL-QC</strong>
             </div>
             <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
               <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Last Login</div>
-              <strong>Just now</strong>
+              <strong id="lastLoginOutput">Just now</strong>
             </div>
             <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
               <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">User ID</div>
-              <strong>ADM-0001</strong>
+              <strong id="userIdOutput">ADM-0001</strong>
             </div>
           </div>
         </section>
