@@ -31,7 +31,12 @@ if (logoutLink) {
         } catch (err) {
             console.error("Sign out error:", err);
         } finally {
-            window.location.href = './Admin-Login.html';
+            if (role == 'Admin') {
+                window.location.href = './Admin-Login.html';
+            }
+            else {
+                window.location.href = './Monitoring-Login.html';
+            }
         }
     });
 }

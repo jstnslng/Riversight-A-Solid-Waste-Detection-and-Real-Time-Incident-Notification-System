@@ -1,9 +1,6 @@
-/* Page-specific styles for incident-evaluation.html — shared sidebar/header/card styles live in layout.css */
-
 .topbar { display: flex; align-items: center; gap: 8px; }
 .topbar-icon { width: 15px; height: 15px; }
 
-/* Sidebar severity filters */
 .nav-section-label {
   font-size: 10px;
   text-transform: uppercase;

@@ -34,8 +34,8 @@ function verifyAndInitializeApp() {
     return;
   }
   
-const tableBody = document.getElementById("incidentTableBody");
-if (!tableBody) return; // <--- SILENT EXIT HERE
+  const tableBody = document.getElementById("incidentTableBody");
+  if (!tableBody) return;
 
   initializeReportsListener();
   setupControlListeners();
@@ -47,7 +47,6 @@ function initializeReportsListener() {
 
   try {
     const targetCollection = collection(db, "reports");
-    // Listens to Firestore 'reports' collection
     const baseQuery = query(targetCollection);
 
     console.log("Subscribing to Firestore updates...");
@@ -65,7 +64,7 @@ function initializeReportsListener() {
           location: data.location || "Unknown Sector",
           detectionType: data.detectionType || "Evaluated Incident",
           confidence: data.confidence ? parseFloat(data.confidence) : 100,
-          severity: (data.severity || "LOW").toUpperCase(),
+          severity: (data.severity || "NORMAL").toUpperCase(),
           status: data.status || "Evaluated",
           timestamp: data.timestamp 
         });
@@ -106,7 +105,7 @@ function processAndRenderDashboard() {
   let activeCount = 0;
   let totalCount = filtered.length;
   let resolvedCount = 0;
-  let severityCounts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+  let severityCounts = { SEVERE: 0, MEDIUM: 0, NORMAL: 0 };
   let weeklyTrends = { plastic: [0, 0, 0, 0], organic: [0, 0, 0, 0] };
 
   if (filtered.length === 0) {
@@ -123,12 +122,10 @@ function processAndRenderDashboard() {
       severityCounts[item.severity]++;
     }
 
-    // --- Safe Date Parsing for Chart Trends ---
     let docDate = null;
     if (item.timestamp && typeof item.timestamp.toDate === "function") {
       docDate = item.timestamp.toDate();
     } else if (item.dateText) {
-      // Strips time strings and parses date portion e.g. "Aug 10, 2026"
       const dateOnly = item.dateText.split('•')[0].trim();
       docDate = new Date(dateOnly);
     }
@@ -144,12 +141,11 @@ function processAndRenderDashboard() {
         weeklyTrends.organic[weekIdx]++;
       }
     } else {
-      // Fallback: place in current week bin if date is unparseable
       weeklyTrends.organic[0]++;
     }
 
     let dotColor = "green";
-    if (item.severity === "CRITICAL" || item.severity === "HIGH") dotColor = "red";
+    if (item.severity === "SEVERE") dotColor = "red";
     else if (item.severity === "MEDIUM") dotColor = "orange";
 
     let statusDotColor = "gray";
@@ -200,25 +196,25 @@ function updateDashboardMetrics(active, total, resolved, severities, trends) {
   if (successRateLabel) successRateLabel.innerHTML = `${successRate}% <span class="stat-sub good">Live</span>`;
   if (successProgressBar) successProgressBar.style.width = `${successRate}%`;
 
-  const urgentCount = severities.CRITICAL + severities.HIGH;
+  const urgentCount = severities.SEVERE;
   const urgentPercent = total > 0 ? Math.round((urgentCount / total) * 100) : 0;
   if (donutCenterLabel) donutCenterLabel.textContent = `${urgentPercent}%`;
 
   const circles = document.querySelectorAll(".donut circle");
-  if (circles.length === 4) {
+  if (circles.length === 3) {
     const totalCircleLen = 100;
-    let pMedium = total > 0 ? (severities.MEDIUM / total) * totalCircleLen : 25;
-    let pLow = total > 0 ? (severities.LOW / total) * totalCircleLen : 25;
-    let pHigh = total > 0 ? (severities.HIGH / total) * totalCircleLen : 25;
-    let pCritical = total > 0 ? (severities.CRITICAL / total) * totalCircleLen : 25;
+    let pNormal = total > 0 ? (severities.NORMAL / total) * totalCircleLen : 33.33;
+    let pMedium = total > 0 ? (severities.MEDIUM / total) * totalCircleLen : 33.33;
+    let pSevere = total > 0 ? (severities.SEVERE / total) * totalCircleLen : 33.34;
 
-    circles[0].setAttribute("stroke-dasharray", `${pMedium} ${totalCircleLen - pMedium}`);
-    circles[1].setAttribute("stroke-dasharray", `${pLow} ${totalCircleLen - pLow}`);
-    circles[1].setAttribute("stroke-dashoffset", `-${pMedium}`);
-    circles[2].setAttribute("stroke-dasharray", `${pHigh} ${totalCircleLen - pHigh}`);
-    circles[2].setAttribute("stroke-dashoffset", `-${pMedium + pLow}`);
-    circles[3].setAttribute("stroke-dasharray", `${pCritical} ${totalCircleLen - pCritical}`);
-    circles[3].setAttribute("stroke-dashoffset", `-${pMedium + pLow + pHigh}`);
+    circles[0].setAttribute("stroke-dasharray", `${pNormal} ${totalCircleLen - pNormal}`);
+    circles[0].setAttribute("stroke-dashoffset", `0`);
+
+    circles[1].setAttribute("stroke-dasharray", `${pMedium} ${totalCircleLen - pMedium}`);
+    circles[1].setAttribute("stroke-dashoffset", `-${pNormal}`);
+
+    circles[2].setAttribute("stroke-dasharray", `${pSevere} ${totalCircleLen - pSevere}`);
+    circles[2].setAttribute("stroke-dashoffset", `-${pNormal + pMedium}`);
   }
 
   const maxVal = Math.max(...trends.plastic, ...trends.organic, 5);
