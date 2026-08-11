@@ -46,7 +46,7 @@ body {
   flex-shrink: 0;
 }
 .sidebar-brand { text-align: center; margin-bottom: 28px; }
-.brand-logo { width: 72px; height: 72px; object-fit: contain; margin-bottom: 8px; }
+.brand-logo { width: 70px; height: 70px; object-fit: contain; display: block; margin: 0 auto 10px; }
 .brand-name { font-size: 16px; font-weight: 700; }
 .brand-tagline {
   font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase;
@@ -173,7 +173,7 @@ body {
   flex-shrink: 0;
 }
 
-.breadcrumb { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.breadcrumb { font-size: 13px; color: var(--muted); }
 .breadcrumb strong { color: var(--ink); }
 .breadcrumb span { margin: 0 2px; }
 
@@ -198,7 +198,7 @@ body {
 
 .page-title-row {
   display: flex; align-items: flex-end; justify-content: space-between;
-  margin-bottom: 22px; flex-wrap: wrap; gap: 14px;
+  margin-bottom: 16px; gap: 16px;
 }
 .page-title-row h1 { font-size: 24px; font-weight: 700; }
 .updated-row { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
