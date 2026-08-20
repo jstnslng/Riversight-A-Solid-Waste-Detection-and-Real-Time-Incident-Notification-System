@@ -12,6 +12,8 @@ const activeCamerasOutput = document.getElementById('active-cameras');
 const criticalAlertsOutput = document.getElementById('critical-alerts');
 const resolvedIncidentsOutput = document.getElementById('resolved-incidents');
 
+const tableBody = document.querySelector('.report-table tbody');
+
 const profileMenu = document.querySelector('[data-profile-menu]');
 const profileToggle = document.querySelector('[data-profile-toggle]');
 const logoutLink = document.querySelector('[data-logout-link]');
@@ -23,11 +25,13 @@ async function fetchReportStats() {
     try {
         const querySnapshot = await getDocs(collection(db, "reports"));
         allReports = [];
-        querySnapshot.forEach((docSnap ) => {
-            allReports.push(docSnap.data());
-        });
+        allReports = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
 
         updateStats();
+        displayReports(allReports);
 
     } catch (error) {
         console.error("Error fetching report stats:", error);
@@ -59,7 +63,7 @@ function updateStats() {
         return createdAtDate >= thirtyDaysAgo;
     }).length;
 
-    const totalDetections = 0; // hardcoded for now
+    const totalDetections = 0; // hardcoded for now, change once detections are implemented
     const activeCameras = allCameras.filter(camera => (camera.status || "offline").toLowerCase() === "online").length;
     const criticalAlerts = allReports.filter(report => 
         (report.severity || "").toLowerCase() === "critical" || (report.severity || "").toLowerCase() === "severe").length;
@@ -81,6 +85,65 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = './Admin-Login.html';
     }
 });
+
+function displayReports(reports){
+    tableBody.innerHTML = '';
+
+    if (reports.length === 0){
+        tableBody.innerHTML = `
+            <tr>
+                <td>
+                    No reports found matching your criteria.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    reports.forEach(report => {
+        const tr = document.createElement('tr');
+        const formattedDate = formatTimestamp(report.createdAt);
+
+        const typeClass = (report.detectionType || 'incident').toLowerCase().replace(/\s+/g, '-');
+        const severityClass = (report.severity || 'low').toLowerCase();
+        const statusClass = (report.status || 'open').toLowerCase();
+
+        tr.innerHTML = `
+            <td>${report.reportId || report.id}</td>
+            <td><span class="type-badge ${typeClass}">${report.detectionType || 'N/A'}</span></td>
+            <td>${report.camId || 'N/A'}</td>
+            <td>${report.location || 'N/A'}</td>
+            <td><span class="severity-badge ${severityClass}">${report.severity || 'N/A'}</span></td>
+            <td>${formattedDate}</td>
+            <td><span class="status-badge ${statusClass}">${report.status || 'N/A'}</span></td>
+            <td><button class="view-btn" type="button" data-id="${report.id}">View</button></td>
+        `;
+        tableBody.appendChild(tr);
+    });
+}
+
+function formatTimestamp(timestamp) {
+    if (!timestamp) return 'N/A';
+    
+    let date;
+    if (typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
+    } else if (timestamp.seconds) {
+        date = new Date(timestamp.seconds * 1000);
+    } else {
+        date = new Date(timestamp);
+    }
+
+    if (isNaN(date.getTime())) return 'N/A';
+
+    return date.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
 
 const closeProfileMenu = () => {
     profileMenu.classList.remove('open');
