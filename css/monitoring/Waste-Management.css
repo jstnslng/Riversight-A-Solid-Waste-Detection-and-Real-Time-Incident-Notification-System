@@ -73,6 +73,45 @@
   filter: brightness(0.85) saturate(1.1);
 }
 
+.feed-img--iframe {
+  border: 0;
+  display: block;
+  object-fit: fill;
+  filter: none;
+}
+
+.feed-img--unavailable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  background: #eef1ef;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.camera-select-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.camera-select {
+  min-width: 190px;
+  max-width: 260px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 9px 10px;
+  font-size: 12px;
+}
+
+.camera-select:focus {
+  outline: 2px solid rgba(26, 158, 87, 0.25);
+  border-color: var(--green);
+}
+
 .feed-tag {
   position: absolute;
   top: 12px;
@@ -88,6 +127,17 @@
 .feed-tag-live { left: 12px; background: rgba(0,0,0,0.55); }
 .rec-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
 .feed-tag-rec { right: 12px; background: var(--red); }
+
+.feed-frame > .feed-tag,
+.feed-frame > .feed-sector-label,
+.feed-frame > .detect-box {
+  pointer-events: none;
+}
+
+.feed-frame > .feed-expand,
+.feed-frame > .feed-capture {
+  pointer-events: auto;
+}
 
 .feed-sector-label {
   position: absolute;
