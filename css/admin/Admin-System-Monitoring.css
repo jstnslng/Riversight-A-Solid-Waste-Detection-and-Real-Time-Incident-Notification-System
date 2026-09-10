@@ -123,6 +123,28 @@ body {
   flex-direction: column;
   gap: 8px;
 }
+
+.camera-preview iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 150px;
+  border: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.form-helper {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.form-error {
+  color: var(--red);
+  font-size: 11px;
+  min-height: 0;
+}
 .camera-meta { padding: 16px 18px 10px; }
 .camera-title-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
 .camera-title-row h4 { font-size: 15px; line-height: 1.2; }

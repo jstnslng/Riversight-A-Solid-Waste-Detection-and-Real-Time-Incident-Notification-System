@@ -266,40 +266,10 @@
         </div>
 
         <div class="card health-card">
-          <h3>Camera Health Overview</h3>
-          <div class="card-sub">Priority Node status</div>
-
-          <div class="health-item">
-            <span class="status-dot green"></span>
-            <div class="health-info">
-              <div class="health-name">CAM-001 (Buwaya)</div>
-              <div class="health-sub">Up: 42d 12h</div>
-            </div>
-            <div class="health-pct good">99.8%</div>
-          </div>
-          <div class="health-item">
-            <span class="status-dot green"></span>
-            <div class="health-info">
-              <div class="health-name">CAM-002 (Buwaya - North)</div>
-              <div class="health-sub">Up: 12d 05h</div>
-            </div>
-            <div class="health-pct good">96.2%</div>
-          </div>
-          <div class="health-item">
-            <span class="status-dot red"></span>
-            <div class="health-info">
-              <div class="health-name offline">CAM-003 (Tres Kantos)</div>
-              <div class="health-sub">Down: 4h 2m</div>
-            </div>
-            <div class="health-pct offline">OFFLINE</div>
-          </div>
-          <div class="health-item">
-            <span class="status-dot orange"></span>
-            <div class="health-info">
-              <div class="health-name">CAM-004 (Marilag)</div>
-              <div class="health-sub">Signal Weak</div>
-            </div>
-            <div class="health-pct warn">74.5%</div>
+          <h3>Live Camera Feeds</h3>
+          <div class="card-sub">Configured in System Monitoring</div>
+          <div class="dashboard-camera-grid" id="dashboardCameraGrid">
+            <div class="dashboard-camera-empty">Loading camera feeds...</div>
           </div>
         </div>
       </section>
@@ -345,5 +315,6 @@
 <script type="module" src="../../js/shared/global.js"></script>
 <script type="module" src="../../js/shared/firebase-config.js"></script>
 <script type="module" src="../../js/admin/admin-dashboard.js"></script>
+<script type="module" src="../../js/admin/dashboard-cameras.js"></script>
 </body>
 </html>
