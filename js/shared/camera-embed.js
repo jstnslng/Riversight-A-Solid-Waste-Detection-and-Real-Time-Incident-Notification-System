@@ -28,3 +28,11 @@ export function normalizeRtspEmbedUrl(value) {
 export function isValidRtspEmbedUrl(value) {
   return Boolean(normalizeRtspEmbedUrl(value));
 }
+
+export function getRtspEmbedIssue(value) {
+  if (!String(value || '').trim()) {
+    return 'missing embedUrl';
+  }
+
+  return isValidRtspEmbedUrl(value) ? '' : 'invalid RTSP.ME embed URL';
+}

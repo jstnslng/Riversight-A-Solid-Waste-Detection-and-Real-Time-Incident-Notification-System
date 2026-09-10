@@ -1,6 +1,6 @@
 import { db } from "../shared/firebase-config.js";
 import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
+import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
 
 (() => {
   const selector = document.getElementById("wasteCameraSelect");
@@ -13,6 +13,10 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
 
   function createMedia(camera) {
     const embedUrl = normalizeRtspEmbedUrl(camera.embedUrl);
+    const embedIssue = getRtspEmbedIssue(camera.embedUrl);
+    if (embedIssue) {
+      console.warn(`Camera feed unavailable: ${embedIssue} (${camera.id})`);
+    }
     if (embedUrl) {
       const iframe = document.createElement("iframe");
       iframe.className = "feed-img feed-img--iframe";
@@ -20,6 +24,9 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
       iframe.title = `Live camera feed for ${camera.title}`;
       iframe.allow = "fullscreen; autoplay";
       iframe.allowFullscreen = true;
+      iframe.addEventListener("error", () => {
+        console.error(`Camera iframe rendering issue (${camera.id})`);
+      }, { once: true });
       return iframe;
     }
 
@@ -48,6 +55,15 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
     if (streamTag) streamTag.textContent = `ACTIVE STREAM: ${camera.id} · ${camera.status}`;
     if (sectorLabel) sectorLabel.textContent = camera.location || camera.sectorLabel;
     if (reportsLink) reportsLink.href = `./Incident-Reports.html?cameraId=${encodeURIComponent(camera.id)}`;
+  }
+
+  function showUnavailableFeed() {
+    if (!frame) return;
+    frame.querySelectorAll(".feed-img").forEach((media) => media.remove());
+    const fallback = document.createElement("div");
+    fallback.className = "feed-img feed-img--unavailable";
+    fallback.textContent = "Live Preview Unavailable";
+    frame.insertBefore(fallback, frame.firstChild);
   }
 
   function renderSelector() {
@@ -85,14 +101,17 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
 
     if (!selector) return;
     if (!cameras.length) {
+      console.warn("Camera record missing: camera_feeds is empty");
       selector.replaceChildren(new Option("No cameras configured", ""));
+      showUnavailableFeed();
       if (title) title.textContent = "AI Waste Detection Console";
       if (streamTag) streamTag.textContent = "NO ACTIVE CAMERA FEEDS";
       return;
     }
     renderSelector();
   }, (error) => {
-    console.error("Failed to load Waste Detection cameras:", error);
+    console.error("Failed to load camera_feeds from Firestore (Waste Detection):", error);
     if (selector) selector.replaceChildren(new Option("Camera feeds unavailable", ""));
+    showUnavailableFeed();
   });
 })();

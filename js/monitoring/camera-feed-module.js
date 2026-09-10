@@ -1,6 +1,6 @@
 import { db } from "../shared/firebase-config.js";
 import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
+import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
 
 (() => {
   const modeStorageKey = "riversightViewMode";
@@ -76,6 +76,10 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
 
   function createMedia(camera, className = "feed-media") {
     const embedUrl = normalizeRtspEmbedUrl(camera.embedUrl);
+    const embedIssue = getRtspEmbedIssue(camera.embedUrl);
+    if (embedIssue) {
+      console.warn(`Camera feed unavailable: ${embedIssue} (${camera.id})`);
+    }
     if (embedUrl) {
       const iframe = document.createElement("iframe");
       iframe.className = `${className} feed-media-iframe`;
@@ -83,6 +87,9 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
       iframe.title = `Live camera feed for ${camera.title}`;
       iframe.allow = "fullscreen; autoplay";
       iframe.allowFullscreen = true;
+      iframe.addEventListener("error", () => {
+        console.error(`Camera iframe rendering issue (${camera.id})`);
+      }, { once: true });
       return { element: iframe, isIframe: true };
     }
 
@@ -99,6 +106,21 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
     fallback.className = `${className} feed-media-unavailable`;
     fallback.textContent = "Live Preview Unavailable";
     return { element: fallback, isIframe: false };
+  }
+
+  function mediaSignature(camera) {
+    return normalizeRtspEmbedUrl(camera.embedUrl) || camera.image || "unavailable";
+  }
+
+  function updateRenderedLabels() {
+    document.querySelectorAll("[data-camera-id]").forEach((card) => {
+      const camera = getCameraById(card.dataset.cameraId);
+      if (!camera) return;
+      const id = card.querySelectorAll(".cam-id");
+      const title = card.querySelectorAll(".cam-title");
+      id.forEach((element) => { element.textContent = camera.id; });
+      title.forEach((element) => { element.textContent = camera.title; });
+    });
   }
 
   function createWasteDetectionButton(camera, compact = false) {
@@ -283,6 +305,8 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
 
   document.addEventListener("DOMContentLoaded", () => {
     onSnapshot(collection(db, "camera_feeds"), (snapshot) => {
+      const previousCameras = cameras;
+      const previousState = currentState;
       cameras = snapshot.docs.map((cameraDoc) => {
         const data = cameraDoc.data();
         return {
@@ -296,19 +320,29 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
           image: data.thumbnailUrl || data.image || "",
         };
       });
-      cameraLookup = Object.fromEntries(cameras.map((camera) => [camera.id, camera]));
       const count = document.getElementById("activeSourcesCount");
       if (count) count.textContent = `${cameras.length} Active Source${cameras.length === 1 ? "" : "s"}`;
       if (!cameras.length) {
+        console.warn("Camera record missing: camera_feeds is empty");
+        renderSidebar();
         document.getElementById("feedsGrid")?.replaceChildren(Object.assign(document.createElement("div"), { textContent: "No active operational sources connected." }));
         return;
       }
       const state = getInitialState();
+      const previousIds = previousCameras.map((camera) => camera.id).sort().join("|");
+      const nextIds = cameras.map((camera) => camera.id).sort().join("|");
+      const previousMedia = previousCameras.map(mediaSignature).sort().join("|");
+      const nextMedia = cameras.map(mediaSignature).sort().join("|");
+      cameraLookup = Object.fromEntries(cameras.map((camera) => [camera.id, camera]));
       spotlightState.activeCameraId = spotlightState.activeCameraId || state.cameraId;
-      currentState = state;
       persistValue(cameraStorageKey, state.cameraId);
+      currentState = state;
       renderSidebar();
-      renderLiveMonitoringPage(state);
-    }, (error) => console.error("Firestore sync error:", error));
+      if (previousIds === nextIds && previousMedia === nextMedia && previousState.viewMode === state.viewMode) {
+        updateRenderedLabels();
+      } else {
+        renderLiveMonitoringPage(state);
+      }
+    }, (error) => console.error("Failed to load camera_feeds from Firestore (Live Monitoring):", error));
   });
 })();

@@ -1,6 +1,6 @@
 import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { db } from "../shared/firebase-config.js";
-import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
+import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
 
 const cameraGrid = document.getElementById("dashboardCameraGrid");
 
@@ -18,6 +18,10 @@ function createCameraCard(camera) {
   const preview = document.createElement("div");
   preview.className = "dashboard-camera-preview";
   const embedUrl = normalizeRtspEmbedUrl(camera.embedUrl);
+  const embedIssue = getRtspEmbedIssue(camera.embedUrl);
+  if (embedIssue) {
+    console.warn(`Camera feed unavailable: ${embedIssue} (${camera.title})`);
+  }
 
   if (embedUrl) {
     const iframe = document.createElement("iframe");
@@ -25,6 +29,9 @@ function createCameraCard(camera) {
     iframe.title = `${camera.title} live preview`;
     iframe.allow = "fullscreen; autoplay";
     iframe.allowFullscreen = true;
+    iframe.addEventListener("error", () => {
+      console.error(`Camera iframe rendering issue (${camera.title})`);
+    }, { once: true });
     preview.appendChild(iframe);
   } else {
     preview.appendChild(createText("span", "Live Preview Unavailable", "dashboard-camera-unavailable"));
@@ -60,7 +67,7 @@ function renderCameras(snapshot) {
 
 if (cameraGrid) {
   onSnapshot(collection(db, "camera_feeds"), renderCameras, (error) => {
-    console.error("Failed to load dashboard camera feeds:", error);
+    console.error("Failed to load camera_feeds from Firestore (Dashboard):", error);
     cameraGrid.replaceChildren(createText("div", "Camera feeds unavailable.", "dashboard-camera-empty"));
   });
 }

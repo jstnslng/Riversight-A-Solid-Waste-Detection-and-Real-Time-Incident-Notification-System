@@ -7,7 +7,7 @@ import {
   updateDoc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
+import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
 
 (() => {
   let cameras = [];
@@ -77,6 +77,10 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
     article.dataset.cameraId = camera.id;
 
     const embedUrl = normalizeRtspEmbedUrl(camera.embedUrl);
+    const embedIssue = getRtspEmbedIssue(camera.embedUrl);
+    if (embedIssue) {
+      console.warn(`Camera feed unavailable: ${embedIssue} (${camera.camId})`);
+    }
     const preview = article.appendChild(document.createElement("div"));
     preview.className = "camera-preview";
 
@@ -86,6 +90,9 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
       iframe.title = `${camera.camId} live preview`;
       iframe.allow = "fullscreen; autoplay";
       iframe.allowFullscreen = true;
+      iframe.addEventListener("error", () => {
+        console.error(`Camera iframe rendering issue (${camera.camId})`);
+      }, { once: true });
       preview.appendChild(iframe);
     } else {
       preview.innerHTML = `
@@ -277,7 +284,7 @@ import { normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
     renderCameras();
     document.getElementById("liveStatusText").textContent = `Live Stream · ${cameras.filter((camera) => camera.status === "ONLINE").length} of ${cameras.length} cameras online`;
   }, (error) => {
-    console.error("Firestore sync error:", error);
+    console.error("Failed to load camera_feeds from Firestore:", error);
     showNotification("Error syncing cameras", "error");
   });
 
