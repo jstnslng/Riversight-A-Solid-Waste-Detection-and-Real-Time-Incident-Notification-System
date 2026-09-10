@@ -127,15 +127,15 @@
               </div>
             </div>
 
-            <div class="protocol-row">
+                       <div class="protocol-row">
               <div class="protocol-label">
                 <div class="protocol-title">PROTOCOL ACTION</div>
                 <div class="protocol-sub">Select response for this detected anomaly.</div>
               </div>
               <div class="protocol-actions">
-                <button class="protocol-btn btn-dismiss">Dismiss False Positive</button>
-                <button class="protocol-btn btn-flag">Flag for Review</button>
-                <button class="protocol-btn btn-escalate">
+                <button id="dismiss-btn" class="protocol-btn btn-dismiss">Dismiss False Positive</button>
+                <button id="flag-btn" class="protocol-btn btn-flag">Flag for Review</button>
+                <button id="escalate-btn" class="protocol-btn btn-escalate">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>
                   Escalate to LGU
                 </button>
@@ -356,6 +356,13 @@
 
     </main>
   </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="../../js/shared/global.js"></script>
+    <script type="module" src="../../js/monitoring/incident-evaluation-module.js"></script>
+    <script type="module" src="../../js/shared/global.js"></script>
+    <script type="module" src="../../js/shared/global.js"></script>
 
 </body>
 </html>
