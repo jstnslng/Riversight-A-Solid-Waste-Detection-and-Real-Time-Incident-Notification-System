@@ -12,8 +12,12 @@
 <body>
 
   <div class="topbar">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon"><path d="M12 3 1 21h22L12 3Z"/><path d="M12 9.5v5M12 17.5h.01"/></svg>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon">...</svg>
     Incident Evaluation Module
+    <div class="global-search-wrap">
+      <input type="text" id="globalSearchInput" placeholder="Search incidents, detections, reports..." autocomplete="off">
+      <div id="globalSearchResults" class="global-search-results"></div>
+    </div>
   </div>
 
   <div class="layout">
@@ -360,6 +364,7 @@
   <div id="toast-container" class="toast-container"></div>
 
     <script type="module" src="../../js/shared/global.js"></script>
+    <script type="module" src="../../js/shared/global-search-ui.js"></script>
     <script type="module" src="../../js/monitoring/incident-evaluation-module.js"></script>
 
 </body>

@@ -10,9 +10,13 @@
 </head>
 <body>
 
-  <div class="topbar">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+   <div class="topbar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon">...</svg>
     Personnel Reports Module
+    <div class="global-search-wrap">
+      <input type="text" id="globalSearchInput" placeholder="Search incidents, detections, reports..." autocomplete="off">
+      <div id="globalSearchResults" class="global-search-results"></div>
+    </div>
   </div>
 
   <div class="layout">
@@ -278,6 +282,7 @@
   </div>
 
   <script type="module" src="../../js/shared/global.js"></script>
+  <script type="module" src="../../js/shared/global-search-ui.js"></script>
   <script type="module" src="../../js/monitoring/incident-reports-module.js"></script>
   <script src="../../js/monitoring/monitoring-nav.js"></script>
 </body>

@@ -10,7 +10,17 @@
 </head>
 <body data-page="live-monitoring">
 
-  <div class="topbar">Live Waterway Monitoring</div>
+
+<div class="topbar">
+  <div class="topbar-title-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon">...</svg>
+    Live Waterway Monitoring
+  </div>
+  <div class="global-search-wrap">
+    <input type="text" id="globalSearchInput" placeholder="Search incidents, detections, reports..." autocomplete="off">
+    <div id="globalSearchResults" class="global-search-results"></div>
+  </div>
+</div>
 
   <div class="layout">
     <aside class="sidebar">
@@ -130,6 +140,7 @@
   </script>
 
 <script type="module" src="../../js/monitoring/camera-feed-module.js"></script>
+<script type="module" src="../../js/shared/global-search-ui.js"></script>
 <script src="../../js/monitoring/monitoring-nav.js"></script>
 <script type="module" src="../../js/shared/global.js"></script>
 </body>

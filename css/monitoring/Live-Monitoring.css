@@ -1071,3 +1071,133 @@ body.is-fullscreen .main {
     display: none;
   }
 }
+
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    width: 100%;
+    height: 64px;
+    padding: 0 18px;
+
+    box-sizing: border-box;
+}
+
+.topbar-title-wrap {
+    order: 1;
+    margin-right: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.global-search-wrap {
+    order: 2;
+    flex-shrink: 0;
+    position: relative;
+    width: 320px;
+    margin-left: 0;
+}
+
+.global-search-wrap input {
+    width: 100%;
+    height: 36px;
+
+    padding: 0 14px;
+    box-sizing: border-box;
+
+    border-radius: 6px;
+    border: 1px solid #3a3a3a;
+
+    background: #1e1e1e;
+    color: #f0f0f0;
+
+    font-size: 13px;
+    outline: none;
+
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+.global-search-wrap input:focus {
+    border-color: #5a9bd6;
+    box-shadow: 0 0 0 2px rgba(90, 155, 214, 0.12);
+}
+
+.global-search-wrap input::placeholder {
+    color: #8a8a8a;
+}
+
+.global-search-results {
+    display: none;
+
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+
+    width: 100%;
+    max-height: 320px;
+
+    overflow-y: auto;
+
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+    z-index: 100;
+}
+
+.search-result-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    padding: 10px 14px;
+
+    border-bottom: 1px solid #eee;
+
+    cursor: pointer;
+
+    transition: background 0.15s ease;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: #f5f5f5;
+}
+
+.search-result-type {
+    font-size: 10px;
+    font-weight: 600;
+
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    color: #999;
+}
+
+.search-result-label {
+    font-size: 13px;
+    color: #222;
+}
+
+.search-empty {
+    padding: 14px;
+
+    font-size: 13px;
+    color: #999;
+
+    text-align: center;
+}

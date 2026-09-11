@@ -11,7 +11,14 @@
 </head>
 <body data-page="waste-detection">
 
-  <div class="topbar">Waste Detection Module</div>
+  <div class="topbar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon">...</svg>
+    Waste Detection Module
+    <div class="global-search-wrap">
+      <input type="text" id="globalSearchInput" placeholder="Search incidents, detections, reports..." autocomplete="off">
+      <div id="globalSearchResults" class="global-search-results"></div>
+    </div>
+  </div>
 
   <div class="layout">
     <aside class="sidebar">
@@ -313,8 +320,9 @@
     </main>
   </div>
 
-<script type="module" src="../../js/monitoring/waste-camera-module.js"></script>
-<script src="../../js/monitoring/monitoring-nav.js"></script>
-<script type="module" src="../../js/shared/global.js"></script>
+    <script type="module" src="../../js/monitoring/waste-camera-module.js"></script>
+    <script type="module" src="../../js/shared/global-search-ui.js"></script>
+    <script src="../../js/monitoring/monitoring-nav.js"></script>
+    <script type="module" src="../../js/shared/global.js"></script>
 </body>
 </html>
