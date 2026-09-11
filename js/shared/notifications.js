@@ -3,6 +3,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/f
 import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let unsubscribeReports = null;
+let notificationsInitialized = false;
 
 function normalizeStatus(value) {
   return String(value || "").trim().toLowerCase();
@@ -162,8 +163,14 @@ function subscribe(shell) {
 }
 
 export function initNotifications() {
+  if (notificationsInitialized) return;
+  notificationsInitialized = true;
+
   const shell = ensureNotificationShell();
-  if (!shell) return;
+  if (!shell) {
+    notificationsInitialized = false;
+    return;
+  }
 
   const close = () => {
     shell.dropdown.classList.remove("show");

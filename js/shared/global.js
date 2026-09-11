@@ -29,7 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (profileToggle && profileDropdown) {
     profileToggle.addEventListener('click', (event) => {
       event.stopPropagation();
-      notificationDropdown?.classList.remove('show');
+      document.querySelectorAll('.notification-dropdown.show').forEach((dropdown) => {
+        dropdown.classList.remove('show');
+      });
       profileDropdown.classList.toggle('show');
     });
 
