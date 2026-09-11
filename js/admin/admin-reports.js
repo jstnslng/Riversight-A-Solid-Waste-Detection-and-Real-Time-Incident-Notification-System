@@ -34,6 +34,7 @@ const logoutLink = document.querySelector('[data-logout-link]');
 
 let allReports = [];
 let allCameras = [];
+let currentlyDisplayedReports = [];
 
 function populateSelectOptions(selectElement, items, defaultLabel) {
     if (!selectElement) return;
@@ -178,6 +179,7 @@ onAuthStateChanged(auth, (user) => {
 });
 
 function displayReports(reports){
+    currentlyDisplayedReports = reports;
     tableBody.innerHTML = '';
 
     if (reports.length === 0){
@@ -211,7 +213,74 @@ function displayReports(reports){
         `;
         tableBody.appendChild(tr);
     });
+
+    document.querySelectorAll('.view-btn').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const reportId = event.target.getAttribute('data-id');
+        openReportModal(reportId);
+      });  
+    });
 }
+
+function openReportModal(reportId) {
+  const report = allReports.find((r) => (r.reportId || r.id) === reportId);
+  if (!report) return;
+
+  const modal = document.getElementById('report-modal');
+  const formattedDate = formatTimestamp(report.createdAt);
+  const severityClass = (report.severity || 'low').toLowerCase();
+  const statusClass = (report.status || 'open').toLowerCase();
+
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Report Details</h3>
+        <button class="close-btn" data-action="close-modal" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Report ID:</strong> <span>${report.reportId || report.id}</span></p>
+        <p><strong>Type:</strong> <span>${report.detectionType || 'N/A'}</span></p>
+        <p><strong>Location:</strong> <span>${report.location || 'N/A'}</span></p>
+        <p><strong>Camera ID:</strong> <span>${report.camId || 'N/A'}</span></p>
+        <p><strong>Severity:</strong> <span class="severity-badge ${severityClass}">${report.severity || 'N/A'}</span></p>
+        <p><strong>Status:</strong> <span class="status-badge ${statusClass}">${report.status || 'N/A'}</span></p>
+        <p><strong>Timestamp:</strong> <span>${formattedDate}</span></p>
+      </div>
+      <div class="modal-footer">
+        <button class="export-btn light" data-action="close-modal">Close</button>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function closeReportModal() {
+  const modal = document.getElementById('report-modal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.innerHTML = '';
+  }
+}
+
+document.addEventListener('click', (event) => {
+  if (event.target.closest('[data-action="close-modal"]')) {
+    closeReportModal();
+  }
+});
+
+document.addEventListener('click', (event) => {
+  const modal = document.getElementById('report-modal');
+  if (event.target === modal) {
+    closeReportModal();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeReportModal();
+  }
+});
 
 function formatTimestamp(timestamp) {
     if (!timestamp) return 'N/A';
@@ -375,6 +444,86 @@ function parseReportDate(ts) {
     return isNaN(d.getTime()) ? null : d;
 }
 
+function prepareExportData() {
+    return currentlyDisplayedReports.map(r => ({
+        "Report ID": r.reportId || r.id,
+        "Type": r.detectionType || 'N/A',
+        "Camera ID": r.camId || 'N/A',
+        "Location": r.location || 'N/A',
+        "Severity": r.severity || 'N/A',
+        "Timestamp": formatTimestamp(r.createdAt),
+        "Status": r.status || 'N/A'
+    }));
+}
+
+function exportToCSV() {
+    const data = prepareExportData();
+    if (data.length === 0) return alert("No data available to export.");
+
+    const headers = Object.keys(data[0]).join(",");
+    const rows = data.map(row => 
+        Object.values(row).map(val => `"${String(val).replace(/"/g, '""')}"`).join(",")
+    );
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `reports_export_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportToExcel() {
+    const data = prepareExportData();
+    if (data.length === 0) return alert("No data available to export.");
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Reports");
+
+    XLSX.writeFile(workbook, `reports_export_${Date.now()}.xlsx`);
+}
+
+function exportToPDF() {
+    const data = prepareExportData();
+    if (data.length === 0) return alert("No data available to export.");
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape');
+
+    doc.setFontSize(16);
+    doc.text("RiverSight Incident & Detection Reports", 14, 15);
+
+    const headers = [["Report ID", "Type", "Camera ID", "Location", "Severity", "Timestamp", "Status"]];
+    const rows = data.map(r => [
+        r["Report ID"],
+        r["Type"],
+        r["Camera ID"],
+        r["Location"],
+        r["Severity"],
+        r["Timestamp"],
+        r["Status"]
+    ]);
+
+    doc.autoTable({
+        head: headers,
+        body: rows,
+        startY: 22,
+        theme: 'striped',
+        headStyles: { fillColor: [17, 17, 17] }
+    });
+
+    doc.save(`reports_export_${Date.now()}.pdf`);
+}
+
+function printTable() {
+    window.print();
+}
+
+
+
 const closeProfileMenu = () => {
     profileMenu.classList.remove('open');
     profileToggle.setAttribute('aria-expanded', 'false');
@@ -409,3 +558,8 @@ resetFiltersBtn.addEventListener('click', () => {
     resetFilters();
     displayReports(allReports);
 });
+
+document.getElementById('pdf-export-btn')?.addEventListener('click', exportToPDF);
+document.getElementById('excel-export-btn')?.addEventListener('click', exportToExcel);
+document.getElementById('csv-export-btn')?.addEventListener('click', exportToCSV);
+document.getElementById('print-btn')?.addEventListener('click', printTable);

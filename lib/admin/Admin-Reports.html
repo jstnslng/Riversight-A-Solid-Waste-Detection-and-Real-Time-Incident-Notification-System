@@ -9,6 +9,9 @@
 <link rel="stylesheet" href="../../css/shared/global.css">
 <script type="module" src="../../js/shared/header.js" defer></script>
 <script type="module" src="../../js/admin/admin-reports.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -102,10 +105,10 @@
           <div class="updated-row"><span class="live-dot"></span> Demo data ready for database integration</div>
         </div>
         <div class="page-title-actions export-actions">
-          <button class="export-btn light" type="button">Export PDF</button>
-          <button class="export-btn light" type="button">Export Excel</button>
-          <button class="export-btn light" type="button">Export CSV</button>
-          <button class="export-btn" type="button" onclick="window.print()">Print Report</button>
+          <button class="export-btn light" type="button" id="pdf-export-btn">Export PDF</button>
+          <button class="export-btn light" type="button" id="excel-export-btn">Export Excel</button>
+          <button class="export-btn light" type="button" id="csv-export-btn">Export CSV</button>
+          <button class="export-btn" type="button" id="print-btn">Print Report</button>
         </div>
       </div>
 
@@ -289,6 +292,16 @@
       </section>
     </main>
   </div>
+  
+<div id="report-modal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close-btn" id="close-modal">&times;</span>
+    <h2>Report Details</h2>
+    <div id="modal-body">
+
+    </div>
+  </div>
+</div>
 
 <script type="module" src="../../js/shared/global.js"></script>
 </body>
