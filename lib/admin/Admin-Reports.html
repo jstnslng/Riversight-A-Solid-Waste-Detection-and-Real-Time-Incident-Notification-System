@@ -149,71 +149,48 @@
             <div class="card-sub">Filter by date, station, severity, camera, and status</div>
           </div>
           <div class="filter-actions">
-            <button class="ghost-btn" type="button">Reset</button>
-            <button class="export-btn" type="button">Apply Filters</button>
+            <button class="ghost-btn" type="button" id="reset-filters-btn">Reset</button>
+            <button class="export-btn" type="button" id="filter-btn">Apply Filters</button>
           </div>
         </div>
 
         <div class="filters-grid">
           <label class="field">
             <span>Date Range Start</span>
-            <input type="date" value="2026-07-01">
+            <input type="date" value="" id="filter-start-date">
           </label>
           <label class="field">
             <span>Date Range End</span>
-            <input type="date" value="2026-07-17">
+            <input type="date" value="" id="filter-end-date">
           </label>
           <label class="field">
             <span>Station</span>
-            <select>
-              <option>All Stations</option>
-              <option>Buwaya</option>
-              <option>Tres Kantos</option>
-              <option>Marilag</option>
-              <option>North Creek</option>
+            <select id="filter-station">
+              <option value="ALL">All Stations</option>
             </select>
           </label>
           <label class="field">
             <span>Severity</span>
-            <select>
-              <option>All Severity Levels</option>
-              <option>Critical</option>
-              <option>High</option>
+            <select id="filter-severity">
+              <option value="ALL">All Severity Levels</option>
+              <option>Severe</option>
               <option>Medium</option>
-              <option>Low</option>
+              <option>Normal</option>
             </select>
           </label>
           <label class="field">
             <span>Camera</span>
-            <select>
-              <option>All Cameras</option>
-              <option>CAM-001</option>
-              <option>CAM-002</option>
-              <option>CAM-003</option>
-              <option>CAM-004</option>
+            <select id="filter-camera">
+              <option value="ALL">All Cameras</option>
             </select>
           </label>
           <label class="field">
             <span>Status</span>
-            <select>
-              <option>All Status</option>
-              <option>Open</option>
+            <select id="filter-status">
+              <option value="ALL">All Status</option>
+              <option>Evaluated</option>
               <option>Resolved</option>
-              <option>Pending Review</option>
-              <option>Archived</option>
-            </select>
-          </label>
-          <label class="field field-wide">
-            <span>Report Type</span>
-            <select>
-              <option>All Report Types</option>
-              <option>Incident Report</option>
-              <option>Detection Report</option>
-              <option>Operational Analytics Report</option>
-              <option>Forecast Report</option>
-              <option>Daily Report</option>
-              <option>Weekly Report</option>
-              <option>Monthly Report</option>
+              <option>Dispatched</option>
             </select>
           </label>
         </div>
@@ -281,7 +258,7 @@
         <div class="card-head">
           <div>
             <h3>Reports Table</h3>
-            <div class="card-sub">Incident, detection, operational, forecast, daily, weekly, and monthly report records</div>
+            <div class="card-sub">Incident and detection records.</div>
           </div>
         </div>
 
@@ -300,76 +277,7 @@
               </tr>
             </thead>
             <tbody>
-              <!-- <tr>
-                <td>RPT-2026-0717-001</td>
-                <td><span class="type-badge incident">Incident Report</span></td>
-                <td>CAM-003</td>
-                <td>Tres Kantos</td>
-                <td><span class="severity-badge critical">Critical</span></td>
-                <td>Jul 17, 2026</td>
-                <td><span class="status-badge open">Open</span></td>
-                <td><button class="view-btn" type="button">View</button></td>
-              </tr>
-              <tr>
-                <td>RPT-2026-0717-002</td>
-                <td><span class="type-badge detection">Detection Report</span></td>
-                <td>CAM-001</td>
-                <td>Buwaya</td>
-                <td><span class="severity-badge high">High</span></td>
-                <td>Jul 17, 2026</td>
-                <td><span class="status-badge resolved">Resolved</span></td>
-                <td><button class="view-btn" type="button">View</button></td>
-              </tr>
-              <tr>
-                <td>RPT-2026-0716-003</td>
-                <td><span class="type-badge analytics">Operational Analytics Report</span></td>
-                <td>CAM-002</td>
-                <td>Marilag</td>
-                <td><span class="severity-badge medium">Medium</span></td>
-                <td>Jul 16, 2026</td>
-                <td><span class="status-badge archived">Archived</span></td>
-                <td><button class="view-btn" type="button">View</button></td>
-              </tr>
-              <tr>
-                <td>RPT-2026-0715-004</td>
-                <td><span class="type-badge forecast">Forecast Report</span></td>
-                <td>CAM-004</td>
-                <td>North Creek</td>
-                <td><span class="severity-badge low">Low</span></td>
-                <td>Jul 15, 2026</td>
-                <td><span class="status-badge pending">Pending</span></td>
-                <td><button class="view-btn" type="button">View</button></td>
-              </tr>
-              <tr>
-                <td>RPT-2026-0714-005</td>
-                <td><span class="type-badge daily">Daily Report</span></td>
-                <td>CAM-001</td>
-                <td>Buwaya</td>
-                <td><span class="severity-badge medium">Medium</span></td>
-                <td>Jul 14, 2026</td>
-                <td><span class="status-badge open">Open</span></td>
-                <td><button class="view-btn" type="button">View</button></td>
-              </tr>
-              <tr>
-                <td>RPT-2026-0713-006</td>
-                <td><span class="type-badge weekly">Weekly Report</span></td>
-                <td>CAM-003</td>
-                <td>Tres Kantos</td>
-                <td><span class="severity-badge high">High</span></td>
-                <td>Jul 13, 2026</td>
-                <td><span class="status-badge resolved">Resolved</span></td>
-                <td><button class="view-btn" type="button">View</button></td>
-              </tr>
-              <tr>
-                <td>RPT-2026-0712-007</td>
-                <td><span class="type-badge monthly">Monthly Report</span></td>
-                <td>CAM-004</td>
-                <td>Marilag</td>
-                <td><span class="severity-badge critical">Critical</span></td>
-                <td>Jul 12, 2026</td>
-                <td><span class="status-badge archived">Archived</span></td>
-                <td><button class="view-btn" type="button">View</button></td>
-              </tr> -->
+
               <tr>
                 <td>
                     No reports found matching your criteria.

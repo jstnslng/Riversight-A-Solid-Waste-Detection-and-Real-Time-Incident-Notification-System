@@ -19,12 +19,88 @@ const monthlyBarContainer = document.getElementById('monthly-bar-chart');
 const severityDonutSvg = document.getElementById('severity-donut-svg');
 const cameraBarsContainer = document.getElementById('camera-activity-bars');
 
+const stationFilter = document.getElementById('filter-station');
+const cameraFilter = document.getElementById('filter-camera');
+const applyFiltersBtn = document.getElementById('filter-btn');
+const resetFiltersBtn = document.getElementById('reset-filters-btn');
+const startDateFilter = document.getElementById('filter-start-date');
+const endDateFilter = document.getElementById('filter-end-date');
+const severityFilter = document.getElementById('filter-severity');
+const statusFilter = document.getElementById('filter-status');
+
 const profileMenu = document.querySelector('[data-profile-menu]');
 const profileToggle = document.querySelector('[data-profile-toggle]');
 const logoutLink = document.querySelector('[data-logout-link]');
 
 let allReports = [];
 let allCameras = [];
+
+function populateSelectOptions(selectElement, items, defaultLabel) {
+    if (!selectElement) return;
+
+    selectElement.innerHTML = `<option value="ALL">${defaultLabel}</option>`;
+
+    items.sort().forEach(value => {
+        if (value) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            selectElement.appendChild(option);
+        }
+    });
+}
+
+function updateFilterDropdowns(reports) {
+    const stations = [...new Set(reports.map(r => r.location).filter(Boolean))];
+    const cameras = [...new Set(reports.map(r => r.camId).filter(Boolean))];
+
+    populateSelectOptions(stationFilter, stations, 'All Stations');
+    populateSelectOptions(cameraFilter, cameras, 'All Cameras');
+}
+
+function applyFilters() {
+    const selectedStation = stationFilter ? stationFilter.value : 'ALL';
+    const selectedCamera = cameraFilter ? cameraFilter.value : 'ALL';
+    const selectedSeverity = severityFilter ? severityFilter.value : 'ALL';
+    const selectedStatus = statusFilter ? statusFilter.value : 'ALL';
+    const startDate = startDateFilter ? new Date(startDateFilter.value) : null;
+    const endDate = endDateFilter ? new Date(endDateFilter.value) : null;
+
+    if (endDate) {
+        endDate.setHours(23, 59, 59, 999);
+    }
+
+    const filteredReports = allReports.filter(report => {
+        const matchStation = selectedStation === 'ALL' || report.location === selectedStation;
+        const matchCamera = selectedCamera === 'ALL' || report.camId === selectedCamera;
+        const matchSeverity = selectedSeverity === 'ALL' || (report.severity || '').toLowerCase() === selectedSeverity.toLowerCase();
+        const matchStatus = selectedStatus === 'ALL' || (report.status || '').toLowerCase() === selectedStatus.toLowerCase();
+
+        let matchDate = true;
+        if (report.timestamp) {
+            const reportDate = report.timestamp.toDate ? report.timestamp.toDate() : new Date(report.timestamp);
+            if (startDate && reportDate < startDate) {
+                matchDate = false;
+            }
+            if (endDate && reportDate > endDate) {
+                matchDate = false;
+            }
+        }
+
+        return matchStation && matchCamera && matchSeverity && matchStatus && matchDate;
+    })
+
+    displayReports(filteredReports);
+}
+
+function resetFilters() {
+    if (stationFilter) stationFilter.value = 'ALL';
+    if (cameraFilter) cameraFilter.value = 'ALL';
+    if (severityFilter) severityFilter.value = 'ALL';
+    if (statusFilter) statusFilter.value = 'ALL';
+    if (startDateFilter) startDateFilter.value = '';
+    if (endDateFilter) endDateFilter.value = '';
+}
 
 async function fetchReportStats() {
     try {
@@ -37,6 +113,8 @@ async function fetchReportStats() {
 
         updateStats();
         displayReports(allReports);
+
+        updateFilterDropdowns(allReports);
 
         renderDetectionTrend(allReports);
         renderMonthlyReports(allReports);
@@ -324,4 +402,10 @@ logoutLink.addEventListener('click', (event) => {
     localStorage.removeItem('riversightAdminSession');
     sessionStorage.removeItem('riversightAdminSession');
     window.location.href = logoutLink.href;
+});
+
+applyFiltersBtn.addEventListener('click', applyFilters);
+resetFiltersBtn.addEventListener('click', () => {
+    resetFilters();
+    displayReports(allReports);
 });
