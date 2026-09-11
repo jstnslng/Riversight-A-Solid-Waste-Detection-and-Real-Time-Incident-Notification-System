@@ -64,6 +64,8 @@ node_modules/
 
 # dotenv environment variables file
 .env
+.env.local
+js/shared/runtime-config.local.js
 
 # dataconnect generated files
 .dataconnect

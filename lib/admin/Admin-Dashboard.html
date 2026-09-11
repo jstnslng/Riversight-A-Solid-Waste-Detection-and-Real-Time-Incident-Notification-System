@@ -170,18 +170,13 @@
               <div class="card-sub">Live monitoring across 4 sectors</div>
             </div>
             <div class="map-toggles">
-              <button class="toggle-pill active">Satellite</button>
-              <button class="toggle-pill">Terrain</button>
-              <span class="live-map-pill">Live Map <span class="mini-switch"></span></span>
+              <button class="toggle-pill active" type="button" data-map-type="satellite">Satellite</button>
+              <button class="toggle-pill" type="button" data-map-type="terrain">Terrain</button>
+              <button class="live-map-pill" type="button" aria-pressed="true">Live Map <span class="mini-switch"></span></button>
             </div>
           </div>
-          <div class="map-canvas">
-            <div class="map-marker marker-green" style="top:52%; left:47%;"></div>
-            <div class="map-marker marker-orange" style="top:63%; left:53%;"></div>
-            <div class="map-marker marker-red" style="top:70%; left:50%;"></div>
-            <div class="map-marker marker-orange small" style="top:23%; left:31%;"></div>
-            <div class="map-marker marker-pink small" style="top:58%; left:20%;"></div>
-            <span class="map-compass">N</span>
+          <div class="map-canvas" id="riverSightMap" aria-label="RiverSight monitoring map">
+            <div class="map-status" id="mapStatus" role="status">Loading map...</div>
           </div>
         </div>
 
@@ -194,27 +189,24 @@
           </div>
 
           <div class="detection-item">
-            <div class="thumb"></div>
             <div class="detection-info">
               <div class="detection-row"><span class="cam-id">CAM-003</span><span class="time">14:24:02</span></div>
-              <div class="detection-title">Plastic Waste Detection</div>
-              <div class="confidence">Confidence: <strong class="good">98.4%</strong></div>
+              <div class="detection-meta severity-high">Severity Level: High</div>
+              <div class="confidence">Confidence: <strong>98.4%</strong></div>
             </div>
           </div>
           <div class="detection-item">
-            <div class="thumb"></div>
             <div class="detection-info">
               <div class="detection-row"><span class="cam-id">CAM-001</span><span class="time">14:18:45</span></div>
-              <div class="detection-title">Organic Debris</div>
-              <div class="confidence">Confidence: <strong class="good">82.1%</strong></div>
+              <div class="detection-meta severity-medium">Severity Level: Medium</div>
+              <div class="confidence">Confidence: <strong>82.1%</strong></div>
             </div>
           </div>
           <div class="detection-item">
-            <div class="thumb"></div>
             <div class="detection-info">
               <div class="detection-row"><span class="cam-id">CAM-004</span><span class="time">14:05:12</span></div>
-              <div class="detection-title">Plastic Waste Detection</div>
-              <div class="confidence">Confidence: <strong class="warn">64.5%</strong></div>
+              <div class="detection-meta severity-low">Severity Level: Low</div>
+              <div class="confidence">Confidence: <strong>64.5%</strong></div>
             </div>
           </div>
 
@@ -315,6 +307,8 @@
 <script type="module" src="../../js/shared/global.js"></script>
 <script type="module" src="../../js/shared/firebase-config.js"></script>
 <script type="module" src="../../js/admin/admin-dashboard.js"></script>
+<script src="../../js/shared/runtime-config.local.js"></script>
+<script type="module" src="../../js/admin/admin-google-map.js"></script>
 <script type="module" src="../../js/admin/dashboard-cameras.js"></script>
 </body>
 </html>
