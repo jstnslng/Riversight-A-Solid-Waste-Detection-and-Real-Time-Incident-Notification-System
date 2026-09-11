@@ -64,34 +64,10 @@
 
         <div class="header-right">
           
-          <!-- Notification Bell Dropdown -->
-          <div class="notification-wrapper">
-            <button class="icon-btn" type="button" id="notificationToggle" aria-label="Notifications">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-              <span class="badge">2</span>
-            </button>
-
-            <div class="notification-dropdown" id="notificationDropdown">
-              <div class="dropdown-header">Recent Reports</div>
-              <div class="dropdown-body">
-                <a href="./Incident-Reports.html" class="report-item">
-                  <div class="report-title">
-                    <span class="critical">Severe: EV-8892-X</span>
-                    <span class="time">15:42:01</span>
-                  </div>
-                  <div class="report-desc">High Density Waste Block detected by CAM-001.</div>
-                </a>
-                <a href="./Incident-Reports.html" class="report-item">
-                  <div class="report-title">
-                    <span class="info">System Analytics</span>
-                    <span class="time">15:00:00</span>
-                  </div>
-                  <div class="report-desc">Daily detection summary generated. Total: 48.</div>
-                </a>
-              </div>
-              <a href="./Incident-Reports.html" class="dropdown-footer">View All Incident Reports</a>
-            </div>
-          </div>
+          <button class="icon-btn" type="button" data-notification-toggle aria-label="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge" data-notification-badge></span>
+          </button>
           
           <!-- Profile Menu -->
           <div class="profile-menu" data-profile-menu>
@@ -304,6 +280,5 @@
   <script type="module" src="../../js/shared/global.js"></script>
   <script type="module" src="../../js/monitoring/incident-reports-module.js"></script>
   <script src="../../js/monitoring/monitoring-nav.js"></script>
-  <script type="module" src="../../js/shared/global.js"></script>
 </body>
 </html>

@@ -125,6 +125,94 @@ body.js-ready {
   margin: 6px 4px;
 }
 
+.notification-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.notification-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 9999;
+}
+
+.notification-dropdown.show {
+  display: block;
+}
+
+.notification-dropdown-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.notification-dropdown-body {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: block;
+  padding: 12px 16px;
+  text-decoration: none;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
+}
+
+.notification-item:hover {
+  background: #f9fafb;
+}
+
+.notification-item-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.notification-severity.critical { color: #d33c3c; }
+.notification-severity.warning { color: #e0a020; }
+.notification-severity.info { color: #2f6fd6; }
+.notification-time { color: var(--muted); font-size: 10.5px; font-weight: 400; white-space: nowrap; }
+.notification-description { color: var(--muted); font-size: 11.5px; margin-top: 4px; }
+
+.notification-dropdown-footer {
+  display: block;
+  padding: 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2f6fd6;
+  text-decoration: none;
+  background: #f9fafb;
+  border-radius: 0 0 12px 12px;
+}
+
+.notification-empty {
+  padding: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .notification-dropdown {
+    right: -8px;
+  }
+}
+
 .card {
   background: var(--surface, #ffffff);
   border: 1px solid var(--border, #e2e8f0);
