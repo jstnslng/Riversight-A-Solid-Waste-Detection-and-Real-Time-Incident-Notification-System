@@ -129,8 +129,8 @@
 .feed-tag-rec { right: 12px; background: var(--red); }
 
 .feed-frame > .feed-tag,
-.feed-frame > .feed-sector-label,
-.feed-frame > .detect-box {
+.feed-frame > .feed-sector-label
+/*.feed-frame > .detect-box*/ {
   pointer-events: none;
 }
 
@@ -149,7 +149,7 @@
   text-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
 
-.detect-box {
+/* .detect-box {
   position: absolute;
   border: 2px solid var(--red);
   border-radius: 3px;
@@ -165,7 +165,7 @@
   padding: 2px 6px;
   border-radius: 3px;
   white-space: nowrap;
-}
+} */
 .label-red { background: var(--red); }
 .label-orange { background: var(--orange); }
 
