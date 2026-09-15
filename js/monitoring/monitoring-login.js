@@ -78,6 +78,8 @@ loginForm.addEventListener('submit', async (e) => {
             status: "Success"
         };
 
+        
+
         await addDoc(collection(db, "audit"), loginAudit);
 
         window.location.href = '../monitoring/Live-Monitoring.html';

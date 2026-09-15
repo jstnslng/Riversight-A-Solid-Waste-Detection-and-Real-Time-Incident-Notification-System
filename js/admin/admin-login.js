@@ -60,7 +60,7 @@ loginForm.addEventListener('submit', async (e) => {
         }
 
         await updateDoc(userDocRef, {
-            last_login: serverTimestamp()
+            lastLogin: serverTimestamp()
         });
 
         sessionStorage.setItem('riversightAdminSession', 'active');

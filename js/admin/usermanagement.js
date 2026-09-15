@@ -1,10 +1,21 @@
-import { collection, getDocs, doc, deleteDoc, updateDoc, addDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { 
+    collection, 
+    getDocs, 
+    doc, 
+    deleteDoc, 
+    updateDoc, 
+    addDoc, 
+    serverTimestamp, 
+    setDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
 import {
     getAuth,
     createUserWithEmailAndPassword,
-    signOut as authSignOut,
+    signOut,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { auth, db, firebaseConfig } from "../shared/firebase-config.js";
 
@@ -18,8 +29,6 @@ const globalSearchInput = document.querySelector('.search-wrap input');
 const profileMenu = document.querySelector('[data-profile-menu]');
 const profileToggle = document.querySelector('[data-profile-toggle]');
 const logoutLink = document.querySelector('[data-logout-link]');
-const headerName = document.querySelector('.user-name');
-const headerRole = document.querySelector('.user-role');
 
 const totalUsersStat = document.querySelectorAll('.stat-value')[0];
 const activeNowStat = document.querySelectorAll('.stat-value')[1];
@@ -32,6 +41,11 @@ const addUserModal = document.getElementById('addUserModal');
 const addUserForm = document.getElementById('addUserForm');
 const closeAddModalBtn = document.getElementById('closeAddModalBtn');
 const cancelAddBtn = document.getElementById('cancelAddBtn');
+
+const editUserModal = document.getElementById('editUserModal');
+const editUserForm = document.getElementById('editUserForm');
+const closeEditModalBtn = document.getElementById('closeEditModalBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
 
 const statusFilterSelect = document.getElementById('statusFilterSelect');
 const roleFilterSelect = document.getElementById('roleFilterSelect');
@@ -67,7 +81,6 @@ function formatLastActive(timestamp) {
 function getRoleBadgeClass(role = '') {
     const r = role.toLowerCase();
     if (r.includes('admin')) return 'admin';
-    if (r.includes('monitoring')) return 'monitoring';
     return 'monitoring';
 }
 
@@ -92,7 +105,7 @@ function renderUsersTable(usersToRender) {
 
         const initials = getInitials(user.fullname || user.name);
         const roleClass = getRoleBadgeClass(user.role);
-        const lastActiveText = formatLastActive(user.last_login || user.last_active);
+        const lastActiveText = formatLastActive(user.lastLogin || user.last_active);
 
         tr.innerHTML = `
             <td class="user-cell">
@@ -125,7 +138,7 @@ function updateStats(users) {
     const total = users.length;
     const active = users.filter(u => (u.status || 'active').toLowerCase() === 'active').length;
     const admins = users.filter(u => (u.role || '').toLowerCase().includes('admin')).length;
-    const pending = users.filter(u => (u.status || '').toLowerCase() === 'pending').length;
+    const pending = users.filter(u => !u.lastLogin && !u.last_active).length;
 
     if (totalUsersStat) totalUsersStat.childNodes[0].nodeValue = `${total} `;
     if (activeNowStat) activeNowStat.childNodes[0].nodeValue = `${active} `;
@@ -204,11 +217,15 @@ async function fetchUsers() {
 
 function attachRowActionListeners() {
     document.querySelectorAll('.delete-user-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
+        newBtn.addEventListener('click', async (e) => {
             const userId = e.currentTarget.dataset.id;
             if (confirm("Are you sure you want to remove this user from Firestore?")) {
                 try {
                     await deleteDoc(doc(db, "users", userId));
+                    
                     allUsersData = allUsersData.filter(u => u.id !== userId);
                     updateStats(allUsersData);
                     applyFilters();
@@ -221,7 +238,10 @@ function attachRowActionListeners() {
     });
 
     document.querySelectorAll('.edit-user-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
+        newBtn.addEventListener('click', (e) => {
             const userId = e.currentTarget.dataset.id;
             const targetUser = allUsersData.find(u => u.id === userId);
             if (targetUser) openEditModal(targetUser);
@@ -246,10 +266,6 @@ toggles.forEach(btn => {
         applyFilters();
     });
 });
-
-if (globalSearchInput) {
-    globalSearchInput.addEventListener('input', applyFilters);
-}
 
 const closeProfileMenu = () => {
     if (profileMenu && profileToggle) {
@@ -284,12 +300,12 @@ function openEditModal(user) {
     document.getElementById('editStatus').value = (user.status || 'active').toLowerCase();
     document.getElementById('editAssignedStation').value = user.assigned_station || 'PH-MNL-QC';
 
-    editUserModal.style.display = 'flex';
+    if (editUserModal) editUserModal.style.display = 'flex';
 }
 
 function closeEditModal() {
-    editUserModal.style.display = 'none';
-    editUserForm.reset();
+    if (editUserModal) editUserModal.style.display = 'none';
+    if (editUserForm) editUserForm.reset();
 }
 
 editUserForm?.addEventListener('submit', async (e) => {
@@ -308,8 +324,10 @@ editUserForm?.addEventListener('submit', async (e) => {
     };
 
     const saveBtn = document.getElementById('saveEditBtn');
-    saveBtn.disabled = true;
-    saveBtn.innerText = 'Saving...';
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
+    }
 
     try {
         const userDocRef = doc(db, "users", userId);
@@ -327,8 +345,10 @@ editUserForm?.addEventListener('submit', async (e) => {
         console.error("Error updating user document:", err);
         alert("Failed to update user record.");
     } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerText = 'Save Changes';
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'Save Changes';
+        }
     }
 });
 
@@ -354,8 +374,10 @@ addUserForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const saveAddBtn = document.getElementById('saveAddBtn');
-    saveAddBtn.disabled = true;
-    saveAddBtn.innerText = 'Creating...';
+    if (saveAddBtn) {
+        saveAddBtn.disabled = true;
+        saveAddBtn.innerText = 'Creating...';
+    }
 
     const email = document.getElementById('addEmail').value.trim();
     const password = document.getElementById('addPassword').value;
@@ -364,7 +386,7 @@ addUserForm?.addEventListener('submit', async (e) => {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
         const newUid = userCredential.user.uid;
 
-        await authSignOut(secondaryAuth);
+        await signOut(secondaryAuth);
 
         const newUserPayload = {
             username: document.getElementById('addUsername').value.trim(),
@@ -395,8 +417,10 @@ addUserForm?.addEventListener('submit', async (e) => {
         console.error("Error creating user in Auth/Firestore:", err);
         alert(`Failed to create user: ${err.message}`);
     } finally {
-        saveAddBtn.disabled = false;
-        saveAddBtn.innerText = 'Create User';
+        if (saveAddBtn) {
+            saveAddBtn.disabled = false;
+            saveAddBtn.innerText = 'Create User';
+        }
     }
 });
 
