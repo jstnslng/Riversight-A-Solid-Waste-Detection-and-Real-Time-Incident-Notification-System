@@ -94,12 +94,12 @@
           <div class="updated-row"><span class="live-dot"></span> Notification, appearance, and security preferences</div>
         </div>
         <div class="page-title-actions">
-          <button class="date-btn" type="button">Reset to Default</button>
-          <button class="export-btn" type="button">Save Settings</button>
+          <button class="secondary-btn" type="button">Reset to Default</button>
+          <button class="primary-btn" type="button">Save Settings</button>
         </div>
       </div>
 
-      <section class="content-grid" style="grid-template-columns: 1fr 1fr; align-items: start;">
+      <section class="settings-grid">
         <section class="card">
           <div class="card-head">
             <div>
@@ -108,22 +108,22 @@
             </div>
           </div>
 
-          <div style="display: grid; gap: 14px;">
-            <label class="field-group" style="display: grid; gap: 6px;">
+          <div class="settings-columns">
+            <label class="setting-row">
               <span>Theme</span>
               <select>
                 <option selected>Light</option>
                 <option>Dark</option>
               </select>
             </label>
-            <label class="field-group" style="display: grid; gap: 6px;">
+            <!-- <label class="setting-row">
               <span>Compact Layout</span>
               <select>
                 <option selected>Off</option>
                 <option>On</option>
               </select>
-            </label>
-            <label class="field-group" style="display: grid; gap: 6px;">
+            </label> -->
+            <label class="setting-row">
               <span>Font Size</span>
               <select>
                 <option selected>Default</option>
@@ -142,25 +142,25 @@
             </div>
           </div>
 
-          <div style="display: grid; gap: 12px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
-              <div>
+          <div class="switch-list">
+            <div class="switch-item">
+              <div class="switch-copy">
                 <strong>Email Notifications</strong>
-                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Send monitoring updates by email</div>
+                <span>Send monitoring updates by email</span>
               </div>
               <button type="button" class="toggle"></button>
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
-              <div>
+            <div class="switch-item">
+              <div class="switch-copy">
                 <strong>System Alerts</strong>
-                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Notify on service or hardware changes</div>
+                <span>Notify on service or hardware changes</span>
               </div>
               <button type="button" class="toggle"></button>
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
-              <div>
+            <div class="switch-item">
+              <div class="switch-copy">
                 <strong>Detection Alerts</strong>
-                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Escalation notices for new incidents</div>
+                <span>Escalation notices for new incidents</span>
               </div>
               <button type="button" class="toggle"></button>
             </div>
@@ -175,27 +175,27 @@
             </div>
           </div>
 
-          <div style="display: grid; gap: 12px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
-              <div>
+          <div class="switch-list">
+            <div class="switch-item">
+              <div class="switch-copy">
                 <strong>Two-Factor Authentication</strong>
-                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Require a second verification step at login</div>
+                <span>Require a second verification step at login</span>
               </div>
               <button type="button" class="toggle off"></button>
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
-              <div>
+            <div class="switch-item">
+              <div class="switch-copy">
                 <strong>Session Timeout</strong>
-                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Auto-lock after inactivity</div>
+                <span>Auto-lock after inactivity</span>
               </div>
               <button type="button" class="toggle"></button>
             </div>
           </div>
 
-          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="date-btn" type="button">Change Password</button>
-            <a class="export-btn" href="./Monitoring-Login.html" data-logout-link data-logout-target="./Monitoring-Login.html" style="display: inline-flex; align-items: center; justify-content: center;">Logout Now</a>
+          <div class="security-actions">
+            <button class="secondary-btn" type="button">Change Password</button>
           </div>
+          <div class="security-note">These controls are non-persistent placeholders until backend monitoring preferences are connected.</div>
         </section>
       </section>
     </main>
