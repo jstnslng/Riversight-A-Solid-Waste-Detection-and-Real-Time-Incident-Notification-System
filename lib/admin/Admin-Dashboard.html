@@ -184,30 +184,12 @@
           <div class="card-head">
             <div>
               <h3>Recent AI Detections</h3>
-              <div class="card-sub">Last 5 system events</div>
+              <div class="card-sub" id="recentDetectionsSummary">Last 5 system events</div>
             </div>
           </div>
 
-          <div class="detection-item">
-            <div class="detection-info">
-              <div class="detection-row"><span class="cam-id">CAM-003</span><span class="time">14:24:02</span></div>
-              <div class="detection-meta severity-high">Severity Level: High</div>
-              <div class="confidence">Confidence: <strong>98.4%</strong></div>
-            </div>
-          </div>
-          <div class="detection-item">
-            <div class="detection-info">
-              <div class="detection-row"><span class="cam-id">CAM-001</span><span class="time">14:18:45</span></div>
-              <div class="detection-meta severity-medium">Severity Level: Medium</div>
-              <div class="confidence">Confidence: <strong>82.1%</strong></div>
-            </div>
-          </div>
-          <div class="detection-item">
-            <div class="detection-info">
-              <div class="detection-row"><span class="cam-id">CAM-004</span><span class="time">14:05:12</span></div>
-              <div class="detection-meta severity-low">Severity Level: Low</div>
-              <div class="confidence">Confidence: <strong>64.5%</strong></div>
-            </div>
+          <div id="recentDetectionsList" class="detections-list">
+            <div class="detection-empty">No AI detections recorded.</div>
           </div>
 
           <button class="view-all-btn">View All Alerts</button>
@@ -307,8 +289,10 @@
 <script type="module" src="../../js/shared/global.js"></script>
 <script type="module" src="../../js/shared/firebase-config.js"></script>
 <script type="module" src="../../js/admin/admin-dashboard.js"></script>
-<script src="../../js/shared/runtime-config.local.js"></script>
+<script src="../../js/shared/runtime-config.js"></script>
+<script src="../../js/shared/runtime-config.local.js" onerror="this.remove()"></script>
 <script type="module" src="../../js/admin/admin-google-map.js"></script>
+<script type="module" src="../../js/admin/admin-dashboard-detections.js"></script>
 <script type="module" src="../../js/admin/dashboard-cameras.js"></script>
 </body>
 </html>

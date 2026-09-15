@@ -1,0 +1,3 @@
+window.__RIVERSIGHT_ENV__ = {
+  VITE_GOOGLE_MAPS_API_KEY: "AIzaSyBYgAw1xrfFZmTrZgr2SKr4Vym2c5p-o6Y",
+};

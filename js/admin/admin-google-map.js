@@ -1,6 +1,6 @@
 import { sampleDetections } from "./detection-data.js";
 
-const DEFAULT_CENTER = { lat: 14.676, lng: 121.0437 };
+const DEFAULT_CENTER = { lat: 14.626659, lng: 121.06528 };
 const MAP_SCRIPT_ID = "google-maps-javascript-api";
 
 function getApiKey() {

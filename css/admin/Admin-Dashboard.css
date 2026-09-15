@@ -508,6 +508,12 @@ body {
 .detection-info { min-width: 0; }
 
 /* Detections */
+.detection-empty {
+  padding: 10px 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
 .detection-item {
   display: flex;
   align-items: flex-start;

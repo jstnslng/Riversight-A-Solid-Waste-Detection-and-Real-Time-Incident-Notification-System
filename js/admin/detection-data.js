@@ -2,8 +2,8 @@
 export const sampleDetections = [
   {
     cameraId: "CAM-003",
-    latitude: 14.6419,
-    longitude: 121.0725,
+    latitude: 14.628772,
+    longitude: 121.070178,
     detectionType: "Plastic Waste",
     severity: "High",
     confidence: 98.4,
@@ -11,8 +11,8 @@ export const sampleDetections = [
   },
   {
     cameraId: "CAM-001",
-    latitude: 14.676,
-    longitude: 121.0437,
+    latitude: 14.627469,
+    longitude: 121.06265,
     detectionType: "Organic Debris",
     severity: "Medium",
     confidence: 82.1,
@@ -20,8 +20,8 @@ export const sampleDetections = [
   },
   {
     cameraId: "CAM-004",
-    latitude: 14.6764,
-    longitude: 121.0891,
+    latitude: 14.623736,
+    longitude: 121.063011,
     detectionType: "Plastic Waste",
     severity: "Low",
     confidence: 64.5,
