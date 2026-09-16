@@ -213,6 +213,46 @@
           </div>
         </section>
       </section>
+
+      <section class="card security-card" style="margin-top: 24px;">
+        <div class="card-head">
+          <div>
+            <h3>Security & Password</h3>
+            <div class="card-sub">Change your current or temporary account password</div>
+          </div>
+        </div>
+
+        <form id="changePasswordForm" style="max-width: 480px; margin-top: 16px;">
+          <div class="field-group" style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #334155;">
+              Current / Temporary Password
+            </label>
+            <input type="password" id="currentPassword" placeholder="Enter current password" required 
+                  style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+
+          <div class="field-group" style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #334155;">
+              New Password
+            </label>
+            <input type="password" id="newPassword" placeholder="Minimum 8 characters" required minlength="8"
+                  style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+
+          <div class="field-group" style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #334155;">
+              Confirm New Password
+            </label>
+            <input type="password" id="confirmPassword" placeholder="Re-enter new password" required minlength="8"
+                  style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+
+          <button type="submit" class="primary-btn" id="updatePasswordBtn">
+            Update Password
+          </button>
+        </form>
+      </section>
+
     </main>
   </div>
 

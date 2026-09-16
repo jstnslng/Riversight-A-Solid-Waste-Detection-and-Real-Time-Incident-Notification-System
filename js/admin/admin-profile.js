@@ -1,5 +1,5 @@
 import { doc, getDoc, updateDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { onAuthStateChanged, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { auth, db } from "../shared/firebase-config.js";
 
 const loadingOverlay = document.getElementById('loadingOverlay');
@@ -26,6 +26,9 @@ const logoutLink = document.querySelector('[data-logout-link]');
 
 const profileMenu = document.querySelector('[data-profile-menu]');
 const profileToggle = document.querySelector('[data-profile-toggle]');
+
+const changePasswordForm = document.getElementById('changePasswordForm');
+const updatePasswordBtn = document.getElementById('updatePasswordBtn');
 
 let currentUserRef = null;
 let currentUserRole = null;
@@ -102,9 +105,9 @@ onAuthStateChanged(auth, async (user) => {
         phoneInput.value = data.phone_no || '';
 
         const accountStatus = data.status || 'Active';
-        const fullName = data.fullname || 'Administrator';
+        const fullName = `${data.firstname || 'Administrator'}, ${data.lastname || ''}`;
         const role = data.role || 'System Administrator';
-        const assignedStation = data.assigned_station || 'PH-MNL-QC';
+        const assignedStation = `${data.city || 'N/A'}, ${data.barangay || 'N/A'}`;
 
         currentUserRole = role;
 
@@ -199,6 +202,82 @@ saveButton.addEventListener('click', async () => {
         saveButton.textContent = 'Save Changes';
     }
 });
+
+if (changePasswordForm) {
+    changePasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const user = auth.currentUser;
+
+        if (!user || !user.email) {
+            alert("No authenticated user found. Please log in again.");
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            alert("New password and confirm password do not match.");
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            alert("Password must be at least 8 characters long.");
+            return;
+        }
+
+        updatePasswordBtn.disabled = true;
+        updatePasswordBtn.textContent = 'Updating...';
+
+        try {
+            const credential = EmailAuthProvider.credential(user.email, currentPassword);
+            await reauthenticateWithCredential(user, credential);
+
+            await updatePassword(user, newPassword);
+
+            await addDoc(collection(db, "audit"), {
+                timestamp: new Date(),
+                user: usernameInput.value.trim() || user.email,
+                userId: user.uid,
+                role: currentUserRole || 'Administrator',
+                action: 'update',
+                target: 'Security Settings',
+                details: 'User successfully updated account password.',
+                status: 'success'
+            });
+
+            alert("Password updated successfully!");
+            changePasswordForm.reset();
+
+        } catch (error) {
+            console.error("Error updating password:", error);
+
+            let errorMessage = "Failed to update password.";
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                errorMessage = "Incorrect current/temporary password.";
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = "Password is too weak. Choose a stronger password.";
+            }
+
+            await addDoc(collection(db, "audit"), {
+                timestamp: new Date(),
+                user: usernameInput.value.trim() || user.email,
+                userId: user.uid,
+                role: currentUserRole || 'Administrator',
+                action: 'update',
+                target: 'Security Settings',
+                details: `Failed password change attempt: ${error.message}`,
+                status: 'failed'
+            });
+
+            alert(errorMessage);
+        } finally {
+            updatePasswordBtn.disabled = false;
+            updatePasswordBtn.textContent = 'Update Password';
+        }
+    });
+}
 
 if (logoutLink) {
     logoutLink.addEventListener('click', async (e) => {

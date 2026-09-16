@@ -138,7 +138,7 @@ function updateStats(users) {
     const total = users.length;
     const active = users.filter(u => (u.status || 'active').toLowerCase() === 'active').length;
     const admins = users.filter(u => (u.role || '').toLowerCase().includes('admin')).length;
-    const pending = users.filter(u => !u.lastLogin && !u.last_active).length;
+    const pending = users.filter(u => (u.status || '').toLowerCase() === 'pending').length;
 
     if (totalUsersStat) totalUsersStat.childNodes[0].nodeValue = `${total} `;
     if (activeNowStat) activeNowStat.childNodes[0].nodeValue = `${active} `;
@@ -379,8 +379,11 @@ addUserForm?.addEventListener('submit', async (e) => {
         saveAddBtn.innerText = 'Creating...';
     }
 
-    const email = document.getElementById('addEmail').value.trim();
-    const password = document.getElementById('addPassword').value;
+    const firstName = document.getElementById('addFirstname').value.trim();
+    const lastName = document.getElementById('addLastname').value.trim();
+    const role = document.getElementById('addRole').value;
+    const email = createEmail(firstName, lastName);
+    const password = createPassword();
 
     try {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
@@ -389,15 +392,18 @@ addUserForm?.addEventListener('submit', async (e) => {
         await signOut(secondaryAuth);
 
         const newUserPayload = {
-            username: document.getElementById('addUsername').value.trim(),
-            fullname: document.getElementById('addFullname').value.trim(),
+            username: createUsername(firstName, lastName, role),
+            firstname: firstName,
+            lastname: lastName,
             email_address: email,
             phone_no: document.getElementById('addPhone').value.trim(),
-            role: document.getElementById('addRole').value,
-            barangay: document.getElementById('addBarangay').value,
-            status: document.getElementById('addStatus').value,
-            assigned_station: document.getElementById('addAssignedStation').value,
-            created_at: serverTimestamp(),
+            role: role,
+            region: document.getElementById('region-text').value,
+            province: document.getElementById('province-text').value,
+            city: document.getElementById('city-text').value,
+            barangay: document.getElementById('barangay-text').value,
+            status: "pending",
+            date_joined: serverTimestamp(),
             last_login: null
         };
 
@@ -411,7 +417,9 @@ addUserForm?.addEventListener('submit', async (e) => {
         updateStats(allUsersData);
         applyFilters();
         closeAddModal();
-        alert("User account successfully created!");
+        addUserForm.reset();
+
+        showSuccessModal(email, password);
 
     } catch (err) {
         console.error("Error creating user in Auth/Firestore:", err);
@@ -422,6 +430,240 @@ addUserForm?.addEventListener('submit', async (e) => {
             saveAddBtn.innerText = 'Create User';
         }
     }
+});
+
+function createPassword() {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
+    let password = "";
+    const passwordLength = 12;
+
+    const randomValues = new Uint32Array(passwordLength);
+
+    window.crypto.getRandomValues(randomValues);
+
+    for (let i = 0; i < passwordLength; i++) {
+        password += charset[randomValues[i] % charset.length];
+    }
+
+    return password;
+}
+
+function createEmail(firstName, lastName, domain = "riversight.gov.ph") {
+  const cleanFirst = firstName.trim().toLowerCase();
+  const cleanLast = lastName.trim().toLowerCase();
+  
+  const firstNamesArray = cleanFirst.split(/\s+/);
+  
+  const firstInitials = firstNamesArray.map(name => name[0]).join('');
+
+  const emailUsername = `${firstInitials}${cleanLast}`;
+  
+  return `${emailUsername}@${domain}`;
+}
+
+function createUsername(firstName, lastName, role) {
+    const cleanFirst = firstName.trim().toLowerCase();
+    const cleanLast = lastName.trim().toLowerCase();
+
+    const firstNamesArray = cleanFirst.split(/\s+/);
+
+    const firstInitials = firstNamesArray.map(name => name[0]).join('');
+
+    return `${firstInitials}${cleanLast}_${role.toLowerCase()}`;
+}
+
+function showSuccessModal(email, password) {
+    document.getElementById('createdEmailDisplay').value = email;
+    document.getElementById('createdPasswordDisplay').value = password;
+    
+    const copyBtn = document.getElementById('copyPasswordBtn');
+    copyBtn.innerText = 'Copy Password';
+    
+    document.getElementById('userSuccessModal').style.display = 'flex';
+}
+
+function closeSuccessModal() {
+    document.getElementById('userSuccessModal').style.display = 'none';
+}
+
+document.getElementById('closeSuccessModalBtn')?.addEventListener('click', closeSuccessModal);
+document.getElementById('doneSuccessBtn')?.addEventListener('click', closeSuccessModal);
+
+document.getElementById('copyPasswordBtn')?.addEventListener('click', async () => {
+    const passwordInput = document.getElementById('createdPasswordDisplay');
+    const copyBtn = document.getElementById('copyPasswordBtn');
+
+    try {
+        await navigator.clipboard.writeText(passwordInput.value);
+        copyBtn.innerText = 'Copied!';
+        setTimeout(() => {
+            copyBtn.innerText = 'Copy Password';
+        }, 2500);
+    } catch (err) {
+        passwordInput.select();
+        document.execCommand('copy');
+        copyBtn.innerText = 'Copied!';
+    }
+});
+
+var my_handlers = {
+    // fill province
+    fill_provinces: function() {
+        //selected region
+        var region_code = $(this).val();
+
+        // set selected text to input
+        var region_text = $(this).find("option:selected").text();
+        let region_input = $('#region-text');
+        region_input.val(region_text);
+        //clear province & city & barangay input
+        $('#province-text').val('');
+        $('#city-text').val('');
+        $('#barangay-text').val('');
+
+        //province
+        let dropdown = $('#province');
+        dropdown.empty();
+        dropdown.append('<option selected="true" disabled>Choose State/Province</option>');
+        dropdown.prop('selectedIndex', 0);
+
+        //city
+        let city = $('#city');
+        city.empty();
+        city.append('<option selected="true" disabled></option>');
+        city.prop('selectedIndex', 0);
+
+        //barangay
+        let barangay = $('#barangay');
+        barangay.empty();
+        barangay.append('<option selected="true" disabled></option>');
+        barangay.prop('selectedIndex', 0);
+
+        // filter & fill
+        var url = '../../assets/ph-json/province.json';
+        $.getJSON(url, function(data) {
+            var result = data.filter(function(value) {
+                return value.region_code == region_code;
+            });
+
+            result.sort(function(a, b) {
+                return a.province_name.localeCompare(b.province_name);
+            });
+
+            $.each(result, function(key, entry) {
+                dropdown.append($('<option></option>').attr('value', entry.province_code).text(entry.province_name));
+            })
+
+        });
+    },
+    // fill city
+    fill_cities: function() {
+        //selected province
+        var province_code = $(this).val();
+
+        // set selected text to input
+        var province_text = $(this).find("option:selected").text();
+        let province_input = $('#province-text');
+        province_input.val(province_text);
+        //clear city & barangay input
+        $('#city-text').val('');
+        $('#barangay-text').val('');
+
+        //city
+        let dropdown = $('#city');
+        dropdown.empty();
+        dropdown.append('<option selected="true" disabled>Choose city/municipality</option>');
+        dropdown.prop('selectedIndex', 0);
+
+        //barangay
+        let barangay = $('#barangay');
+        barangay.empty();
+        barangay.append('<option selected="true" disabled></option>');
+        barangay.prop('selectedIndex', 0);
+
+        // filter & fill
+        var url = '../../assets/ph-json/city.json';
+        $.getJSON(url, function(data) {
+            var result = data.filter(function(value) {
+                return value.province_code == province_code;
+            });
+
+            result.sort(function(a, b) {
+                return a.city_name.localeCompare(b.city_name);
+            });
+
+            $.each(result, function(key, entry) {
+                dropdown.append($('<option></option>').attr('value', entry.city_code).text(entry.city_name));
+            })
+
+        });
+    },
+    // fill barangay
+    fill_barangays: function() {
+        // selected barangay
+        var city_code = $(this).val();
+
+        // set selected text to input
+        var city_text = $(this).find("option:selected").text();
+        let city_input = $('#city-text');
+        city_input.val(city_text);
+        //clear barangay input
+        $('#barangay-text').val('');
+
+        // barangay
+        let dropdown = $('#barangay');
+        dropdown.empty();
+        dropdown.append('<option selected="true" disabled>Choose barangay</option>');
+        dropdown.prop('selectedIndex', 0);
+
+        // filter & Fill
+        var url = '../../assets/ph-json/barangay.json';
+        $.getJSON(url, function(data) {
+            var result = data.filter(function(value) {
+                return value.city_code == city_code;
+            });
+
+            result.sort(function(a, b) {
+                return a.brgy_name.localeCompare(b.brgy_name);
+            });
+
+            $.each(result, function(key, entry) {
+                dropdown.append($('<option></option>').attr('value', entry.brgy_code).text(entry.brgy_name));
+            })
+
+        });
+    },
+
+    onchange_barangay: function() {
+        // set selected text to input
+        var barangay_text = $(this).find("option:selected").text();
+        let barangay_input = $('#barangay-text');
+        barangay_input.val(barangay_text);
+    },
+
+};
+
+
+$(function() {
+    // events
+    $('#region').on('change', my_handlers.fill_provinces);
+    $('#province').on('change', my_handlers.fill_cities);
+    $('#city').on('change', my_handlers.fill_barangays);
+    $('#barangay').on('change', my_handlers.onchange_barangay);
+
+    // load region
+    let dropdown = $('#region');
+    dropdown.empty();
+    dropdown.append('<option selected="true" disabled>Choose Region</option>');
+    dropdown.prop('selectedIndex', 0);
+    const url = '../../assets/ph-json/region.json';
+    // Populate dropdown with list of regions
+    $.getJSON(url, function(data) {
+        $.each(data, function(key, entry) {
+            dropdown.append($('<option></option>').attr('value', entry.region_code).text(entry.region_name));
+        })
+    });
+
 });
 
 if (logoutLink) {
