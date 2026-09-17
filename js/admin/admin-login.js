@@ -59,6 +59,15 @@ loginForm.addEventListener('submit', async (e) => {
             return;
         }
 
+        if (userData.status && userData.status.toLowerCase() === "inactive") {
+            alert("Access Denied: Account is inactive. Please contact support.");
+            await signOut(auth);
+            return;
+        }
+        else if (userData.status && userData.status.toLowerCase() === "pending") {
+            await updateDoc(userDocRef, { status: "active" });
+        }
+
         await updateDoc(userDocRef, {
             lastLogin: serverTimestamp()
         });
@@ -89,9 +98,21 @@ loginForm.addEventListener('submit', async (e) => {
         switch (error.code) {
             case 'auth/invalid-credential':
             case 'auth/user-not-found':
+                const loginAudit = {
+                    userId: "Unknown",
+                    username: email,
+                    action: "Login",
+                    timestamp: serverTimestamp(),
+                    target: "Session",
+                    details: `Unknown login attempt for ${email}.`,
+                    role: "Administrator",
+                    status: "Failed"
+                }
+                await addDoc(collection(db, "audit"), loginAudit);
+                break;
             case 'auth/wrong-password':
                 alert("Invalid username/email or password.");
-                const loginAudit = {
+                    loginAudit = {
                     userId: "Unknown",
                     username: email,
                     action: "Login",

@@ -6,7 +6,8 @@ import {
     updateDoc, 
     addDoc, 
     serverTimestamp, 
-    setDoc 
+    setDoc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
@@ -56,6 +57,7 @@ const secondaryAuth = getAuth(secondaryApp);
 
 let allUsersData = [];
 let currentFilter = 'all';
+let userData = {};
 
 function getInitials(name = '') {
     const parts = name.trim().split(' ').filter(Boolean);
@@ -103,7 +105,9 @@ function renderUsersTable(usersToRender) {
         const statusKey = (user.status || 'active').toLowerCase();
         tr.setAttribute('data-status', statusKey);
 
-        const initials = getInitials(user.fullname || user.name);
+        const formattedStatus = user.status.charAt(0).toUpperCase() + user.status.slice(1);
+
+        const initials = getInitials(`${user.firstname || ''} ${user.lastname || ''}`);
         const roleClass = getRoleBadgeClass(user.role);
         const lastActiveText = formatLastActive(user.lastLogin || user.last_active);
 
@@ -111,13 +115,13 @@ function renderUsersTable(usersToRender) {
             <td class="user-cell">
                 <span class="avatar-circle">${initials}</span>
                 <div>
-                    <div class="u-name">${user.fullname || 'Unnamed User'}</div>
+                    <div class="u-name">${user.firstname || 'Unnamed User'} ${user.lastname || ''}</div>
                     <div class="u-email">${user.email_address || user.email || 'No Email'}</div>
                 </div>
             </td>
             <td><span class="role-badge ${roleClass}">${user.role || 'User'}</span></td>
             <td>${user.barangay || 'Unassigned'}</td>
-            <td><span class="status-badge ${statusKey}">${user.status || 'Active'}</span></td>
+            <td><span class="status-badge ${statusKey}">${formattedStatus}</span></td>
             <td>${lastActiveText}</td>
             <td class="actions-cell">
                 <button class="row-icon-btn edit-user-btn" data-id="${user.id}" title="Edit">
@@ -224,7 +228,25 @@ function attachRowActionListeners() {
             const userId = e.currentTarget.dataset.id;
             if (confirm("Are you sure you want to remove this user from Firestore?")) {
                 try {
+                    const userDocRef = doc(db, "users", userId);
+                    const userDocSnap = await getDoc(userDocRef);
+
+                    const deletedUserPayload = userDocSnap.data();
+
                     await deleteDoc(doc(db, "users", userId));
+
+                    const deletingAudit = {
+                        userId: auth.currentUser?.uid || "N/A",
+                        username: userData.username || userData.email,
+                        action: "Delete",
+                        timestamp: serverTimestamp(),
+                        target: "Users",
+                        details: `Administrator ${userData.username || userData.email} deleted user: ${deletedUserPayload.username} (${deletedUserPayload.email_address}).`,
+                        role: userData.role || "Administrator",
+                        status: "Success"
+                    }
+
+                    await addDoc(collection(db, "audit"), deletingAudit);
                     
                     allUsersData = allUsersData.filter(u => u.id !== userId);
                     updateStats(allUsersData);
@@ -255,7 +277,21 @@ onAuthStateChanged(auth, async (user) => {
         return;
     }
 
-    await fetchUsers();
+    try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
+            console.error("No user profile record found for this account.");
+            alert("Account profile not found in database.");
+            return;
+        }
+
+        userData = userDocSnap.data();
+        await fetchUsers();
+    } catch (err) {
+        console.error("Auth initialization error:", err);
+    }
 });
 
 toggles.forEach(btn => {
@@ -291,14 +327,15 @@ if (profileToggle && profileMenu) {
 }
 
 function openEditModal(user) {
-    document.getElementById('editUserId').value = user.id;
-    document.getElementById('editUsername').value = user.username || '';
-    document.getElementById('editFullname').value = user.fullname || '';
-    document.getElementById('editEmail').value = user.email_address || user.email || '';
+    document.getElementById('editUserId').value = user.id || '';
+    document.getElementById('editFirstname').value = user.firstname || '';
+    document.getElementById('editLastname').value = user.lastname || '';
     document.getElementById('editPhone').value = user.phone_no || '';
-    document.getElementById('editBarangay').value = user.barangay || 'Bagumbuhay';
-    document.getElementById('editStatus').value = (user.status || 'active').toLowerCase();
-    document.getElementById('editAssignedStation').value = user.assigned_station || 'PH-MNL-QC';
+    document.getElementById('editRegion').value = user.region || '';
+    document.getElementById('editProvince').value = user.province || '';
+    document.getElementById('editCity').value = user.city || '';
+    document.getElementById('editBarangay').value = user.barangay || '';
+    document.getElementById('editStatus').value = (user.status || '').toLowerCase();
 
     if (editUserModal) editUserModal.style.display = 'flex';
 }
@@ -313,13 +350,14 @@ editUserForm?.addEventListener('submit', async (e) => {
 
     const userId = document.getElementById('editUserId').value;
     const updatedPayload = {
-        username: document.getElementById('editUsername').value.trim(),
-        fullname: document.getElementById('editFullname').value.trim(),
-        email_address: document.getElementById('editEmail').value.trim(),
+        firstname: document.getElementById('editFirstname').value.trim(),
+        lastname: document.getElementById('editLastname').value.trim(),
         phone_no: document.getElementById('editPhone').value.trim(),
+        region: document.getElementById('editRegion').value,
+        province: document.getElementById('editProvince').value,
+        city: document.getElementById('editCity').value,
         barangay: document.getElementById('editBarangay').value,
         status: document.getElementById('editStatus').value,
-        assigned_station: document.getElementById('editAssignedStation').value,
         updated_at: serverTimestamp()
     };
 
@@ -341,6 +379,21 @@ editUserForm?.addEventListener('submit', async (e) => {
         updateStats(allUsersData);
         applyFilters();
         closeEditModal();
+
+        const editAudit = {
+            userId: auth.currentUser?.uid || "N/A",
+            username: userData.username || userData.email,
+            action: "Update",
+            timestamp: serverTimestamp(),
+            target: "Users",
+            details: `Administrator ${userData.username || userData.email} updated user details: ${updatedPayload.username} (${updatedPayload.email_address}).`,
+            role: userData.role || "Administrator",
+            status: "Success"
+        }
+
+        await addDoc(collection(db, "audit"), editAudit);
+
+
     } catch (err) {
         console.error("Error updating user document:", err);
         alert("Failed to update user record.");
@@ -418,6 +471,19 @@ addUserForm?.addEventListener('submit', async (e) => {
         applyFilters();
         closeAddModal();
         addUserForm.reset();
+
+        const addingAudit = {
+            userId: auth.currentUser?.uid || "N/A",
+            username: userData.username || userData.email,
+            action: "Add",
+            timestamp: serverTimestamp(),
+            target: "Users",
+            details: `Administrator ${userData.username || userData.email} added a new user: ${newUserPayload.username} (${newUserPayload.email_address}).`,
+            role: userData.role || "Administrator",
+            status: "Success"
+        }
+
+        await addDoc(collection(db, "audit"), addingAudit);
 
         showSuccessModal(email, password);
 
@@ -504,166 +570,6 @@ document.getElementById('copyPasswordBtn')?.addEventListener('click', async () =
         document.execCommand('copy');
         copyBtn.innerText = 'Copied!';
     }
-});
-
-var my_handlers = {
-    // fill province
-    fill_provinces: function() {
-        //selected region
-        var region_code = $(this).val();
-
-        // set selected text to input
-        var region_text = $(this).find("option:selected").text();
-        let region_input = $('#region-text');
-        region_input.val(region_text);
-        //clear province & city & barangay input
-        $('#province-text').val('');
-        $('#city-text').val('');
-        $('#barangay-text').val('');
-
-        //province
-        let dropdown = $('#province');
-        dropdown.empty();
-        dropdown.append('<option selected="true" disabled>Choose State/Province</option>');
-        dropdown.prop('selectedIndex', 0);
-
-        //city
-        let city = $('#city');
-        city.empty();
-        city.append('<option selected="true" disabled></option>');
-        city.prop('selectedIndex', 0);
-
-        //barangay
-        let barangay = $('#barangay');
-        barangay.empty();
-        barangay.append('<option selected="true" disabled></option>');
-        barangay.prop('selectedIndex', 0);
-
-        // filter & fill
-        var url = '../../assets/ph-json/province.json';
-        $.getJSON(url, function(data) {
-            var result = data.filter(function(value) {
-                return value.region_code == region_code;
-            });
-
-            result.sort(function(a, b) {
-                return a.province_name.localeCompare(b.province_name);
-            });
-
-            $.each(result, function(key, entry) {
-                dropdown.append($('<option></option>').attr('value', entry.province_code).text(entry.province_name));
-            })
-
-        });
-    },
-    // fill city
-    fill_cities: function() {
-        //selected province
-        var province_code = $(this).val();
-
-        // set selected text to input
-        var province_text = $(this).find("option:selected").text();
-        let province_input = $('#province-text');
-        province_input.val(province_text);
-        //clear city & barangay input
-        $('#city-text').val('');
-        $('#barangay-text').val('');
-
-        //city
-        let dropdown = $('#city');
-        dropdown.empty();
-        dropdown.append('<option selected="true" disabled>Choose city/municipality</option>');
-        dropdown.prop('selectedIndex', 0);
-
-        //barangay
-        let barangay = $('#barangay');
-        barangay.empty();
-        barangay.append('<option selected="true" disabled></option>');
-        barangay.prop('selectedIndex', 0);
-
-        // filter & fill
-        var url = '../../assets/ph-json/city.json';
-        $.getJSON(url, function(data) {
-            var result = data.filter(function(value) {
-                return value.province_code == province_code;
-            });
-
-            result.sort(function(a, b) {
-                return a.city_name.localeCompare(b.city_name);
-            });
-
-            $.each(result, function(key, entry) {
-                dropdown.append($('<option></option>').attr('value', entry.city_code).text(entry.city_name));
-            })
-
-        });
-    },
-    // fill barangay
-    fill_barangays: function() {
-        // selected barangay
-        var city_code = $(this).val();
-
-        // set selected text to input
-        var city_text = $(this).find("option:selected").text();
-        let city_input = $('#city-text');
-        city_input.val(city_text);
-        //clear barangay input
-        $('#barangay-text').val('');
-
-        // barangay
-        let dropdown = $('#barangay');
-        dropdown.empty();
-        dropdown.append('<option selected="true" disabled>Choose barangay</option>');
-        dropdown.prop('selectedIndex', 0);
-
-        // filter & Fill
-        var url = '../../assets/ph-json/barangay.json';
-        $.getJSON(url, function(data) {
-            var result = data.filter(function(value) {
-                return value.city_code == city_code;
-            });
-
-            result.sort(function(a, b) {
-                return a.brgy_name.localeCompare(b.brgy_name);
-            });
-
-            $.each(result, function(key, entry) {
-                dropdown.append($('<option></option>').attr('value', entry.brgy_code).text(entry.brgy_name));
-            })
-
-        });
-    },
-
-    onchange_barangay: function() {
-        // set selected text to input
-        var barangay_text = $(this).find("option:selected").text();
-        let barangay_input = $('#barangay-text');
-        barangay_input.val(barangay_text);
-    },
-
-};
-
-
-$(function() {
-    // events
-    $('#region').on('change', my_handlers.fill_provinces);
-    $('#province').on('change', my_handlers.fill_cities);
-    $('#city').on('change', my_handlers.fill_barangays);
-    $('#barangay').on('change', my_handlers.onchange_barangay);
-
-    // load region
-    let dropdown = $('#region');
-    dropdown.empty();
-    dropdown.append('<option selected="true" disabled>Choose Region</option>');
-    dropdown.prop('selectedIndex', 0);
-    const url = '../../assets/ph-json/region.json';
-    // Populate dropdown with list of regions
-    $.getJSON(url, function(data) {
-        $.each(data, function(key, entry) {
-            dropdown.append($('<option></option>').attr('value', entry.region_code).text(entry.region_name));
-        })
-    });
-
 });
 
 if (logoutLink) {

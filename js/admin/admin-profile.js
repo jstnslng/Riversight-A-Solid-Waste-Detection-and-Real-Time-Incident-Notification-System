@@ -107,7 +107,7 @@ onAuthStateChanged(auth, async (user) => {
         const accountStatus = data.status || 'Active';
         const fullName = `${data.firstname || 'Administrator'}, ${data.lastname || ''}`;
         const role = data.role || 'System Administrator';
-        const assignedStation = `${data.city || 'N/A'}, ${data.barangay || 'N/A'}`;
+        const assignedStation = `${data.city || 'N/A'}, Brgy. ${data.barangay || 'N/A'}`;
 
         currentUserRole = role;
 

@@ -11,6 +11,7 @@
   <script type="module" src="../../js/admin/usermanagement.js" defer></script>
   <script type="module" src="../../js/shared/header.js" defer></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="../../js/shared/ph-address-selector.js" defer></script>
 </head>
 
 <body>
@@ -286,33 +287,38 @@
 
         <div class="form-grid">
           <div class="form-group">
-            <label for="editUsername">Username</label>
-            <input type="text" id="editUsername" required>
+            <label for="editFirstname">First Name</label>
+            <input type="text" id="editFirstname" placeholder="e.g. Juan" required>
           </div>
 
           <div class="form-group">
-            <label for="editFullname">Full Name</label>
-            <input type="text" id="editFullname" required>
-          </div>
-
-          <div class="form-group">
-            <label for="editEmail">Email Address</label>
-            <input type="email" id="editEmail" required>
+            <label for="editLastname">Last Name</label>
+            <input type="text" id="editLastname" placeholder="e.g. Dela Cruz" required>
           </div>
 
           <div class="form-group">
             <label for="editPhone">Phone Number</label>
-            <input type="tel" id="editPhone" placeholder="09xxxxxxxxx">
+            <input type="tel" id="editPhone" placeholder="+639123456789">
           </div>
 
           <div class="form-group">
-            <label for="editBarangay">Barangay</label>
-            <select id="editBarangay" required>
-              <option value="Bagumbuhay">Bagumbuhay</option>
-              <option value="Quirino 3A">Quirino 3A</option>
-              <option value="Quirino 3B">Quirino 3B</option>
-              <option value="Marilag">Marilag</option>
-            </select>
+            <label for="region">Region</label>
+            <input type="text" name="editRegion" id="editRegion">
+          </div>
+
+          <div class="form-group">
+            <label for="province">Province / State</label>
+            <input type="text" name="editProvince" id="editProvince">
+          </div>
+
+          <div class="form-group">
+            <label for="city">City / Municipality</label>
+            <input type="text" name="editCity" id="editCity">
+          </div>
+
+          <div class="form-group">
+            <label for="barangay">Barangay</label>
+            <input type="text" name="editBarangay" id="editBarangay">
           </div>
 
           <div class="form-group">
@@ -320,14 +326,7 @@
             <select id="editStatus" required>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
-            </select>
-          </div>
-
-          <div class="form-group form-group-full">
-            <label for="editAssignedStation">Assigned Station</label>
-            <select id="editAssignedStation" required>
-              <option value="PH-MNL-QC">PH-MNL-QC</option>
-              <option value="PH-MNL-MRK">PH-MNL-MRK</option>
+              <option value="pending">Pending</option>
             </select>
           </div>
         </div>
