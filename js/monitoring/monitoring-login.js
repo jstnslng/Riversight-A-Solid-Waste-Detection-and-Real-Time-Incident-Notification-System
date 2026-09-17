@@ -58,6 +58,15 @@ loginForm.addEventListener('submit', async (e) => {
             return;
         }
 
+        if (userData.status && userData.status.toLowerCase() === "inactive") {
+            alert("Access Denied: Account is inactive. Please contact support.");
+            await signOut(auth);
+            return;
+        }
+        else if (userData.status && userData.status.toLowerCase() === "pending") {
+            await updateDoc(userDocRef, { status: "active" });
+        }
+
         await updateDoc(userDocRef, {
             lastLogin: serverTimestamp()
         });

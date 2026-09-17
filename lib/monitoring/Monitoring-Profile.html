@@ -114,15 +114,15 @@
           <div style="display: grid; gap: 14px;">
             <label class="field-group" style="display: grid; gap: 6px;">
               <span>Display Name</span>
-              <input type="text" value="Username" placeholder="Display Name" id="displayNameInput" disabled>
+              <input type="text" value="-" placeholder="Display Name" id="displayNameInput" disabled>
             </label>
             <label class="field-group" style="display: grid; gap: 6px;">
               <span>Email Address</span>
-              <input type="email" value="juandelacruz@riversight.gov.ph" placeholder="Email Address" id="emailInput" disabled>
+              <input type="email" value="-" placeholder="Email Address" id="emailInput" disabled>
             </label>
             <label class="field-group" style="display: grid; gap: 6px;">
               <span>Phone Number</span>
-              <input type="tel" value="+63 912 345 6789" placeholder="Phone Number" id="phoneInput" disabled>
+              <input type="tel" value="-" placeholder="Phone Number" id="phoneInput" disabled>
             </label>
           </div>
         </section>
@@ -138,23 +138,63 @@
           <div style="display: grid; gap: 12px;">
             <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
               <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Role</div>
-              <strong id="roleOutput">System Administrator</strong>
+              <strong id="roleOutput">-</strong>
             </div>
             <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
               <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Assigned Station</div>
-              <strong id="stationOutput">PH-MNL-QC</strong>
+              <strong id="stationOutput">-</strong>
             </div>
             <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
               <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Last Login</div>
-              <strong id="lastLoginOutput">Just now</strong>
+              <strong id="lastLoginOutput">-</strong>
             </div>
             <div style="padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; background: #fafafa;">
               <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">User ID</div>
-              <strong id="userIdOutput">ADM-0001</strong>
+              <strong id="userIdOutput">-</strong>
             </div>
           </div>
         </section>
       </section>
+
+      <section class="card security-card" style="margin-top: 24px;">
+        <div class="card-head">
+          <div>
+            <h3>Security & Password</h3>
+            <div class="card-sub">Change your current or temporary account password</div>
+          </div>
+        </div>
+
+        <form id="changePasswordForm" style="max-width: 480px; margin-top: 16px;">
+          <div class="field-group" style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #334155;">
+              Current / Temporary Password
+            </label>
+            <input type="password" id="currentPassword" placeholder="Enter current password" required 
+                  style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+
+          <div class="field-group" style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #334155;">
+              New Password
+            </label>
+            <input type="password" id="newPassword" placeholder="Minimum 8 characters" required minlength="8"
+                  style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+
+          <div class="field-group" style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #334155;">
+              Confirm New Password
+            </label>
+            <input type="password" id="confirmPassword" placeholder="Re-enter new password" required minlength="8"
+                  style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;" />
+          </div>
+
+          <button type="submit" class="primary-btn" id="updatePasswordBtn">
+            Update Password
+          </button>
+        </form>
+      </section>
+
     </main>
   </div>
 
