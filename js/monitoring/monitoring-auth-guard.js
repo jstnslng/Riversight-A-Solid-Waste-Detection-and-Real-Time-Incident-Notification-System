@@ -23,7 +23,8 @@ onAuthStateChanged(auth, async (user) => {
   try {
     const userSnapshot = await getDoc(doc(db, "users", user.uid));
     const userData = userSnapshot.exists() ? userSnapshot.data() : null;
-    const isMonitoringUser = userData?.role?.toLowerCase() === "monitoring";
+    const accountRole = userData?.role?.trim().toLowerCase();
+    const isMonitoringUser = accountRole === "monitoring" || accountRole === "monitoring personnel";
     const accountStatus = userData?.status?.toLowerCase();
     const hasInvalidStatus = accountStatus && accountStatus !== "active";
 

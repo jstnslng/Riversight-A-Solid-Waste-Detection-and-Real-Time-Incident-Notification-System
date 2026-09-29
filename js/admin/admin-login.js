@@ -53,7 +53,7 @@ loginForm.addEventListener('submit', async (e) => {
 
         const userData = userDocSnap.data();
 
-        if (userData.role !== "Administrator") {
+        if (userData.role?.trim().toLowerCase() !== "administrator") {
             alert("Access Denied: Account does not have Administrator privileges.");
             await signOut(auth);
             return;
@@ -68,9 +68,11 @@ loginForm.addEventListener('submit', async (e) => {
             await updateDoc(userDocRef, { status: "active" });
         }
 
-        await updateDoc(userDocRef, {
-            lastLogin: serverTimestamp()
-        });
+        try {
+            await updateDoc(userDocRef, { lastLogin: serverTimestamp() });
+        } catch (error) {
+            console.warn("Could not update administrator last-login time:", error);
+        }
 
         sessionStorage.setItem('riversightAdminSession', 'active');
         if (rememberDevice) {
@@ -88,48 +90,38 @@ loginForm.addEventListener('submit', async (e) => {
             status: "Success"
         }
 
-        await addDoc(collection(db, "audit"), loginAudit);
+        void addDoc(collection(db, "audit"), loginAudit).catch((error) => {
+            console.warn("Could not record administrator login audit:", error);
+        });
 
         window.location.href = 'Admin-Dashboard.html';
 
     } catch (error) {
         console.error("Login Error:", error);
-
-        switch (error.code) {
-            case 'auth/invalid-credential':
-            case 'auth/user-not-found':
-                const loginAudit = {
-                    userId: "Unknown",
-                    username: email,
-                    action: "Login",
-                    timestamp: serverTimestamp(),
-                    target: "Session",
-                    details: `Unknown login attempt for ${email}.`,
-                    role: "Administrator",
-                    status: "Failed"
-                }
-                await addDoc(collection(db, "audit"), loginAudit);
-                break;
-            case 'auth/wrong-password':
-                alert("Invalid username/email or password.");
-                    loginAudit = {
-                    userId: "Unknown",
-                    username: email,
-                    action: "Login",
-                    timestamp: serverTimestamp(),
-                    target: "Session",
-                    details: `Failed login attempt for ${email}.`,
-                    role: "Administrator",
-                    status: "Failed"
-                }
-                await addDoc(collection(db, "audit"), loginAudit);
-                break;
-            case 'auth/too-many-requests':
-                alert("Account temporarily locked due to too many failed attempts.");
-                break;
-            default:
-                alert(error.message || "An unexpected error occurred.");
+        if (error.code === "permission-denied") {
+            await signOut(auth);
+            alert("Firestore denied access to the account profile. Publish the latest Firestore rules, then try again.");
+        } else if (error.code === "auth/too-many-requests") {
+            alert("Account temporarily locked due to too many failed attempts.");
+        } else if (["auth/invalid-credential", "auth/user-not-found", "auth/wrong-password"].includes(error.code)) {
+            alert("Invalid username/email or password.");
+        } else {
+            alert(error.message || "An unexpected error occurred.");
         }
+
+        const failedLoginAudit = {
+            userId: "Unknown",
+            username: email,
+            action: "Login",
+            timestamp: serverTimestamp(),
+            target: "Session",
+            details: `Failed login attempt for ${email}.`,
+            role: "Administrator",
+            status: "Failed"
+        };
+        void addDoc(collection(db, "audit"), failedLoginAudit).catch((auditError) => {
+            console.warn("Could not record failed administrator login audit:", auditError);
+        });
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;

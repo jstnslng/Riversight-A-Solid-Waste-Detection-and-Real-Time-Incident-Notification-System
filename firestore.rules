@@ -9,12 +9,40 @@ service cloud.firestore {
 
     function isMonitoringUser() {
       return request.auth != null
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "Monitoring"
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get("status", "active") == "active";
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["Monitoring", "Monitoring Personnel"]
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get("status", "Active") in ["active", "Active"];
     }
 
     function canAccessMonitoringData() {
       return isAdministrator() || isMonitoringUser();
+    }
+
+    match /users/{userId} {
+      allow get: if request.auth != null
+        && (request.auth.uid == userId || isAdministrator());
+      allow list: if isAdministrator();
+      allow create: if isAdministrator()
+        || (request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.uid == userId
+          && request.resource.data.role == "Monitoring Personnel"
+          && request.resource.data.status == "Active");
+      allow update: if isAdministrator()
+        || (request.auth != null
+          && request.auth.uid == userId
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "username", "email_address", "phone_no", "phoneNumber",
+            "lastLogin", "last_login", "status", "updated_at"
+          ])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(["status"])
+            || (resource.data.status == "pending" && request.resource.data.status == "active")));
+      allow delete: if isAdministrator();
+    }
+
+    match /audit/{auditId} {
+      allow read: if isAdministrator();
+      allow create: if request.auth != null && canAccessMonitoringData();
     }
 
     match /detections/{detectionId} {

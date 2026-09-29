@@ -2,7 +2,8 @@ import {
     signInWithEmailAndPassword,
     setPersistence,
     browserLocalPersistence,
-    browserSessionPersistence
+    browserSessionPersistence,
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { auth, db } from "../shared/firebase-config.js";
@@ -52,9 +53,10 @@ loginForm.addEventListener('submit', async (e) => {
 
         const userData = userDocSnap.data();
 
-        if (userData.role !== "Monitoring") {
+        const accountRole = userData.role?.trim().toLowerCase();
+        if (accountRole !== "monitoring" && accountRole !== "monitoring personnel") {
             alert("Access Denied: Account does not have Monitoring privileges.");
-            await auth.signOut();
+            await signOut(auth);
             return;
         }
 
@@ -67,9 +69,11 @@ loginForm.addEventListener('submit', async (e) => {
             await updateDoc(userDocRef, { status: "active" });
         }
 
-        await updateDoc(userDocRef, {
-            lastLogin: serverTimestamp()
-        });
+        try {
+            await updateDoc(userDocRef, { lastLogin: serverTimestamp() });
+        } catch (error) {
+            console.warn("Could not update monitoring last-login time:", error);
+        }
 
         sessionStorage.setItem('riversightMonitoringSession', 'active');
         if (rememberDevice) {
@@ -89,12 +93,19 @@ loginForm.addEventListener('submit', async (e) => {
 
         
 
-        await addDoc(collection(db, "audit"), loginAudit);
+        void addDoc(collection(db, "audit"), loginAudit).catch((error) => {
+            console.warn("Could not record monitoring login audit:", error);
+        });
 
         window.location.href = '../monitoring/Live-Monitoring.html';
 
     } catch (error) {
         console.error('Error during login:', error);
+        if (error.code === "permission-denied") {
+            await signOut(auth);
+            alert("Firestore denied access to the account profile. Publish the latest Firestore rules, then try again.");
+            return;
+        }
         const loginAudit = {
             userId: "Unknown",
             username: email,
@@ -105,8 +116,12 @@ loginForm.addEventListener('submit', async (e) => {
             role: "Monitoring",
             status: "Failed"
         };
-        await addDoc(collection(db, "audit"), loginAudit);
-        alert('Login failed. Please check your credentials and try again.');
+        void addDoc(collection(db, "audit"), loginAudit).catch((auditError) => {
+            console.warn("Could not record failed monitoring login audit:", auditError);
+        });
+        alert(error.code?.startsWith("auth/")
+            ? 'Login failed. Please check your credentials and try again.'
+            : (error.message || 'Login failed. Please try again.'));
     } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
