@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="../../css/admin/Admin-System-Monitoring.css">
 <link rel="stylesheet" href="../../css/shared/global.css">
 <script type="module" src="../../js/shared/header.js" defer></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="../../js/shared/ph-address-selector.js" defer></script>
 </head>
 <body>
 
@@ -166,9 +168,28 @@
         </div>
 
         <div class="form-group">
-          <label for="camLocation">Location *</label>
-          <input type="text" id="camLocation" name="camLocation" placeholder="e.g., Buwaya" required>
-        </div>
+            <label for="region">Region</label>
+            <select id="region" required></select>
+            <input type="hidden" name="region_text" id="region-text">
+          </div>
+
+          <div class="form-group">
+            <label for="province">Province / State</label>
+            <select id="province" required></select>
+            <input type="hidden" name="province_text" id="province-text">
+          </div>
+
+          <div class="form-group">
+            <label for="city">City / Municipality</label>
+            <select id="city" required></select>
+            <input type="hidden" name="city_text" id="city-text">
+          </div>
+
+          <div class="form-group">
+            <label for="barangay">Barangay</label>
+            <select id="barangay" required></select>
+            <input type="hidden" name="barangay_text" id="barangay-text">
+          </div>
 
         <div class="form-group">
           <label for="camIPAddress">IP Address *</label>
@@ -195,11 +216,6 @@
         </div>
 
         <div class="form-group">
-          <label for="camSectorLabel">Sector Label</label>
-          <input type="text" id="camSectorLabel" name="sectorLabel" placeholder="e.g., Monitoring Area">
-        </div>
-
-        <div class="form-group">
           <label for="camEmbedUrl">RTSP.ME Embed URL *</label>
           <input type="url" id="camEmbedUrl" name="embedUrl" placeholder="https://rtsp.me/embed/PLAYER_ID/" required>
           <small class="form-helper">Paste the Direct Link from RTSP.ME &rarr; HTML+PHP Code.</small>
@@ -209,6 +225,88 @@
         <div class="form-actions">
           <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
           <button type="submit" class="btn-submit" id="cameraSubmitBtn">Add Camera</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Camera Modal -->
+  <div class="modal-overlay" id="editCameraModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="cameraModalTitle">Edit Camera</h2>
+        <button class="modal-close" type="button" id="closeModalBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <form class="modal-form" id="editCameraForm">
+        <div class="form-group">
+          <label for="editCamId">Camera ID *</label>
+          <input type="text" id="editCamId" name="camId" placeholder="e.g., CAM-001" required>
+        </div>
+
+        <div class="form-group">
+          <label for="editCamTitle">Camera Title *</label>
+          <input type="text" id="editCamTitle" name="camTitle" placeholder="e.g., Buwaya South" required>
+        </div>
+
+        <div class="form-group">
+            <label for="editRegion">Region</label>
+            <input type="text" name="editRegion" id="editRegion">
+          </div>
+
+          <div class="form-group">
+            <label for="editProvince">Province / State</label>
+            <input type="text" name="editProvince" id="editProvince">
+          </div>
+
+          <div class="form-group">
+            <label for="editCity">City / Municipality</label>
+            <input type="text" name="editCity" id="editCity">
+          </div>
+
+          <div class="form-group">
+            <label for="editBarangay">Barangay</label>
+            <input type="text" name="editBarangay" id="editBarangay">
+          </div>
+
+        <div class="form-group">
+          <label for="editCamIPAddress">IP Address *</label>
+          <input type="text" id="editCamIPAddress" name="ipAddress" placeholder="e.g., 192.168.10.41" required>
+        </div>
+
+        <div class="form-group">
+          <label for="editCamResolution">Resolution</label>
+          <input type="text" id="editCamResolution" name="resolution" placeholder="e.g., 1920 x 1080">
+        </div>
+
+        <div class="form-group">
+          <label for="editCamFPS">FPS</label>
+          <input type="number" id="editCamFPS" name="fps" placeholder="e.g., 30" min="1" max="60">
+        </div>
+
+        <div class="form-group">
+          <label for="editCamStatus">Status *</label>
+          <select id="editCamStatus" name="status" required>
+            <option value="ONLINE">Online</option>
+            <option value="OFFLINE">Offline</option>
+            <option value="WEAK">Weak Signal</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="editCamEmbedUrl">RTSP.ME Embed URL *</label>
+          <input type="url" id="editCamEmbedUrl" name="embedUrl" placeholder="https://rtsp.me/embed/PLAYER_ID/" required>
+          <small class="form-helper">Paste the Direct Link from RTSP.ME &rarr; HTML+PHP Code.</small>
+          <div class="form-error" id="editCamEmbedUrlError" role="alert" aria-live="polite"></div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="cancelEditBtn">Cancel</button>
+          <button type="submit" class="btn-submit" id="cameraEditSubmitBtn">Save Changes</button>
         </div>
       </form>
     </div>

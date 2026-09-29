@@ -20,48 +20,62 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
     serverUptime: 0,
   };
 
-  const modal = document.getElementById("addCameraModal");
+  const addModal = document.getElementById("addCameraModal");
   const addCameraBtn = document.getElementById("addCameraBtn");
   const closeModalBtn = document.getElementById("closeModalBtn");
   const cancelBtn = document.getElementById("cancelBtn");
   const addCameraForm = document.getElementById("addCameraForm");
   const embedUrlInput = document.getElementById("camEmbedUrl");
   const embedUrlError = document.getElementById("camEmbedUrlError");
-  const cameraModalTitle = document.getElementById("cameraModalTitle");
   const cameraSubmitBtn = document.getElementById("cameraSubmitBtn");
+
+  const editModal = document.getElementById("editCameraModal");
+  const editCameraForm = document.getElementById("editCameraForm");
+  const editCloseModalBtn = editModal?.querySelector(".modal-close");
+  const cancelEditBtn = document.getElementById("cancelEditBtn");
+  const editEmbedUrlInput = document.getElementById("editCamEmbedUrl");
+  const editEmbedUrlError = document.getElementById("editCamEmbedUrlError");
+  const cameraEditSubmitBtn = document.getElementById("cameraEditSubmitBtn");
+
   let editingCameraId = null;
 
-  function openModal() {
-    editingCameraId = null;
-    cameraModalTitle.textContent = "Add New Camera";
-    cameraSubmitBtn.textContent = "Add Camera";
-    modal.classList.add("active");
+  function openAddModal() {
+    addModal.classList.add("active");
   }
 
-  function closeModal() {
-    modal.classList.remove("active");
+  function closeAddModal() {
+    addModal.classList.remove("active");
     addCameraForm.reset();
-    embedUrlError.textContent = "";
-    editingCameraId = null;
-    cameraModalTitle.textContent = "Add New Camera";
-    cameraSubmitBtn.textContent = "Add Camera";
+    if (embedUrlError) embedUrlError.textContent = "";
   }
 
   function openEditModal(camera) {
     editingCameraId = camera.id;
-    document.getElementById("camId").value = camera.camId;
-    document.getElementById("camTitle").value = camera.title;
-    document.getElementById("camLocation").value = camera.location;
-    document.getElementById("camIPAddress").value = camera.ipAddress === "N/A" ? "" : camera.ipAddress;
-    document.getElementById("camResolution").value = camera.resolution;
-    document.getElementById("camFPS").value = camera.fps;
-    document.getElementById("camStatus").value = camera.status;
-    document.getElementById("camSectorLabel").value = camera.sectorLabel;
-    embedUrlInput.value = camera.embedUrl || "";
-    embedUrlError.textContent = "";
-    cameraModalTitle.textContent = "Edit Camera";
-    cameraSubmitBtn.textContent = "Save Changes";
-    modal.classList.add("active");
+
+    document.getElementById("editCamId").value = camera.camId || "";
+    document.getElementById("editCamTitle").value = camera.title || "";
+    
+    if (document.getElementById("editRegion")) document.getElementById("editRegion").value = camera.region || "";
+    if (document.getElementById("editProvince")) document.getElementById("editProvince").value = camera.province || "";
+    if (document.getElementById("editCity")) document.getElementById("editCity").value = camera.city || "";
+    if (document.getElementById("editBarangay")) document.getElementById("editBarangay").value = camera.barangay || "";
+
+    document.getElementById("editCamIPAddress").value = camera.ipAddress === "N/A" ? "" : camera.ipAddress || "";
+    document.getElementById("editCamResolution").value = camera.resolution || "";
+    document.getElementById("editCamFPS").value = camera.fps || "";
+    document.getElementById("editCamStatus").value = camera.status || "ONLINE";
+
+    if (editEmbedUrlInput) editEmbedUrlInput.value = camera.embedUrl || "";
+    if (editEmbedUrlError) editEmbedUrlError.textContent = "";
+
+    editModal.classList.add("active");
+  }
+
+  function closeEditModal() {
+    editModal.classList.remove("active");
+    editCameraForm.reset();
+    editingCameraId = null;
+    if (editEmbedUrlError) editEmbedUrlError.textContent = "";
   }
 
   function getStatusPillClass(status) {
@@ -110,7 +124,7 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
         <h4>${camera.camId}</h4>
         <span class="status-pill ${getStatusPillClass(camera.status)}">${camera.status}</span>
       </div>
-      <div class="camera-details"><span>Station</span><strong>${camera.location}</strong></div>
+      <div class="camera-details"><span>Station</span><strong>${camera.city}, ${camera.barangay}</strong></div>
       <div class="camera-details"><span>IP Address</span><strong>${camera.ipAddress}</strong></div>
       <div class="camera-details"><span>Resolution</span><strong>${camera.resolution}</strong></div>
       <div class="camera-details"><span>FPS</span><strong>${camera.fps}</strong></div>
@@ -147,6 +161,8 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
 
   function renderSystemMetrics() {
     const grid = document.getElementById("systemMetricsGrid");
+    if (!grid) return;
+
     const onlineCameras = cameras.filter((camera) => camera.status === "ONLINE").length;
     const totalCameras = cameras.length;
     const formatUptime = (ms) => {
@@ -169,6 +185,7 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
 
   function renderCameras() {
     const grid = document.getElementById("cameraGrid");
+    if (!grid) return;
     grid.innerHTML = "";
     if (!cameras.length) {
       grid.innerHTML = `<div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--muted);"><p>No cameras connected yet.</p></div>`;
@@ -187,66 +204,131 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
     setTimeout(() => notification.remove(), 3000);
   }
 
-  addCameraBtn.addEventListener("click", openModal);
-  closeModalBtn.addEventListener("click", closeModal);
-  cancelBtn.addEventListener("click", closeModal);
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) closeModal();
+  addCameraBtn?.addEventListener("click", openAddModal);
+  closeModalBtn?.addEventListener("click", closeAddModal);
+  cancelBtn?.addEventListener("click", closeAddModal);
+
+  editCloseModalBtn?.addEventListener("click", closeEditModal);
+  cancelEditBtn?.addEventListener("click", closeEditModal);
+
+  addModal?.addEventListener("click", (event) => {
+    if (event.target === addModal) closeAddModal();
   });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && modal.classList.contains("active")) closeModal();
+  editModal?.addEventListener("click", (event) => {
+    if (event.target === editModal) closeEditModal();
   });
 
-  addCameraForm.addEventListener("submit", async (event) => {
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      if (addModal?.classList.contains("active")) closeAddModal();
+      if (editModal?.classList.contains("active")) closeEditModal();
+    }
+  });
+
+  addCameraForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const submitButton = cameraSubmitBtn;
     const embedUrl = normalizeRtspEmbedUrl(embedUrlInput.value);
     embedUrlError.textContent = "";
+
     if (!embedUrl) {
       embedUrlError.textContent = "Enter a valid RTSP.ME embed URL, such as https://rtsp.me/embed/PLAYER_ID/.";
       embedUrlInput.focus();
       return;
     }
 
-    submitButton.disabled = true;
-    submitButton.textContent = "Adding...";
+    cameraSubmitBtn.disabled = true;
+    cameraSubmitBtn.textContent = "Adding...";
+
     try {
-      const location = document.getElementById("camLocation").value.trim();
+      const region = document.getElementById("region-text")?.value.trim() || document.getElementById("region")?.value.trim();
+      const province = document.getElementById("province-text")?.value.trim() || document.getElementById("province")?.value.trim();
+      const city = document.getElementById("city-text")?.value.trim() || document.getElementById("city")?.value.trim();
+      const barangay = document.getElementById("barangay-text")?.value.trim() || document.getElementById("barangay")?.value.trim();
+      const location = `${city}, ${barangay}`;
+
       const cameraData = {
         camId: document.getElementById("camId").value.trim(),
         title: document.getElementById("camTitle").value.trim(),
-        location,
+        region: region || "N/A",
+        province: province || "N/A",
+        city: city || "N/A",
+        barangay: barangay || "N/A",
+        location: location !== ", " ? location : "General Sector",
         ipAddress: document.getElementById("camIPAddress").value.trim(),
         resolution: document.getElementById("camResolution").value.trim() || "1920 x 1080",
         fps: parseInt(document.getElementById("camFPS").value, 10) || 30,
         status: document.getElementById("camStatus").value,
-        sectorLabel: document.getElementById("camSectorLabel").value.trim() || location,
         embedUrl,
+        createdAt: serverTimestamp(),
+        thumbnailUrl: `https://picsum.photos/seed/${encodeURIComponent(document.getElementById("camId").value.trim())}/1200/800`,
+        lastDetection: "No detections recorded",
+        lastConnected: "Just now",
+        detections: []
       };
 
-      if (editingCameraId) {
-        await updateDoc(doc(db, "camera_feeds", editingCameraId), cameraData);
-        showNotification("Camera updated successfully!", "success");
-      } else {
-        cameraData.createdAt = serverTimestamp();
-        cameraData.thumbnailUrl = `https://picsum.photos/seed/${encodeURIComponent(document.getElementById("camId").value.trim())}/1200/800`;
-        cameraData.lastDetection = "No detections recorded";
-        cameraData.lastConnected = "Just now";
-        cameraData.detections = [];
-        await addDoc(collection(db, "camera_feeds"), cameraData);
-        showNotification("Camera added successfully!", "success");
-      }
-      closeModal();
+      await addDoc(collection(db, "camera_feeds"), cameraData);
+      showNotification("Camera added successfully!", "success");
+      closeAddModal();
     } catch (error) {
       console.error("Error saving camera:", error);
       showNotification(`Error adding camera: ${error.message}`, "error");
     } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = "Add Camera";
+      cameraSubmitBtn.disabled = false;
+      cameraSubmitBtn.textContent = "Add Camera";
     }
   });
 
-  document.getElementById("refreshStatusBtn").addEventListener("click", () => {
+  editCameraForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!editingCameraId) return;
+
+    const embedUrl = normalizeRtspEmbedUrl(editEmbedUrlInput.value);
+    editEmbedUrlError.textContent = "";
+
+    if (!embedUrl) {
+      editEmbedUrlError.textContent = "Enter a valid RTSP.ME embed URL, such as https://rtsp.me/embed/PLAYER_ID/.";
+      editEmbedUrlInput.focus();
+      return;
+    }
+
+    cameraEditSubmitBtn.disabled = true;
+    cameraEditSubmitBtn.textContent = "Saving...";
+
+    try {
+      const region = document.getElementById("editRegion")?.value.trim();
+      const province = document.getElementById("editProvince")?.value.trim();
+      const city = document.getElementById("editCity")?.value.trim();
+      const barangay = document.getElementById("editBarangay")?.value.trim();
+      const location = `${city}, ${barangay}`;
+
+      const cameraData = {
+        camId: document.getElementById("editCamId").value.trim(),
+        title: document.getElementById("editCamTitle").value.trim(),
+        region: region || "N/A",
+        province: province || "N/A",
+        city: city || "N/A",
+        barangay: barangay || "N/A",
+        location: location !== ", " ? location : "General Sector",
+        ipAddress: document.getElementById("editCamIPAddress").value.trim(),
+        resolution: document.getElementById("editCamResolution").value.trim() || "1920 x 1080",
+        fps: parseInt(document.getElementById("editCamFPS").value, 10) || 30,
+        status: document.getElementById("editCamStatus").value,
+        embedUrl,
+      };
+
+      await updateDoc(doc(db, "camera_feeds", editingCameraId), cameraData);
+      showNotification("Camera updated successfully!", "success");
+      closeEditModal();
+    } catch (error) {
+      console.error("Error updating camera:", error);
+      showNotification(`Error updating camera: ${error.message}`, "error");
+    } finally {
+      cameraEditSubmitBtn.disabled = false;
+      cameraEditSubmitBtn.textContent = "Save Changes";
+    }
+  });
+
+  document.getElementById("refreshStatusBtn")?.addEventListener("click", () => {
     systemMetrics.cpu = Math.floor(Math.random() * 80) + 10;
     systemMetrics.ram = Math.floor(Math.random() * 80) + 10;
     systemMetrics.disk = Math.floor(Math.random() * 60) + 10;
@@ -260,7 +342,7 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
     window.location.href = "./Admin-Audit-Trail.html";
   });
 
-  document.getElementById("systemSearchInput").addEventListener("input", (event) => {
+  document.getElementById("systemSearchInput")?.addEventListener("input", (event) => {
     const query = event.target.value.toLowerCase();
     document.querySelectorAll("[data-camera-id]").forEach((card) => {
       card.style.display = card.textContent.toLowerCase().includes(query) ? "" : "none";
@@ -274,19 +356,25 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
         id: cameraDoc.id,
         camId: data.camId || cameraDoc.id,
         title: data.title || "Unknown Camera",
-        location: data.location || "General Sector",
+        region: data.region || "N/A",
+        province: data.province || "N/A",
+        city: data.city || "N/A",
+        barangay: data.barangay || "N/A",
+        location: data.location || (data.city && data.barangay ? `${data.city}, ${data.barangay}` : "General Sector"),
         ipAddress: data.ipAddress || "N/A",
         resolution: data.resolution || "1920 x 1080",
         fps: data.fps || 30,
         status: data.status || "ONLINE",
-        sectorLabel: data.sectorLabel || data.location || "Monitoring Area",
         embedUrl: data.embedUrl || "",
         lastDetection: data.lastDetection || "No detections recorded",
         lastConnected: data.lastConnected || "Just now",
       };
     });
     renderCameras();
-    document.getElementById("liveStatusText").textContent = `Live Stream · ${cameras.filter((camera) => camera.status === "ONLINE").length} of ${cameras.length} cameras online`;
+    const liveStatusEl = document.getElementById("liveStatusText");
+    if (liveStatusEl) {
+      liveStatusEl.textContent = `Live Stream · ${cameras.filter((camera) => camera.status === "ONLINE").length} of ${cameras.length} cameras online`;
+    }
   }, (error) => {
     console.error("Failed to load camera_feeds from Firestore:", error);
     showNotification("Error syncing cameras", "error");
