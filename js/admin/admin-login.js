@@ -6,12 +6,31 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { auth, db } from "../shared/firebase-config.js";
+import { auth, db, saveLoginSession, getRememberedAccount, clearRememberedAccount } from "../shared/firebase-config.js";
 
 // authentication
 const loginForm = document.getElementById('loginForm');
 const pwInput = document.getElementById('password');
 const toggleBtn = document.getElementById('togglePw');
+const loginMessage = document.getElementById('loginMessage');
+const loginMessageText = document.getElementById('loginMessageText');
+const usernameInput = document.getElementById('username');
+const rememberInput = document.getElementById('remember');
+
+const rememberedAccount = getRememberedAccount("admin");
+if (rememberedAccount) {
+    usernameInput.value = rememberedAccount;
+    rememberInput.checked = true;
+}
+
+rememberInput.addEventListener('change', () => {
+    if (!rememberInput.checked) clearRememberedAccount("admin");
+});
+
+function showLoginMessage(message) {
+    loginMessageText.textContent = message;
+    loginMessage.hidden = false;
+}
 
 toggleBtn.addEventListener('click', () => {
     const isPassword = pwInput.type === 'password';
@@ -21,9 +40,11 @@ toggleBtn.addEventListener('click', () => {
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    loginMessage.hidden = true;
+    loginMessageText.textContent = '';
 
     const submitBtn = loginForm.querySelector('.login-btn');
-    const userInput = document.getElementById('username').value.trim();
+    const userInput = usernameInput.value.trim();
     const password = pwInput.value;
     const rememberDevice = document.getElementById('remember').checked;
 
@@ -54,13 +75,13 @@ loginForm.addEventListener('submit', async (e) => {
         const userData = userDocSnap.data();
 
         if (userData.role?.trim().toLowerCase() !== "administrator") {
-            alert("Access Denied: Account does not have Administrator privileges.");
+            showLoginMessage("This account does not have administrator access.");
             await signOut(auth);
             return;
         }
 
         if (userData.status && userData.status.toLowerCase() === "inactive") {
-            alert("Access Denied: Account is inactive. Please contact support.");
+            showLoginMessage("This account is inactive. Please contact support.");
             await signOut(auth);
             return;
         }
@@ -74,10 +95,7 @@ loginForm.addEventListener('submit', async (e) => {
             console.warn("Could not update administrator last-login time:", error);
         }
 
-        sessionStorage.setItem('riversightAdminSession', 'active');
-        if (rememberDevice) {
-            localStorage.setItem('riversightAdminSession', 'active');
-        }
+        saveLoginSession("admin", rememberDevice, userInput);
 
         const loginAudit = {
             userId: auth.currentUser?.uid || "N/A",
@@ -100,13 +118,13 @@ loginForm.addEventListener('submit', async (e) => {
         console.error("Login Error:", error);
         if (error.code === "permission-denied") {
             await signOut(auth);
-            alert("Firestore denied access to the account profile. Publish the latest Firestore rules, then try again.");
+            showLoginMessage("We couldn't verify your account. Please try again or contact support.");
         } else if (error.code === "auth/too-many-requests") {
-            alert("Account temporarily locked due to too many failed attempts.");
+            showLoginMessage("Too many attempts. Your account is temporarily locked; try again later.");
         } else if (["auth/invalid-credential", "auth/user-not-found", "auth/wrong-password"].includes(error.code)) {
-            alert("Invalid username/email or password.");
+            showLoginMessage("Incorrect username/email or password. Please try again.");
         } else {
-            alert(error.message || "An unexpected error occurred.");
+            showLoginMessage("We couldn't sign you in right now. Please try again.");
         }
 
         const failedLoginAudit = {

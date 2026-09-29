@@ -104,6 +104,35 @@ body {
   line-height: 1.4;
 }
 
+.login-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: -4px 0 16px;
+  padding: 10px 12px;
+  border: 1px solid #f0c1bd;
+  border-left: 3px solid #b42318;
+  border-radius: 8px;
+  background: #fff5f4;
+  color: #8f1d18;
+  font-size: 12.5px;
+  line-height: 1.45;
+  text-align: left;
+}
+.login-message[hidden] { display: none; }
+.login-message-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #b42318;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .field {
   text-align: left;
   margin-bottom: 16px;

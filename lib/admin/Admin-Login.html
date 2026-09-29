@@ -27,9 +27,13 @@
       <div class="brand-name">RiverSight</div>
       <div class="brand-tagline">Creek Waterway Monitoring</div>
 
-      <form id="loginForm">
+      <form id="loginForm" autocomplete="on">
         <div class="form-title">Administrator Login</div>
         <div class="form-subtitle">Please enter your credentials to access the dashboard.</div>
+        <div class="login-message" id="loginMessage" role="alert" aria-live="assertive" hidden>
+          <span class="login-message-icon" aria-hidden="true">!</span>
+          <span id="loginMessageText"></span>
+        </div>
 
         <div class="field">
           <label for="username">Username</label>

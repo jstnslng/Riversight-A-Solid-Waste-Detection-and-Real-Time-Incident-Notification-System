@@ -6,12 +6,30 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { auth, db } from "../shared/firebase-config.js";
+import { auth, db, saveLoginSession, getRememberedAccount, clearRememberedAccount } from "../shared/firebase-config.js";
 
 const loginForm = document.getElementById('loginForm');
 const userField = document.getElementById('username');
 const pwField = document.getElementById('password');
 const toggleBtn = document.getElementById('togglePw');
+const loginMessage = document.getElementById('loginMessage');
+const loginMessageText = document.getElementById('loginMessageText');
+const rememberInput = document.getElementById('remember');
+
+const rememberedAccount = getRememberedAccount("monitoring");
+if (rememberedAccount) {
+    userField.value = rememberedAccount;
+    rememberInput.checked = true;
+}
+
+rememberInput.addEventListener('change', () => {
+    if (!rememberInput.checked) clearRememberedAccount("monitoring");
+});
+
+function showLoginMessage(message) {
+    loginMessageText.textContent = message;
+    loginMessage.hidden = false;
+}
 
 toggleBtn.addEventListener('click', () => {
     const isPassword = pwField.type === 'password';
@@ -21,6 +39,8 @@ toggleBtn.addEventListener('click', () => {
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    loginMessage.hidden = true;
+    loginMessageText.textContent = '';
 
     const submitBtn = loginForm.querySelector('.login-btn');
     const userInputValue = userField.value.trim();
@@ -55,13 +75,13 @@ loginForm.addEventListener('submit', async (e) => {
 
         const accountRole = userData.role?.trim().toLowerCase();
         if (accountRole !== "monitoring" && accountRole !== "monitoring personnel") {
-            alert("Access Denied: Account does not have Monitoring privileges.");
+            showLoginMessage("This account does not have monitoring access.");
             await signOut(auth);
             return;
         }
 
         if (userData.status && userData.status.toLowerCase() === "inactive") {
-            alert("Access Denied: Account is inactive. Please contact support.");
+            showLoginMessage("This account is inactive. Please contact support.");
             await signOut(auth);
             return;
         }
@@ -75,10 +95,7 @@ loginForm.addEventListener('submit', async (e) => {
             console.warn("Could not update monitoring last-login time:", error);
         }
 
-        sessionStorage.setItem('riversightMonitoringSession', 'active');
-        if (rememberDevice) {
-            localStorage.setItem('riversightMonitoringSession', 'active');
-        }
+        saveLoginSession("monitoring", rememberDevice, userInputValue);
 
         const loginAudit = {
             userId: auth.currentUser?.uid || "N/A",
@@ -103,7 +120,7 @@ loginForm.addEventListener('submit', async (e) => {
         console.error('Error during login:', error);
         if (error.code === "permission-denied") {
             await signOut(auth);
-            alert("Firestore denied access to the account profile. Publish the latest Firestore rules, then try again.");
+            showLoginMessage("We couldn't verify your account. Please try again or contact support.");
             return;
         }
         const loginAudit = {
@@ -119,9 +136,9 @@ loginForm.addEventListener('submit', async (e) => {
         void addDoc(collection(db, "audit"), loginAudit).catch((auditError) => {
             console.warn("Could not record failed monitoring login audit:", auditError);
         });
-        alert(error.code?.startsWith("auth/")
-            ? 'Login failed. Please check your credentials and try again.'
-            : (error.message || 'Login failed. Please try again.'));
+        showLoginMessage(error.code?.startsWith("auth/")
+            ? 'Incorrect username/email or password. Please try again.'
+            : 'We couldn\'t sign you in right now. Please try again.');
     } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;

@@ -1,4 +1,4 @@
-import { auth } from './firebase-config.js';
+import { auth, clearAuthSessions } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { initNotifications } from "./notifications.js";
 
@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         console.error('Error signing out of Firebase:', error);
       }
+      clearAuthSessions();
       sessionStorage.clear();
-      localStorage.clear();
       window.location.href = link.dataset.logoutTarget || '../../lib/admin/Admin-Login.html';
     });
   });
