@@ -472,13 +472,15 @@ addUserForm?.addEventListener('submit', async (e) => {
         closeAddModal();
         addUserForm.reset();
 
+        const adminUser = auth.currentUser?.email || "Administrator";
+
         const addingAudit = {
             userId: auth.currentUser?.uid || "N/A",
             username: userData.username || userData.email,
             action: "Add",
             timestamp: serverTimestamp(),
             target: "Users",
-            details: `Administrator ${userData.username || userData.email} added a new user: ${newUserPayload.username} (${newUserPayload.email_address}).`,
+            details: `Administrator ${adminUser} added a new user: ${newUserPayload.username} (${newUserPayload.email_address}).`,
             role: userData.role || "Administrator",
             status: "Success"
         }
