@@ -91,13 +91,14 @@
       <div class="page-title-row">
         <div>
           <h1>Monitoring Settings</h1>
-          <div class="updated-row"><span class="live-dot"></span> Notification, appearance, and security preferences</div>
+          <div class="updated-row"><span class="live-dot"></span> Preferences saved on this device</div>
         </div>
         <div class="page-title-actions">
-          <button class="secondary-btn" type="button">Reset to Default</button>
-          <button class="primary-btn" type="button">Save Settings</button>
+          <button class="secondary-btn" type="button" data-settings-reset>Reset to Default</button>
+          <button class="primary-btn" type="button" data-settings-save>Save Settings</button>
         </div>
       </div>
+      <div class="settings-feedback" id="settingsFeedback" role="status" aria-live="polite" hidden></div>
 
       <section class="settings-grid">
         <section class="card">
@@ -111,9 +112,9 @@
           <div class="settings-columns">
             <label class="setting-row">
               <span>Theme</span>
-              <select>
-                <option selected>Light</option>
-                <option>Dark</option>
+              <select data-setting="theme">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
               </select>
             </label>
             <!-- <label class="setting-row">
@@ -125,10 +126,10 @@
             </label> -->
             <label class="setting-row">
               <span>Font Size</span>
-              <select>
-                <option selected>Default</option>
-                <option>Small</option>
-                <option>Large</option>
+              <select data-setting="fontSize">
+                <option value="default">Default</option>
+                <option value="small">Small</option>
+                <option value="large">Large</option>
               </select>
             </label>
           </div>
@@ -138,7 +139,7 @@
           <div class="card-head">
             <div>
               <h3>Notifications</h3>
-              <div class="card-sub">Choose which monitoring updates should reach the operator</div>
+              <div class="card-sub">Notification delivery is not connected; choices are saved on this device</div>
             </div>
           </div>
 
@@ -148,21 +149,21 @@
                 <strong>Email Notifications</strong>
                 <span>Send monitoring updates by email</span>
               </div>
-              <button type="button" class="toggle"></button>
+              <button type="button" class="toggle" data-setting-toggle="emailNotifications" aria-label="Email Notifications" role="switch"></button>
             </div>
             <div class="switch-item">
               <div class="switch-copy">
                 <strong>System Alerts</strong>
                 <span>Notify on service or hardware changes</span>
               </div>
-              <button type="button" class="toggle"></button>
+              <button type="button" class="toggle" data-setting-toggle="systemAlerts" aria-label="System Alerts" role="switch"></button>
             </div>
             <div class="switch-item">
               <div class="switch-copy">
                 <strong>Detection Alerts</strong>
                 <span>Escalation notices for new incidents</span>
               </div>
-              <button type="button" class="toggle"></button>
+              <button type="button" class="toggle" data-setting-toggle="detectionAlerts" aria-label="Detection Alerts" role="switch"></button>
             </div>
           </div>
         </section>
@@ -171,36 +172,20 @@
           <div class="card-head">
             <div>
               <h3>Security</h3>
-              <div class="card-sub">Account protection and session handling</div>
-            </div>
-          </div>
-
-          <div class="switch-list">
-            <div class="switch-item">
-              <div class="switch-copy">
-                <strong>Two-Factor Authentication</strong>
-                <span>Require a second verification step at login</span>
-              </div>
-              <button type="button" class="toggle off"></button>
-            </div>
-            <div class="switch-item">
-              <div class="switch-copy">
-                <strong>Session Timeout</strong>
-                <span>Auto-lock after inactivity</span>
-              </div>
-              <button type="button" class="toggle"></button>
+              <div class="card-sub">Security options available for this account</div>
             </div>
           </div>
 
           <div class="security-actions">
-            <button class="secondary-btn" type="button">Change Password</button>
+            <a class="secondary-btn" href="./Monitoring-Profile.html#changePasswordForm">Change Password</a>
           </div>
-          <div class="security-note">These controls are non-persistent placeholders until backend monitoring preferences are connected.</div>
+          <div class="security-note">Two-factor authentication and inactivity timeout are not configured for this account.</div>
         </section>
       </section>
     </main>
   </div>
 
+  <script type="module" src="../../js/shared/settings-preferences.js"></script>
   <script type="module" src="../../js/monitoring/monitoring-auth-guard.js"></script>
   <script src="../../js/monitoring/monitoring-nav.js"></script>
   <script type="module" src="../../js/shared/global.js"></script>

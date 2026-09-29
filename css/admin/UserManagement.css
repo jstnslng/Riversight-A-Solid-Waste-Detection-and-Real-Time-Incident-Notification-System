@@ -92,9 +92,9 @@
 .status-badge.pending::before { background: var(--orange); }
 
 .actions-cell {
-  display: flex;
-  gap: 6px;
-  justify-content: flex-end;
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 .row-icon-btn {
   width: 30px;
@@ -104,9 +104,11 @@
   background: #fff;
   color: var(--ink);
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  vertical-align: middle;
+  margin-left: 6px;
 }
 .row-icon-btn svg { width: 14px; height: 14px; }
 .row-icon-btn:hover { background: #f2f2f2; }

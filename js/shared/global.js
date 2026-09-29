@@ -1,6 +1,9 @@
 import { auth, clearAuthSessions } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { initNotifications } from "./notifications.js";
+import { applySavedAppearance } from "./settings-preferences.js";
+
+applySavedAppearance();
 
 document.addEventListener('DOMContentLoaded', () => {
   document.body.classList.add('js-ready');

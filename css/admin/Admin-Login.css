@@ -70,7 +70,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: -20px auto 15px;
+    margin: 0 auto 15px;
 }
 
 .logo-badge img {
