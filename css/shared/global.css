@@ -283,6 +283,38 @@ body {
   border-color: #30353a;
 }
 
+:root[data-theme="dark"] .dashboard-camera-item {
+  background: #15181c;
+  color: #f0f2f4;
+  border-color: #30353a;
+}
+
+:root[data-theme="dark"] .dashboard-camera-preview {
+  background: #0c0e10;
+  color: #c0c5ca;
+}
+
+:root[data-theme="dark"] .dashboard-camera-status.online {
+  background: #173323;
+  color: #9be0b3;
+}
+
+:root[data-theme="dark"] .dashboard-camera-status.offline {
+  background: #3b2021;
+  color: #ffaaa7;
+}
+
+:root[data-theme="dark"] .dashboard-camera-status.weak {
+  background: #3c3018;
+  color: #f4cd78;
+}
+
+:root[data-theme="dark"] .user-table .avatar-circle {
+  background: #394a57;
+  color: #f3f5f6;
+  border: 1px solid #596874;
+}
+
 :root[data-theme="dark"] .camera-preview {
   background: linear-gradient(135deg, #111416 0%, #1b2024 52%, #111416 100%);
   color: #d6dade;
