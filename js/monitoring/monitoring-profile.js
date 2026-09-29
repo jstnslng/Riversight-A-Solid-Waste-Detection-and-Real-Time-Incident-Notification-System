@@ -49,13 +49,13 @@ onAuthStateChanged(auth, async (user) => {
         if (!userDoc.exists()) {
             alert("No account profile found in Firestore.");
             await signOut(auth);
-            window.location.href = './Admin-Login.html';
+            window.location.href = './Monitoring-Login.html';
             return;
         }
 
         const data = userDoc.exists() ? userDoc.data() : {};
 
-        if (data.role.toLowerCase() !== "monitoring") {
+        if (data.role?.toLowerCase() !== "monitoring") {
             alert("Unauthorized access.");
             await signOut(auth);
             window.location.href = './Monitoring-Login.html';

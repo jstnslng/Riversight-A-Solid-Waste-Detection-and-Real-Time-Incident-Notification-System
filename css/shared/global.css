@@ -23,6 +23,10 @@ body {
   color: var(--text);
 }
 
+body.auth-pending {
+  visibility: hidden;
+}
+
 a {
   color: inherit;
   text-decoration: none;

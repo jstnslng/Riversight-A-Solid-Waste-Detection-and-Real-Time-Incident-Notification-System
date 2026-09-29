@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../../css/shared/global.css">
   <script type="module" src="../../js/shared/header.js" defer></script>
 </head>
-<body data-page="live-monitoring">
+<body class="auth-pending" data-page="live-monitoring">
 
 
 <div class="topbar">
@@ -126,21 +126,9 @@
     </main>
   </div>
 
-  <script>
-    const logoutLink = document.querySelector('[data-logout-link]');
-
-    if (logoutLink) {
-      logoutLink.addEventListener('click', (event) => {
-        event.preventDefault();
-        sessionStorage.removeItem('riversightAdminSession');
-        localStorage.removeItem('riversightAdminSession');
-        window.location.href = './Monitoring-Login.html';
-      });
-    }
-  </script>
-
 <script type="module" src="../../js/monitoring/camera-feed-module.js"></script>
 <script type="module" src="../../js/shared/global-search-ui.js"></script>
+<script type="module" src="../../js/monitoring/monitoring-auth-guard.js"></script>
 <script src="../../js/monitoring/monitoring-nav.js"></script>
 <script type="module" src="../../js/shared/global.js"></script>
 </body>
