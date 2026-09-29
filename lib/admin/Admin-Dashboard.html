@@ -107,11 +107,11 @@
           <div class="updated-row"><span class="live-dot"></span> Last updated: Just now</div>
         </div>
         <div class="page-title-actions">
-          <button class="date-btn">
+          <button class="date-btn" type="button" id="openDateRangeDialog">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
-            May 12, 2026 - May 19, 2026
+            <span id="dashboardDateRangeLabel">Last 7 days</span>
           </button>
-          <button class="export-btn">Export Report</button>
+          <button class="export-btn" type="button" id="exportDashboardReport">Export Report</button>
         </div>
       </div>
 
@@ -130,7 +130,7 @@
 
         <div class="stat-card">
           <div class="stat-top">
-            <span class="stat-label">Total Detections Today</span>
+            <span class="stat-label">Total Detections in Range</span>
             <span class="stat-icon icon-blue">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4.5-7.5 11-7.5S23 12 23 12s-4.5 7.5-11 7.5S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
             </span>
@@ -152,7 +152,7 @@
 
         <div class="stat-card">
           <div class="stat-top">
-            <span class="stat-label">Resolved Incidents</span>
+            <span class="stat-label">Resolved Incidents in Range</span>
             <span class="stat-icon icon-gray">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg>
             </span>
@@ -193,7 +193,7 @@
             <div class="detection-empty">No AI detections recorded.</div>
           </div>
 
-          <button class="view-all-btn">View All Alerts</button>
+          <button class="view-all-btn" type="button" id="viewAllAlertsBtn">View All Reports</button>
         </div>
       </section>
 
@@ -251,6 +251,33 @@
 
     </main>
   </div>
+
+  <dialog class="date-range-dialog" id="dateRangeDialog" aria-labelledby="dateRangeTitle">
+    <form id="dateRangeForm" class="date-range-form">
+      <div class="date-range-heading">
+        <div>
+          <h2 id="dateRangeTitle">Choose date range</h2>
+          <p>Select the period for date-based dashboard metrics.</p>
+        </div>
+        <button class="date-range-close" id="closeDateRangeDialog" type="button" aria-label="Close date range dialog">&times;</button>
+      </div>
+      <div class="date-range-fields">
+        <label>
+          <span>Start date</span>
+          <input id="dateRangeStart" name="startDate" type="date" required>
+        </label>
+        <label>
+          <span>End date</span>
+          <input id="dateRangeEnd" name="endDate" type="date" required>
+        </label>
+      </div>
+      <p class="date-range-error" id="dateRangeError" role="alert" hidden></p>
+      <div class="date-range-actions">
+        <button class="secondary-btn" id="cancelDateRange" type="button">Cancel</button>
+        <button class="primary-btn" type="submit">Apply Range</button>
+      </div>
+    </form>
+  </dialog>
 
   <script>
     const profileMenu = document.querySelector('[data-profile-menu]');

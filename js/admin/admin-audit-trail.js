@@ -15,6 +15,7 @@ const actionFilterSelect = document.getElementById('auditActionFilter');
 const resetFiltersButton = document.getElementById('resetAuditFilters');
 const applyFiltersButton = document.getElementById('applyAuditFilters');
 const tableBody = document.getElementById('auditLogBody');
+const exportCsvButton = document.getElementById('exportAuditCsv');
 
 const totalEventsStat = document.querySelector('[data-stat-total-events]');
 const loginEventsStat = document.querySelector('[data-stat-login-events]');
@@ -24,6 +25,7 @@ const failedActionsStat = document.querySelector('[data-stat-failed-actions]');
 const reloadButton = document.getElementById('reloadAuditLogs');
 
 let auditLogs = [];
+let visibleAuditLogs = [];
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -203,8 +205,34 @@ function applyFilters() {
         return actionMatch && startMatch && endMatch;
     }).sort((left, right) => parseTimestamp(right.timestamp) - parseTimestamp(left.timestamp));
 
+    visibleAuditLogs = filteredRows;
     renderTable(filteredRows);
     updateStats(filteredRows);
+}
+
+function exportAuditCsv() {
+    if (!visibleAuditLogs.length) return;
+
+    const headers = ["Timestamp", "User", "User ID", "Role", "Action", "Target", "Details", "Status"];
+    const rows = visibleAuditLogs.map((entry) => [
+        formatTimestamp(entry.timestamp),
+        entry.user,
+        entry.userId,
+        entry.role,
+        entry.action,
+        entry.target,
+        entry.details,
+        entry.status
+    ]);
+    const csv = [headers, ...rows]
+        .map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","))
+        .join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `riversight-audit-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function bindFilters() {
@@ -230,6 +258,8 @@ reloadButton?.addEventListener('click', () => {
     location.reload();
 
 });
+
+exportCsvButton?.addEventListener("click", exportAuditCsv);
 
 bindProfileMenu();
 bindLogout();

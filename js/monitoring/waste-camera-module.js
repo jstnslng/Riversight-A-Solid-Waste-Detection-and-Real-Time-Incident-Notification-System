@@ -9,7 +9,26 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
   const streamTag = document.querySelector("[data-camera-stream-tag]");
   const sectorLabel = document.querySelector("[data-camera-sector-label]");
   const reportsLink = document.querySelector("[data-incident-eval-link]");
+  const expandButton = document.querySelector(".feed-expand");
   let cameras = [];
+
+  expandButton?.addEventListener("click", async () => {
+    try {
+      if (document.fullscreenElement === frame) {
+        await document.exitFullscreen();
+      } else if (frame?.requestFullscreen) {
+        await frame.requestFullscreen();
+      }
+    } catch (error) {
+      console.error("Could not toggle camera fullscreen:", error);
+    }
+  });
+
+  document.addEventListener("fullscreenchange", () => {
+    const isFullscreen = document.fullscreenElement === frame;
+    expandButton?.setAttribute("aria-label", isFullscreen ? "Exit fullscreen" : "Expand camera feed");
+    if (expandButton) expandButton.title = isFullscreen ? "Exit fullscreen" : "Expand";
+  });
 
   function createMedia(camera) {
     const embedUrl = normalizeRtspEmbedUrl(camera.embedUrl);

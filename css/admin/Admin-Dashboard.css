@@ -307,6 +307,95 @@ body {
   color: var(--ink);
 }
 .date-btn svg { width: 15px; height: 15px; }
+.date-range-dialog {
+  width: min(440px, calc(100vw - 32px));
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
+.date-range-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(3px);
+}
+.date-range-form { padding: 22px; }
+.date-range-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.date-range-heading h2 { margin: 0; font-size: 17px; }
+.date-range-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.date-range-close {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.date-range-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.date-range-fields label { display: grid; gap: 6px; font-size: 12px; font-weight: 600; }
+.date-range-fields input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+}
+.date-range-error { margin: 10px 0 0; color: #b42318; font-size: 12px; }
+.date-range-error[hidden] { display: none; }
+.date-range-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+.date-range-actions button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 112px;
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.date-range-actions .secondary-btn {
+  background: #fff;
+  color: #202428;
+}
+.date-range-actions .secondary-btn:hover { background: #f1f2f3; }
+.date-range-actions .primary-btn {
+  background: #202428;
+  color: #fff;
+  border-color: #202428;
+}
+.date-range-actions .primary-btn:hover { background: #3a4046; }
+:root[data-theme="dark"] .date-range-actions .secondary-btn {
+  background: #191c20;
+  color: #f0f2f4;
+  border-color: #3a3f44;
+}
+:root[data-theme="dark"] .date-range-actions .secondary-btn:hover { background: #30353a; }
+:root[data-theme="dark"] .date-range-actions .primary-btn {
+  background: #343a40;
+  color: #fff;
+  border-color: #50575e;
+}
+:root[data-theme="dark"] .date-range-actions .primary-btn:hover { background: #454c53; }
 .export-btn {
   background: var(--ink);
   color: #fff;
@@ -671,6 +760,7 @@ body {
   .stats-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 700px) {
+  .date-range-fields { grid-template-columns: 1fr; }
   .layout { flex-direction: column; }
   .sidebar { width: 100%; flex-direction: row; align-items: center; gap: 14px; }
   .sidebar-brand { margin-bottom: 0; }

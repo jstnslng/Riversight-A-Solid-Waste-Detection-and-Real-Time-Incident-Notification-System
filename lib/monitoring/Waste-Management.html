@@ -168,10 +168,10 @@
                 <span class="detect-label label-orange">Organic Debris - 84.5%</span>
               </div> -->
 
-              <button class="feed-expand" title="Expand">
+              <button class="feed-expand" type="button" title="Expand" aria-label="Expand camera feed">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H3v6M15 3h6v6M15 21h6v-6M9 21H3v-6"/></svg>
               </button>
-              <button class="feed-capture" title="Capture">
+              <button class="feed-capture" type="button" title="Still capture is unavailable for the connected live stream" aria-label="Still capture unavailable" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.4"/><path d="M8 6l1.4-2.2h5.2L16 6"/></svg>
               </button>
             </div>
@@ -308,7 +308,7 @@
                 </div>
               </div>
 
-              <button class="dispatch-btn" type="button" data-dispatch-cleanup>
+              <button class="dispatch-btn" type="button" data-dispatch-cleanup title="Cleanup dispatch is not connected to a response service" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="8" width="14" height="9" rx="1.5"/><path d="M15 11h4l3 3v3h-7z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
                 Alert Cleanup Team
               </button>

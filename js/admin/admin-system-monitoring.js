@@ -142,7 +142,7 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
       openEditModal(camera);
       return;
     }
-    showNotification(`${action}ing ${camera.camId}...`, "info");
+    showNotification(`Remote camera commands are unavailable for ${camera.camId}.`, "error");
   }
 
   function renderSystemMetrics() {
@@ -254,6 +254,10 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
     systemMetrics.dbLatency = Math.floor(Math.random() * 20) + 5;
     renderSystemMetrics();
     showNotification("System metrics refreshed", "success");
+  });
+
+  document.getElementById("viewLogsBtn")?.addEventListener("click", () => {
+    window.location.href = "./Admin-Audit-Trail.html";
   });
 
   document.getElementById("systemSearchInput").addEventListener("input", (event) => {

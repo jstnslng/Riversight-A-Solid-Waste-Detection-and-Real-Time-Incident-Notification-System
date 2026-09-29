@@ -246,6 +246,55 @@ body {
   border-color: #30353a;
 }
 
+:root[data-theme="dark"] .report-table .view-btn {
+  background: #191c20;
+  color: #f0f2f4;
+  border-color: #3a3f44;
+}
+
+:root[data-theme="dark"] .report-table .view-btn:hover {
+  background: #30353a;
+  color: #fff;
+}
+
+:root[data-theme="dark"] .modal-content {
+  background: #15181c;
+  color: #f0f2f4;
+  border-color: #30353a;
+}
+
+:root[data-theme="dark"] .modal-header {
+  background: #050607;
+  color: #f0f2f4;
+}
+
+:root[data-theme="dark"] .modal-header h3 {
+  color: #f0f2f4;
+}
+
+:root[data-theme="dark"] .modal-body p {
+  color: #e8ebed;
+  border-color: #30353a;
+}
+
+:root[data-theme="dark"] .modal-body p strong {
+  color: #c0c5ca;
+}
+
+:root[data-theme="dark"] .modal-footer {
+  background: #101215;
+  border-color: #30353a;
+}
+
+:root[data-theme="dark"] .modal-content .close-btn {
+  background: #30353a;
+  color: #f0f2f4;
+}
+
+:root[data-theme="dark"] .modal-content .close-btn:hover {
+  background: #454c53;
+}
+
 :root[data-theme="dark"] .user-table .row-icon-btn {
   background: #1b1f23;
   color: #f0f2f4;
