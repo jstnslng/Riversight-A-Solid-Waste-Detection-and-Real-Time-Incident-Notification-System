@@ -5,6 +5,7 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
 (() => {
   const selector = document.getElementById("wasteCameraSelect");
   const frame = document.querySelector("[data-camera-feed-frame]");
+  const liveMedia = document.querySelector("[data-live-camera-media]");
   const title = document.querySelector("[data-camera-title]");
   const streamTag = document.querySelector("[data-camera-stream-tag]");
   const sectorLabel = document.querySelector("[data-camera-sector-label]");
@@ -65,10 +66,11 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
 
   function selectCamera(cameraId) {
     const camera = cameras.find((item) => item.id === cameraId) || cameras[0];
-    if (!camera || !frame) return;
+    if (!camera || !frame || !liveMedia) return;
 
-    frame.querySelectorAll(".feed-img").forEach((media) => media.remove());
-    frame.insertBefore(createMedia(camera), frame.firstChild);
+    frame.dataset.cameraDocId = camera.docId;
+    liveMedia.replaceChildren(createMedia(camera));
+    document.dispatchEvent(new Event("riversight:camera-selected"));
 
     if (title) title.textContent = `${camera.title} Waste Detection`;
     if (streamTag) streamTag.textContent = `ACTIVE STREAM: ${camera.id} · ${camera.status}`;
@@ -77,15 +79,17 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
   }
 
   function showUnavailableFeed() {
-    if (!frame) return;
-    frame.querySelectorAll(".feed-img").forEach((media) => media.remove());
+    if (!frame || !liveMedia) return;
+    frame.dataset.cameraDocId = "";
     const fallback = document.createElement("div");
     fallback.className = "feed-img feed-img--unavailable";
     fallback.textContent = "Live Preview Unavailable";
-    frame.insertBefore(fallback, frame.firstChild);
+    liveMedia.replaceChildren(fallback);
+    document.dispatchEvent(new Event("riversight:camera-selected"));
   }
 
   function renderSelector() {
+    const previousId = selector.value;
     selector.replaceChildren();
     cameras.forEach((camera) => {
       const option = document.createElement("option");
@@ -95,7 +99,8 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
     });
 
     const requestedId = new URLSearchParams(window.location.search).get("cameraId");
-    const selectedId = cameras.some((camera) => camera.id === requestedId) ? requestedId : cameras[0]?.id;
+    const selectedId = cameras.some((camera) => camera.id === previousId) ? previousId
+      : cameras.some((camera) => camera.id === requestedId) ? requestedId : cameras[0]?.id;
     if (selectedId) {
       selector.value = selectedId;
       selectCamera(selectedId);
@@ -108,6 +113,7 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
     cameras = snapshot.docs.map((cameraDoc) => {
       const data = cameraDoc.data();
       return {
+        docId: cameraDoc.id,
         id: data.camId || cameraDoc.id,
         title: data.title || data.camId || "Unknown Camera",
         location: data.location || data.sectorLabel || "General Sector",

@@ -125,8 +125,8 @@
           <h1 data-camera-title>AI Waste Detection Console</h1>
           <div class="updated-row">
             <span class="live-dot"></span> <span data-camera-stream-tag>ACTIVE STREAM: CAM-001</span>
-            <span class="dot-sep">•</span> PROCESSING
-            <span class="yolo-pill">YOLOv8 Real-time</span>
+            <span class="dot-sep">•</span>
+            <span class="yolo-pill">YOLOv8n-seg</span>
           </div>
         </div>
         <div class="page-title-actions">
@@ -149,13 +149,14 @@
         <div class="left-col">
 
           <div class="card feed-card">
+            <p class="segmentation-status" data-segmentation-status role="status" aria-live="polite">Waiting for AI detection...</p>
             <div class="feed-frame" data-camera-feed-frame>
-              <img src="https://picsum.photos/seed/riversight-canal/900/420" alt="Live camera feed — Main North Inlet Sector" class="feed-img">
+              <div data-live-camera-media><div class="feed-img feed-img--unavailable">Loading camera...</div></div>
+              <img class="segmentation-image" data-segmentation-image alt="Current selected camera stream with estimated tracked AI annotations" hidden>
 
               <div class="feed-tag feed-tag-live">
-                <span class="rec-dot"></span> LIVE 4K FEED
+                <span class="rec-dot"></span> <span data-feed-source-label>CAMERA FEED</span>
               </div>
-              <div class="feed-tag feed-tag-rec">● REC</div>
               <div class="feed-sector-label" data-camera-sector-label>Main North Inlet Sector</div>
 
               <!-- <div class="detect-box" style="top:38%; left:6%; width:15%; height:22%;">
@@ -322,6 +323,7 @@
   </div>
 
     <script type="module" src="../../js/monitoring/waste-camera-module.js"></script>
+    <script src="../../js/monitoring/segmentation-feed.js" defer></script>
     <script type="module" src="../../js/shared/global-search-ui.js"></script>
     <script type="module" src="../../js/monitoring/monitoring-auth-guard.js"></script>
     <script src="../../js/monitoring/monitoring-nav.js"></script>
