@@ -48,7 +48,7 @@ loginForm.addEventListener('submit', async (e) => {
     const password = pwInput.value;
     const rememberDevice = document.getElementById('remember').checked;
 
-    const email = userInput.includes('@') ? userInput : `${userInput}@riversight.gov.ph`;
+    const email = userInput.includes('@') ? userInput : `${userInput}@gmail.com`;
 
     if (submitBtn) {
         submitBtn.disabled = true;

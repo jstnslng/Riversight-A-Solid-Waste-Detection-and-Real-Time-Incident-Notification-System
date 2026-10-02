@@ -516,7 +516,7 @@ function createPassword() {
     return password;
 }
 
-function createEmail(firstName, lastName, domain = "riversight.gov.ph") {
+function createEmail(firstName, lastName, domain = "gmail.com") {
   const cleanFirst = firstName.trim().toLowerCase();
   const cleanLast = lastName.trim().toLowerCase();
   
