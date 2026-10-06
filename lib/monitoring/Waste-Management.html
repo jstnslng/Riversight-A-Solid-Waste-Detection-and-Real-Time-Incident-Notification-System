@@ -197,10 +197,9 @@
               <text x="4" y="14" class="axis-label">100</text>
               <text x="10" y="84" class="axis-label">50</text>
 
-              <path d="M30,120 C90,100 140,60 190,55 C240,50 260,90 310,95 C360,100 390,60 440,45 C480,33 520,40 560,55 C585,64 605,75 620,80 L620,150 L30,150 Z" fill="#e2433c" fill-opacity="0.08"/>
-              <path d="M30,120 C90,100 140,60 190,55 C240,50 260,90 310,95 C360,100 390,60 440,45 C480,33 520,40 560,55 C585,64 605,75 620,80" fill="none" stroke="#e2433c" stroke-width="2.2"/>
-
-              <path d="M30,135 C80,128 130,110 180,108 C230,106 260,120 310,118 C360,116 400,95 450,90 C500,85 540,95 580,100 C595,102 610,105 620,108" fill="none" stroke="#e0a020" stroke-width="2" stroke-dasharray="5 4"/>
+              <path id="timeline-high-fill" d="" fill="#e2433c" fill-opacity="0.08"/>
+              <path id="timeline-high-line" d="" fill="none" stroke="#e2433c" stroke-width="2.2"/>
+              <path id="timeline-low-line" d="" fill="none" stroke="#e0a020" stroke-width="2" stroke-dasharray="5 4"/>
 
               <text x="26" y="168" class="axis-label">00h</text>
               <text x="75" y="168" class="axis-label">02h</text>
@@ -326,6 +325,7 @@
     <script src="../../js/monitoring/segmentation-feed.js" defer></script>
     <script type="module" src="../../js/shared/global-search-ui.js"></script>
     <script type="module" src="../../js/monitoring/monitoring-auth-guard.js"></script>
+    <script type="module" src="../../js/monitoring/detection-timeline-module.js"></script>
     <script src="../../js/monitoring/monitoring-nav.js"></script>
     <script type="module" src="../../js/shared/global.js"></script>
 </body>
