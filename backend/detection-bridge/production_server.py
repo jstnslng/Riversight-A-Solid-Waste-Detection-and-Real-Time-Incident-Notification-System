@@ -126,12 +126,14 @@ class ProductionServer:
     def __init__(self, state, origins, host, port, allowed_hosts):
         from waitress import create_server
         # No implicit dev allowlists when using the production entry point.
-        if (not os.environ.get("SEGMENTATION_ALLOWED_HOSTS", "").strip()
-                or not os.environ.get("SEGMENTATION_ALLOWED_ORIGINS", "").strip()
-                or not state.camera_doc_id):
-            raise ValueError("Production requires hosts, origins and camera identity.")
+        if not os.environ.get("SEGMENTATION_ALLOWED_HOSTS", "").strip():
+            raise feed.StartupError("missing_allowed_hosts")
+        if not os.environ.get("SEGMENTATION_ALLOWED_ORIGINS", "").strip():
+            raise feed.StartupError("missing_allowed_origins")
+        if not state.camera_doc_id:
+            raise feed.StartupError("missing_camera_identity")
         if any(not origin.startswith("https://") for origin in origins):
-            raise ValueError("Production origins must use HTTPS.")
+            raise feed.StartupError("https_origins_required")
         self.socket_map = {}
         self.ended = threading.Event()
         self.server = create_server(

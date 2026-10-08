@@ -67,8 +67,9 @@ Optional configuration:
 
 | Variable | Default / valid values |
 | --- | --- |
-| `SEGMENTATION_FEED_HOST` | `127.0.0.1`; IPv4 address; set `0.0.0.0` inside a private container network |
-| `SEGMENTATION_FEED_PORT` | `5001`; 1–65535 |
+| `SEGMENTATION_FEED_HOST` | Development `127.0.0.1`; production `0.0.0.0`; explicit IPv4 setting overrides |
+| `SEGMENTATION_FEED_PORT` | Explicit setting first; production then uses `PORT`, otherwise `5001`; 1–65535 |
+| `PORT` | Platform-injected production port fallback; ignored by development entry point |
 | `SEGMENTATION_INTERVAL_SECONDS` | `2`; finite 1–86400 seconds |
 | `SEGMENTATION_STREAM_FPS` | `10`; 1–15, or `0` for snapshot-only mode |
 | `SEGMENTATION_TRACKING_ENABLED` | `true`; `true`/`false` |
@@ -80,6 +81,55 @@ an empty camera identity with the existing warning/fallback. Production startup
 requires explicit hosts, HTTPS origins and camera identity. Bind address and
 public Host are separate settings. Forwarded Host/Proto headers are not trusted
 for allowlisting; the proxy must forward the actual allowed `Host` unchanged.
+
+## Railway startup diagnosis
+
+Docker starts `python -B production_server.py`, imports the bridge, then calls
+`segmentation_feed.main(ProductionServer)`. It loads environment configuration,
+validates feed/stream/tracking settings and identity, validates Host authorities,
+checks production origins/identity, binds Waitress, starts tracking/capture/HTTP
+threads and enters sequential sampling. The old generic `Feed could not start`
+message came from the broad exception handler around this entire sequence.
+
+Startup now logs fixed stage names and, on failure, a fixed diagnostic code.
+No values, complete URLs, arbitrary exception text or traceback are printed:
+
+| Stage/code | Action |
+| --- | --- |
+| `cloud_camera_configuration` | Missing variable names are logged; configure runtime camera URL, endpoint and key. If present, check syntax privately. The image deliberately contains no `.env`. |
+| `feed_configuration / configuration_rejected` | Check numeric port/interval, IPv4 bind and exact origin syntax. Empty or literal `$PORT` strings are not valid ports. |
+| `stream_configuration` / `tracking_configuration` | Check documented numeric/boolean settings. |
+| `camera_identity` | Use a valid camera document ID, not a URL/title. |
+| `host_allowlist` | Use exact host authorities, not URLs, paths or wildcards. |
+| `http_server_initialization / missing_allowed_hosts` | Supply explicit `SEGMENTATION_ALLOWED_HOSTS`. |
+| `http_server_initialization / missing_allowed_origins` | Supply explicit `SEGMENTATION_ALLOWED_ORIGINS`. |
+| `http_server_initialization / missing_camera_identity` | Supply verified `SEGMENTATION_CAMERA_DOC_ID`. |
+| `http_server_initialization / https_origins_required` | Replace development HTTP origins with exact HTTPS frontend origins. |
+| `http_server_initialization / address_in_use` | Check port conflicts or duplicate startup processes. |
+| `http_server_initialization / bind_address_unavailable` | Bind a container-local IPv4 address, normally `0.0.0.0`, not a public hostname/IP. |
+| Any stage / `dependency_unavailable` | Check installed dependencies; Docker now smoke-imports OpenCV, NumPy, Requests, dotenv and Waitress during build. |
+| `tracking_worker_start` / `capture_worker_start` / `http_worker_start` | Worker/thread initialization failed; check process/resource limits. |
+
+An RTSP connection failure occurs inside the supervised capture worker after
+startup and normally reconnects; a cloud request failure is handled per sampling
+cycle. Neither normally produces the startup failure message. The repeated
+generic message alone cannot establish the particular Railway failure. Local
+tests reproduce rejection cases, but the live crash requires the new stage/code
+from Railway to confirm its cause. No Railway deployment or variable changes
+were performed as part of this investigation.
+
+Production now binds `0.0.0.0` by default and honors Railway's injected `PORT`
+unless `SEGMENTATION_FEED_PORT` is explicitly set. Do not copy local example
+HOST/PORT settings blindly into Railway: explicit loopback still overrides the
+production default. Keep the service unexposed until gateway access controls exist.
+
+For Railway deployment health checks, deliberately add `healthcheck.railway.app`
+to `SEGMENTATION_ALLOWED_HOSTS` (and an exact port-qualified authority if the
+probe sends one). No automatic allowlist exception is added. Use `/health` as a
+liveness probe; its 200 response does not establish camera/cloud readiness, and
+Railway's deployment check is not continuous monitoring. See
+[Railway bind/port guidance](https://docs.railway.com/networking/troubleshooting/application-failed-to-respond)
+and [Railway health-check guidance](https://docs.railway.com/deployments/healthchecks).
 
 ## Container preparation
 

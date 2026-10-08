@@ -43,11 +43,12 @@ def stream_configuration():
         raise ValueError("Invalid stream FPS. Use 0 for snapshots or 1 to 15 for streaming.") from None
 
 
-def feed_configuration():
+def feed_configuration(production=False):
     try:
         interval = float(os.environ.get("SEGMENTATION_INTERVAL_SECONDS", "2"))
-        port = int(os.environ.get("SEGMENTATION_FEED_PORT", "5001"))
-        host = os.environ.get("SEGMENTATION_FEED_HOST", "127.0.0.1")
+        port = int(os.environ.get("SEGMENTATION_FEED_PORT",
+                                  os.environ.get("PORT", "5001") if production else "5001"))
+        host = os.environ.get("SEGMENTATION_FEED_HOST", "0.0.0.0" if production else "127.0.0.1")
         if not math.isfinite(interval) or not 1 <= interval <= 86400 or not 1 <= port <= 65535:
             raise ValueError()
         if ipaddress.ip_address(host).version != 4:
@@ -402,25 +403,74 @@ def handler_for(state, origins, host, port, allowed_hosts=None):
     return Handler
 
 
+class StartupError(ValueError):
+    """A fixed diagnostic code, never environment values or exception messages."""
+    CODES = {"missing_allowed_hosts", "missing_allowed_origins", "missing_camera_identity",
+             "https_origins_required"}
+
+    def __init__(self, code):
+        self.code = code if code in self.CODES else "configuration_rejected"
+        super().__init__(self.code)
+
+
+def startup_failure(stage, error):
+    # Explicit allowlists only: never stringify an exception, its type name,
+    # traceback, headers, endpoint or environment values.
+    code = "initialization_failed"
+    if isinstance(error, StartupError):
+        code = error.code
+    elif isinstance(error, ImportError):
+        code = "dependency_unavailable"
+    elif isinstance(error, OSError):
+        import errno
+        code = {errno.EADDRINUSE: "address_in_use", errno.EACCES: "permission_denied",
+                errno.EADDRNOTAVAIL: "bind_address_unavailable"}.get(error.errno, "os_operation_failed")
+    elif isinstance(error, ValueError):
+        code = "configuration_rejected"
+    print(f"Startup failed: stage={stage} code={code}.", flush=True)
+    if stage == "cloud_camera_configuration":
+        missing = [name for name in ("CAMERA_RTSP_URL", "ULTRALYTICS_ENDPOINT", "ULTRALYTICS_API_KEY")
+                   if not os.environ.get(name, "").strip()]
+        if missing:
+            print("Required environment variables missing or empty: " + ", ".join(missing) + ".", flush=True)
+
+
 def main(server_factory=None):
     server = None
     worker = None
     capture = None
     tracking = None
     stop = threading.Event()
-    previous_term = signal.signal(signal.SIGTERM, lambda *_: stop.set())
+    previous_term = None
+    stage = "signal_setup"
+
+    def entering(name):
+        nonlocal stage
+        stage = name
+        print(f"Startup stage={name}.", flush=True)
+
     try:
+        entering("signal_setup")
+        previous_term = signal.signal(signal.SIGTERM, lambda *_: stop.set())
+        entering("cloud_camera_configuration")
         settings = configuration()
-        host, port, interval, origins = feed_configuration()
+        entering("feed_configuration")
+        host, port, interval, origins = feed_configuration(production=server_factory is not None)
+        entering("http_dependencies")
         import requests
+        entering("stream_configuration")
         fps = stream_configuration()
+        entering("tracking_configuration")
         tracking_enabled, track_max_age = tracking_configuration()
+        entering("camera_identity")
         camera_id = os.environ.get("SEGMENTATION_CAMERA_DOC_ID", "").strip()
         state = StreamingFrame(camera_id, fps, interval, stop, tracking_enabled, track_max_age) if fps else LatestFrame(camera_id)
         if not state.camera_doc_id:
             print("Camera document ID is not configured; frontend AI camera matching will be unavailable. "
                   "Set SEGMENTATION_CAMERA_DOC_ID and restart the bridge.", flush=True)
+        entering("host_allowlist")
         allowed_hosts = allowed_hosts_configuration(host, port)
+        entering("http_server_initialization")
         if server_factory is None:
             if not ipaddress.ip_address(host).is_loopback:
                 raise ValueError("Use production_server.py for non-loopback serving.")
@@ -430,22 +480,28 @@ def main(server_factory=None):
         server.daemon_threads = True
         if fps:
             if tracking_enabled:
+                entering("tracking_worker_start")
                 tracking = TrackingWorker(state)
                 tracking.start()
+            entering("capture_worker_start")
             capture = LiveCapture(state, settings[0], fps, stop)
             capture.start()
+        entering("http_worker_start")
         worker = threading.Thread(target=server.serve_forever, daemon=True)
         worker.start()
         print("Segmentation feed started. Ctrl+C to stop.", flush=True)
+        stage = "sampling_loop"
         sampling_loop(state, interval, stop, settings, requests)
     except KeyboardInterrupt:
         print("Segmentation feed stopped.", flush=True)
-    except Exception:
+    except Exception as error:
+        startup_failure(stage, error)
         print("Feed could not start. Check private configuration, dependencies and port availability.", flush=True)
         return 1
     finally:
         stop.set()
-        signal.signal(signal.SIGTERM, previous_term)
+        if previous_term is not None:
+            signal.signal(signal.SIGTERM, previous_term)
         if capture is not None:
             capture.close()
         if tracking is not None:
