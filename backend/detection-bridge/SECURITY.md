@@ -1,5 +1,9 @@
 # Secure Firebase-hosted feed access (prepared, not deployed)
 
+For non-public live validation, see [PRIVATE_SMOKE.md](PRIVATE_SMOKE.md): a
+separate one-shot runner in the same Railway project/environment, never a public
+domain or local railway run. Deployment of that runner requires approval.
+
 ProductionServer always wraps its internal WSGI application with Firebase
 authentication. There is no runtime switch to disable authentication. Development
 segmentation_feed.py stays loopback-only and retains its existing local behavior.

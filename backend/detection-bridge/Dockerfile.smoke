@@ -1,0 +1,7 @@
+FROM python:3.12-slim-bookworm
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+WORKDIR /smoke
+RUN useradd --uid 10001 --create-home smoke
+COPY private_smoke.py ./
+USER 10001:10001
+CMD ["timeout", "--signal=TERM", "--kill-after=5s", "180s", "python", "-B", "private_smoke.py"]

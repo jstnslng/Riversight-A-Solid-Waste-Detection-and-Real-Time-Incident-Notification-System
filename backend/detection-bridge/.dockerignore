@@ -1,6 +1,8 @@
 # Deny by default: only production code and dependency manifest enter the build.
 **
 !Dockerfile
+!Dockerfile.smoke
+!private_smoke.py
 !requirements.txt
 !segmentation_feed.py
 !production_server.py
