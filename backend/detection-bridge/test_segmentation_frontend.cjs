@@ -9,21 +9,23 @@ const source = fs.readFileSync(path.join(root, 'js/monitoring/segmentation-feed.
 const html = fs.readFileSync(path.join(root, 'lib/monitoring/Waste-Management.html'), 'utf8');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const now = Date.now();
-function setup(fetch, cameraId = 'doc-1', protocol = 'http:') {
+function setup(fetch, cameraId = 'doc-1', protocol = 'http:', configuredBase = '', tokenProvider, clock) {
   const classes = new Set();
   const iframe = {};
   const frame = {dataset: {cameraDocId: cameraId}, iframe, classList: {add: key => classes.add(key), remove: key => classes.delete(key)}};
   const image = {hidden: true, removeAttribute(key) { delete this[key]; }};
   const status = {textContent: ''}, label = {textContent: ''};
   const selectors = {'[data-camera-feed-frame]': frame, '[data-segmentation-image]': image, '[data-segmentation-status]': status, '[data-feed-source-label]': label};
+  selectors['meta[name="riversight-ai-backend"]'] = {content: configuredBase};
   const timers = new Map(); let id = 0, serial = 0;
   const document = {hidden: false, querySelector: s => selectors[s], addEventListener(event, fn) {this[event] = fn;}};
   const warnings = [];
   const window = {location: {protocol}, addEventListener(event, fn) {this[event] = fn;}};
-  vm.runInNewContext(source, {document, window, fetch, AbortController, Date,
+  window.riversightAIIdToken = tokenProvider;
+  vm.runInNewContext(source, {document, window, fetch, AbortController, Date: clock ? class extends Date {static now() {return clock.now;}} : Date,
     console: {warn: message => warnings.push(message)},
     setTimeout(fn, delay) {timers.set(++id, {fn, delay}); return id;}, clearTimeout(id) {timers.delete(id);},
-    URL: {createObjectURL: () => `blob:mock-${++serial}`, revokeObjectURL() {}}, Image: class {async decode() {}},
+    URL: class extends URL {static createObjectURL() {return `blob:mock-${++serial}`;} static revokeObjectURL() {}}, Image: class {async decode() {}},
   });
   function runTimer(delay) {
     const item = [...timers].find(([, timer]) => timer.delay === delay);
@@ -41,6 +43,82 @@ function jpeg(changes = {}) {
 const healthyFetch = async url => url.includes('/health') ? health() : jpeg();
 const streamHealth = (changes = {}) => health({streamEnabled: true, streamAvailable: true,
   captureActive: true, lastFrameAt: new Date(now).toISOString(), ...changes});
+
+test('secure feed uses token headers and one-use image ticket, never ID token URLs', async () => {
+  const calls = [];
+  const ui = setup(async (url, options) => {
+    calls.push({url, options});
+    return url.includes('/stream-ticket') ? {ok: true, json: async () => ({ticket: 'a'.repeat(43)})} : streamHealth();
+  }, 'doc-1', 'https:', 'https://backend.invalid', async () => 'firebase-id-token');
+  await flush();
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /\/feed-health\?.*&cameraDocId=doc-1/);
+  assert.equal(calls[0].options.headers.Authorization, 'Bearer firebase-id-token');
+  assert.equal(calls[1].options.method, 'POST');
+  assert.match(ui.image.src, /ticket=a{43}$/);
+  assert.doesNotMatch(ui.image.src, /firebase-id-token/);
+  ui.image.onload();
+  ui.runTimer(1500); await flush();
+  assert.equal(calls.length, 3); // No new ticket during a healthy active stream.
+});
+
+test('hosted feed fails closed for missing/invalid HTTPS backend or signed-out user', async () => {
+  for (const backend of ['', 'http://backend.invalid', 'https://user:pass@backend.invalid', 'https://backend.invalid/?token=x']) {
+    let calls = 0;
+    const ui = setup(async () => {calls++; return streamHealth();}, 'doc-1', 'https:', backend, async () => 'token');
+    await flush();
+    assert.equal(calls, 0);
+    assert.equal(ui.image.src, undefined);
+  }
+  let calls = 0;
+  const ui = setup(async () => {calls++; return streamHealth();}, 'doc-1', 'https:', 'https://backend.invalid',
+    async () => {throw new Error('signed out');});
+  await flush();
+  assert.equal(calls, 0);
+  assert.equal(ui.image.src, undefined);
+});
+
+test('camera switch during ticket exchange never opens the old stream', async () => {
+  let resolve;
+  const ui = setup(async url => url.includes('/stream-ticket') ? new Promise(r => resolve = r) : streamHealth(),
+    'doc-1', 'https:', 'https://backend.invalid', async () => 'token');
+  await flush();
+  ui.frame.dataset.cameraDocId = 'doc-2';
+  ui.document['riversight:camera-selected']();
+  resolve({ok: true, json: async () => ({ticket: 'a'.repeat(43)})});
+  await flush();
+  assert.equal(ui.image.src, undefined);
+});
+
+test('delayed ticket cannot reopen a stream from stale health', async () => {
+  const clock = {now};
+  let resolve;
+  const ui = setup(async url => url.includes('/stream-ticket') ? new Promise(r => resolve = r) : streamHealth(),
+    'doc-1', 'https:', 'https://backend.invalid', async () => 'token', clock);
+  await flush();
+  clock.now += 16000;
+  resolve({ok: true, json: async () => ({ticket: 'a'.repeat(43)})});
+  await flush();
+  assert.equal(ui.image.src, undefined);
+});
+
+test('secure stream renewal retains its health freshness timer', async () => {
+  const clock = {now};
+  let tickets = 0;
+  const ui = setup(async url => url.includes('/stream-ticket')
+    ? {ok: true, json: async () => ({ticket: (++tickets === 1 ? 'a' : 'b').repeat(43)})}
+    : streamHealth({lastInferenceAt: new Date(clock.now).toISOString(), lastFrameAt: new Date(clock.now).toISOString()}),
+    'doc-1', 'https:', 'https://backend.invalid', async () => 'token', clock);
+  await flush(); ui.image.onload();
+  clock.now += 56000;
+  ui.runTimer(1500); await flush();
+  assert.equal(tickets, 2);
+  assert.match(ui.image.src, /ticket=b{43}$/);
+  const expiry = [...ui.timers.values()].find(timer => timer.delay === 15000);
+  assert.ok(expiry);
+  expiry.fn();
+  assert.equal(ui.image.src, undefined);
+});
 
 test('tracked stream labels positions as estimates and confidence as last YOLO', async () => {
   const urls = [];
@@ -207,7 +285,8 @@ test('one camera container and no obsolete toggle/panel or secret configuration'
   assert.equal((html.match(/data-camera-feed-frame/g) || []).length, 1);
   assert.equal((html.match(/data-segmentation-image/g) || []).length, 1);
   assert.doesNotMatch(html, /data-feed-view|data-segmentation-panel|segmentation-switch/);
-  assert.doesNotMatch(source + html, /CAMERA_RTSP_URL|ULTRALYTICS_API_KEY|Authorization/);
+  assert.doesNotMatch(source + html, /CAMERA_RTSP_URL|ULTRALYTICS_API_KEY/);
+  assert.doesNotMatch(source, /[?&](?:token|idToken)=/);
 });
 test('automatic processed view for matching camera; existing iframe remains available', async () => {
   const ui = setup(healthyFetch); await flush();

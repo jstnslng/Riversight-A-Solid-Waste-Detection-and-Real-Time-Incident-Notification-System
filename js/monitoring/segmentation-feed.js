@@ -5,7 +5,19 @@
   const status = document.querySelector('[data-segmentation-status]');
   const source = document.querySelector('[data-feed-source-label]');
   if (!frame || !image || !status) return;
-  const base = 'http://127.0.0.1:5001';
+  const configuredBase = document.querySelector('meta[name="riversight-ai-backend"]')?.content?.trim();
+  const secure = Boolean(configuredBase) || window.location.protocol === 'https:';
+  let base = 'http://127.0.0.1:5001';
+  let configurationValid = !secure;
+  if (configuredBase) {
+    try {
+      const parsed = new URL(configuredBase);
+      if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.search
+          || parsed.hash || (parsed.pathname !== '/' && parsed.pathname !== '')) throw new Error();
+      base = parsed.origin;
+      configurationValid = true;
+    } catch { configurationValid = false; }
+  }
   const staleMs = 15000;
   const unavailable = 'AI detection unavailable — showing live camera feed';
   if (window.location.protocol === 'file:') {
@@ -14,6 +26,7 @@
   let busy = false, stopped = false, generation = 0;
   let timer, expiryTimer, controller, currentUrl, streamUrl, streamTimer, streamId;
   let streamLoaded = false;
+  let streamExpires = 0;
 
   function fallback(message) {
     clearTimeout(expiryTimer);
@@ -21,6 +34,7 @@
     image.onload = image.onerror = null;
     streamUrl = null;
     streamId = null;
+    streamExpires = 0;
     streamLoaded = false;
     frame.classList.remove('is-ai-active');
     image.hidden = true;
@@ -34,16 +48,32 @@
     const timestamp = Date.parse(value);
     return Number.isFinite(timestamp) && Date.now() - timestamp < staleMs && timestamp <= Date.now() + 5000;
   }
-  function showStream(cameraId, version, timestamp, trackingEnabled) {
+  async function showStream(cameraId, version, timestamp, trackingEnabled, options, stillCurrent) {
     clearTimeout(expiryTimer);
     expiryTimer = setTimeout(() => fallback(unavailable), Math.max(0, staleMs - (Date.now() - Date.parse(timestamp))));
-    if (streamUrl) return; // Keep one connection; health polling must not restart it.
+    if (streamUrl && (!secure || Date.now() < streamExpires)) return;
+    if (streamUrl) {
+      fallback('Renewing secure AI stream...');
+      // fallback clears timers; retain freshness protection during renewal.
+      expiryTimer = setTimeout(() => fallback(unavailable), Math.max(0, staleMs - (Date.now() - Date.parse(timestamp))));
+    }
     if (currentUrl) URL.revokeObjectURL(currentUrl);
     currentUrl = null;
     // Non-secret connection identity lets health detect a closed multipart image,
     // even in browsers that do not fire another image event after its first part.
     streamId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const url = `${base}/segmentation-stream.mjpg?cameraDocId=${encodeURIComponent(cameraId)}&streamId=${streamId}`;
+    let url = `${base}/segmentation-stream.mjpg?cameraDocId=${encodeURIComponent(cameraId)}&streamId=${streamId}`;
+    if (secure) {
+      const response = await fetch(`${base}/stream-ticket?cameraDocId=${encodeURIComponent(cameraId)}`,
+        {...options, method: 'POST'});
+      if (!response.ok) throw new Error('Unavailable');
+      const result = await response.json();
+      if (!stillCurrent()) return;
+      if (!fresh(timestamp)) throw new Error('Stale');
+      if (!/^[A-Za-z0-9_-]{40,64}$/.test(result.ticket)) throw new Error('Unavailable');
+      url += `&ticket=${encodeURIComponent(result.ticket)}`;
+      streamExpires = Date.now() + 55000;
+    }
     streamUrl = url;
     const current = () => !stopped && !document.hidden && generation === version
       && frame.dataset.cameraDocId === cameraId && streamUrl === url;
@@ -81,8 +111,16 @@
       && cameraId === frame.dataset.cameraDocId && !request.signal.aborted;
     let nextUrl;
     try {
+      if (!configurationValid) throw new Error('Backend configuration required');
       const options = {cache: 'no-store', credentials: 'omit', signal: request.signal};
-      const healthResponse = await fetch(`${base}/health?t=${Date.now()}${streamId ? `&streamId=${streamId}` : ''}`, options);
+      if (secure) {
+        if (!window.riversightAIIdToken) throw new Error('Authentication unavailable');
+        const token = await window.riversightAIIdToken();
+        if (!stillCurrent()) return;
+        options.headers = {Authorization: `Bearer ${token}`};
+      }
+      const identity = secure ? `&cameraDocId=${encodeURIComponent(cameraId)}` : '';
+      const healthResponse = await fetch(`${base}/${secure ? 'feed-health' : 'health'}?t=${Date.now()}${identity}${streamId ? `&streamId=${streamId}` : ''}`, options);
       if (!healthResponse.ok) throw new Error('Unavailable');
       const health = await healthResponse.json();
       if (!stillCurrent()) return;
@@ -107,12 +145,12 @@
           fallback(unavailable);
           return;
         }
-        showStream(cameraId, version, health.lastInferenceAt, health.trackingEnabled === true);
+        await showStream(cameraId, version, health.lastInferenceAt, health.trackingEnabled === true, options, stillCurrent);
         return;
       }
       // Snapshot-only configuration (FPS=0) and older bridges remain supported.
       if (streamUrl) fallback('Waiting for AI detection...');
-      const response = await fetch(`${base}/latest-segmentation.jpg?t=${Date.now()}`, options);
+      const response = await fetch(`${base}/latest-segmentation.jpg?t=${Date.now()}${identity}`, options);
       if (!stillCurrent()) return;
       const timestamp = response.headers.get('X-Inference-At');
       // Validate the JPEG snapshot itself against restart/identity/freshness races.
@@ -155,6 +193,7 @@
     poll();
   }
   document.addEventListener('riversight:camera-selected', reset);
+  document.addEventListener('riversight:ai-auth-changed', reset);
   document.addEventListener('visibilitychange', reset);
   window.addEventListener('pagehide', () => { stopped = true; reset(); });
   window.addEventListener('pageshow', () => { stopped = false; reset(); });

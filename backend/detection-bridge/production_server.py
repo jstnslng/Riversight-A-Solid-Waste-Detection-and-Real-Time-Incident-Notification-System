@@ -10,6 +10,7 @@ import time
 from urllib.parse import parse_qs, urlsplit
 
 import segmentation_feed as feed
+from firebase_access import FirebaseAccess, secure_application
 
 
 def application_for(state, origins, host, port, allowed_hosts):
@@ -137,7 +138,9 @@ class ProductionServer:
         self.socket_map = {}
         self.ended = threading.Event()
         self.server = create_server(
-            application_for(state, origins, host, port, allowed_hosts), host=host, port=port,
+            secure_application(application_for(state, origins, host, port, allowed_hosts),
+                               FirebaseAccess.from_environment(), state.camera_doc_id, origins, allowed_hosts),
+            host=host, port=port,
             map=self.socket_map,
             threads=16, connection_limit=32, backlog=32, channel_timeout=10,
             cleanup_interval=1, max_request_header_size=8192, max_request_body_size=0,

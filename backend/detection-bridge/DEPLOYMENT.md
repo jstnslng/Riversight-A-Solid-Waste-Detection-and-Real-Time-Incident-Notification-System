@@ -1,5 +1,9 @@
 # Linux production preparation (not deployed)
 
+For the production readiness review, remaining Railway/frontend settings and
+the staged private-first deployment sequence, see
+[SECURITY.md](SECURITY.md#readiness-review-and-safe-deployment-sequence).
+
 The existing pipeline stays Hikvision -> RTSP.ME Software Agent -> RTSP.ME
 public RTSP playback -> bridge -> existing Ultralytics cloud YOLOv8n-seg endpoint
 -> exact-frame evidence/current-frame optical-flow visualization -> RiverSight.
@@ -62,6 +66,10 @@ Required for production:
 | `SEGMENTATION_CAMERA_DOC_ID` | Verified physical camera's public Firestore document ID |
 | `SEGMENTATION_ALLOWED_HOSTS` | Comma-separated exact Host authorities; include ingress hostname and internal probe host:port |
 | `SEGMENTATION_ALLOWED_ORIGINS` | Comma-separated exact HTTPS frontend origins, no path/trailing slash/wildcard |
+| `FIREBASE_PROJECT_ID` | Website's Firebase project, used for ID token audience/issuer verification |
+
+Also supply protected Firebase service-account credentials or Google ADC as
+described in [SECURITY.md](SECURITY.md). Per-camera viewer grants are required.
 
 Optional configuration:
 
@@ -156,40 +164,23 @@ Do not publish the container port to the Internet. Use restart supervision,
 memory/CPU limits, a writable bounded `/tmp` for Waitress spill buffers, and
 120-second stop grace. A read-only root filesystem is suitable with that tmpfs.
 
-## HTTPS ingress and remaining security work
+## HTTPS ingress and access control
 
-Before deployment, provide TLS, authentication AND per-camera authorization at
-the gateway for all three routes. CORS/Host validation is not authentication:
-non-browser clients can supply arbitrary headers or omit Origin. The bridge
-intentionally has no Firebase-token verification or camera-user ACL. A valid
-cameraDocId is an identity check, not permission to view a camera.
-
-Prefer a same-origin authenticated gateway path, proxying the three bridge routes
-and preserving Host, Origin and query strings. Disable buffering and caching for
-MJPEG, allow long-lived responses, and set a read timeout above the frame cadence
-(e.g. 60 seconds). Permit GET/OPTIONS only, impose header/body limits and rate
-limits, and cap concurrent streams per authorized user. Handle allowed-origin
-preflight at the gateway before authentication if cross-origin access is chosen.
-Do not log query strings, auth headers, RTSP URLs or bodies. Avoid putting tokens
-in image URLs. Do not enable wildcard CORS. No forwarded client identity is used
-by the bridge, so enforce access at the gateway and firewall direct access.
-
-RTSP.ME's public playback push key acts as a secret but RTSP transport itself is
-unencrypted. A cloud VM still depends on the local camera/Software Agent remaining
-online. Permit outbound TCP to the RTSP source's configured port and HTTPS to
-the existing endpoint, plus DNS. Review video privacy/retention and API spending.
-Dependencies use compatible ranges; lock resolved versions/digests and scan the
-image before an eventual release. No camera/cloud connectivity is proven offline.
+Production Firebase ID token verification and explicit per-camera grants are
+mandatory. See [SECURITY.md](SECURITY.md) for credentials, grants, protected
+routes and single-use MJPEG tickets. TLS terminates at Railway ingress; keep
+strict Host/origin lists and request limits. Redact query strings and auth
+headers, disable MJPEG buffering/caching, and allow long-lived responses.
+CameraDocId alone is not authorization. Unauthenticated production /health
+contains only liveness; detailed health has moved to protected /feed-health.
 
 ## Health checks
 
-`GET /health` preserves HTTP 200 and existing JSON schema, even while waiting or
-degraded. It is a liveness endpoint, not an HTTP-status readiness endpoint. No
-secret or RTSP URL is returned. Configure probe Host in the exact allowlist.
-
-```sh
-curl --fail --silent http://127.0.0.1:5001/health
-```
+Production `GET /health` returns HTTP 200 with only status=alive and reveals
+no camera metadata. Configure its exact Host in the allowlist. Local development
+/health keeps its existing detailed response. Production readiness requires an
+authenticated GET /feed-health with cameraDocId and Firebase bearer header.
+Never paste tokens into commands or shared logs.
 
 For readiness in streaming mode require `status == "ok"`, `captureActive == true`,
 `streamAvailable == true`, matching nonempty `cameraDocId`, and fresh inference
@@ -204,24 +195,13 @@ Other preserved routes: `/latest-segmentation.jpg` serves exact inference-frame
 evidence; `/segmentation-stream.mjpg` serves current tracked/raw MJPEG with
 `cameraDocId` and optional `streamId`. No filesystem directory is served.
 
-## Later frontend change (not applied here)
+## Hosted frontend connection
 
-`js/monitoring/segmentation-feed.js:8` defines `const base = 'http://127.0.0.1:5001'`.
-Replace that one source with validated deployment-time public configuration
-(e.g. a runtime config loaded before this script), defaulting to loopback only
-for local development. All health/JPEG/MJPEG URLs already derive from `base`.
-Require HTTPS for a hosted backend, strip the trailing slash, and reject embedded
-credentials, queries and fragments. Add the chosen frontend origin to the backend
-allowlist and adjust any frontend CSP `connect-src`/`img-src` to allow that backend.
-Never include RTSP URLs, push keys or cloud API keys in frontend configuration.
-
-Authentication must also be settled before exposing video. The current image
-uses `crossOrigin = 'anonymous'` and fetch uses no cross-origin credential flow.
-For a same-origin gateway, use its authenticated session. Cross-origin cookie
-auth would require coordinated fetch/image credentials, exact-origin credential
-CORS and cookie policy changes. An `<img>` stream cannot attach a Firebase bearer
-header: a token-aware gateway/session or different stream transport is needed.
-Keep camera identity, fallback, tracking and sequential polling behavior intact.
+The targeted frontend authentication flow is implemented. Set the public HTTPS
+origin in Waste-Management.html's riversight-ai-backend meta tag before hosting.
+See [SECURITY.md](SECURITY.md) for token headers, ticket renewal and validation.
+No actual deployment domain is configured, and no Firebase/hosting changes or
+public exposure were performed.
 
 ## Recommended target
 

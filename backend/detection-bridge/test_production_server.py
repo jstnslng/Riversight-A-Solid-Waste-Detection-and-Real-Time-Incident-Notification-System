@@ -167,7 +167,8 @@ class ProductionTests(unittest.TestCase):
         from urllib.request import Request, urlopen
         import socket
         with patch.dict(os.environ, {"SEGMENTATION_ALLOWED_HOSTS": "backend.invalid",
-                                   "SEGMENTATION_ALLOWED_ORIGINS": "https://frontend.invalid"}, clear=True):
+                                   "SEGMENTATION_ALLOWED_ORIGINS": "https://frontend.invalid"}, clear=True), \
+                patch.object(production.FirebaseAccess, "from_environment", return_value=Mock()):
             server = production.ProductionServer(self.state, ("https://frontend.invalid",),
                                                  "127.0.0.1", 0, ("backend.invalid",))
         thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -177,7 +178,7 @@ class ProductionTests(unittest.TestCase):
             request = Request(f"http://127.0.0.1:{server.server.effective_port}/health",
                               headers={"Host": "backend.invalid"})
             with urlopen(request, timeout=3) as response:
-                self.assertEqual(json.load(response)["cameraDocId"], "camera-1")
+                self.assertEqual(json.load(response), {"status": "alive"})
         finally:
             self.state.stop.set()
             server.shutdown()
@@ -185,6 +186,49 @@ class ProductionTests(unittest.TestCase):
             server.server_close()
             idle.close()
         self.assertFalse(thread.is_alive(), "Production event loop must terminate on shutdown")
+
+    def test_real_waitress_preflight_empty_post_and_protected_routes(self):
+        try:
+            import waitress
+        except ImportError:
+            self.skipTest("Waitress absent in legacy local venv")
+        import http.client
+        access = Mock()
+        access.authorize.return_value = time.time() + 300
+        with patch.dict(os.environ, {"SEGMENTATION_ALLOWED_HOSTS": "backend.invalid",
+                                   "SEGMENTATION_ALLOWED_ORIGINS": "https://frontend.invalid"}, clear=True), \
+                patch.object(production.FirebaseAccess, "from_environment", return_value=access):
+            server = production.ProductionServer(self.state, ("https://frontend.invalid",),
+                                                 "127.0.0.1", 0, ("backend.invalid",))
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        connection = http.client.HTTPConnection("127.0.0.1", server.server.effective_port, timeout=3)
+        headers = {"Host": "backend.invalid", "Origin": "https://frontend.invalid"}
+        try:
+            connection.request("OPTIONS", "/stream-ticket?cameraDocId=camera-1", headers={
+                **headers, "Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "authorization"})
+            response = connection.getresponse()
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.getheader("Access-Control-Allow-Headers"), "Authorization")
+            response.read()
+            access.authorize.assert_not_called()
+            connection.request("GET", "/latest-segmentation.jpg?cameraDocId=camera-1", headers=headers)
+            response = connection.getresponse()
+            self.assertEqual(response.status, 401)
+            response.read()
+            connection.request("POST", "/stream-ticket?cameraDocId=camera-1", body=b"", headers={
+                **headers, "Authorization": "Bearer offline-test-token"})
+            response = connection.getresponse()
+            self.assertEqual(response.status, 200)
+            self.assertTrue(json.loads(response.read())["ticket"])
+            access.authorize.assert_called_once_with("offline-test-token", "camera-1")
+        finally:
+            connection.close()
+            self.state.stop.set()
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+        self.assertFalse(thread.is_alive())
 
 
 if __name__ == "__main__":

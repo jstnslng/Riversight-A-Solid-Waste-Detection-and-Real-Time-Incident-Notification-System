@@ -4,6 +4,7 @@
 !requirements.txt
 !segmentation_feed.py
 !production_server.py
+!firebase_access.py
 !one_frame.py
 !live_capture.py
 !visual_tracking.py

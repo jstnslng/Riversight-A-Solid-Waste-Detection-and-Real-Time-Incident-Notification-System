@@ -2,6 +2,8 @@
 
 Linux production preparation, startup, ingress requirements and health checks:
 see [DEPLOYMENT.md](DEPLOYMENT.md). No deployment has been performed.
+Production Firebase authentication and per-camera grants are now mandatory;
+see [SECURITY.md](SECURITY.md) before changing runtime configuration or exposure.
 
 ## Local near-real-time segmentation feed (development only)
 
