@@ -1,0 +1,11 @@
+# Deny by default: only production code and dependency manifest enter the build.
+**
+!Dockerfile
+!requirements.txt
+!segmentation_feed.py
+!production_server.py
+!one_frame.py
+!live_capture.py
+!visual_tracking.py
+!evidence_renderer.py
+!prediction_geometry.py

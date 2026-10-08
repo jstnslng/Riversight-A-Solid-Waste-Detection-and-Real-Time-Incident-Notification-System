@@ -1,5 +1,8 @@
 # RiverSight detection bridge: YOLOv8n-seg cloud inference
 
+Linux production preparation, startup, ingress requirements and health checks:
+see [DEPLOYMENT.md](DEPLOYMENT.md). No deployment has been performed.
+
 ## Local near-real-time segmentation feed (development only)
 
 Use **two terminals**, both from the repository root. In Terminal 1 serve the
@@ -303,7 +306,8 @@ on the same computer with the default setup. This unauthenticated loopback servi
 is for development, not production. Do not expose it by changing the bind address
 without access controls. Future hosting needs an accessible edge/backend service,
 HTTPS, authentication/authorization and deliberate network/CORS configuration.
-That deployment is outside this task. Local processes can access the loopback feed.
+Production preparation is documented in DEPLOYMENT.md; access controls at the
+ingress are still required before deployment. Local processes can access the loopback feed.
 
 No Firestore frame transport or detection persistence is implemented. Existing
 one-frame, continuous-terminal and dataset-collection commands remain available.
@@ -504,7 +508,8 @@ ULTRALYTICS_API_KEY=
 DETECTION_INTERVAL_SECONDS=5
 ```
 
-- `CAMERA_RTSP_URL`: complete direct LAN RTSP URL, including camera credentials.
+- `CAMERA_RTSP_URL`: complete direct RTSP playback URL, including RTSP.ME public playback,
+  or a LAN camera URL with credentials when needed. Keep any playback push key private.
   Percent-encode reserved characters in username/password. Quote the entire value
   in the `.env` file if necessary. No RTSP.ME iframe URL.
 - `ULTRALYTICS_ENDPOINT`: deployment HTTPS base URL. An existing `/predict`

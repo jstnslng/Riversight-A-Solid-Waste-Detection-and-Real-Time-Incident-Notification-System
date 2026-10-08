@@ -8,6 +8,7 @@ import json
 import math
 import os
 import re
+import signal
 import threading
 import time
 from urllib.parse import parse_qs, urlsplit
@@ -275,7 +276,23 @@ def response_for(state, path):
     return 404, "application/json", b'{"status":"not_found"}', health
 
 
-def handler_for(state, origins, host, port):
+def allowed_hosts_configuration(host, port):
+    hosts = tuple(value.strip() for value in os.environ.get(
+        "SEGMENTATION_ALLOWED_HOSTS", f"{host}:{port},localhost:{port},127.0.0.1:{port}"
+    ).split(",") if value.strip())
+    if not hosts:
+        raise ValueError("Configure exact allowed Host authorities.")
+    for authority in hosts:
+        parsed = urlsplit("//" + authority)
+        if (not re.fullmatch(r"[A-Za-z0-9.-]+(?::[0-9]{1,5})?", authority)
+                or not parsed.hostname or (parsed.port is not None and not 1 <= parsed.port <= 65535)):
+            raise ValueError("Configure exact allowed Host authorities.")
+    return hosts
+
+
+def handler_for(state, origins, host, port, allowed_hosts=None):
+    allowed_hosts = allowed_hosts if allowed_hosts is not None else (
+        f"{host}:{port}", f"localhost:{port}", f"127.0.0.1:{port}")
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
             pass  # Never log request URLs, headers or arbitrary client input.
@@ -288,7 +305,6 @@ def handler_for(state, origins, host, port):
 
         def respond(self, preflight):
             origin = self.headers.get("Origin")
-            allowed_hosts = {f"{host}:{port}", f"localhost:{port}", f"127.0.0.1:{port}"}
             allowed = self.headers.get("Host") in allowed_hosts and (origin is None or origin in origins)
             if not origin and self.headers.get("Sec-Fetch-Site") == "cross-site":
                 allowed = False
@@ -386,12 +402,13 @@ def handler_for(state, origins, host, port):
     return Handler
 
 
-def main():
+def main(server_factory=None):
     server = None
     worker = None
     capture = None
     tracking = None
     stop = threading.Event()
+    previous_term = signal.signal(signal.SIGTERM, lambda *_: stop.set())
     try:
         settings = configuration()
         host, port, interval, origins = feed_configuration()
@@ -403,7 +420,13 @@ def main():
         if not state.camera_doc_id:
             print("Camera document ID is not configured; frontend AI camera matching will be unavailable. "
                   "Set SEGMENTATION_CAMERA_DOC_ID and restart the bridge.", flush=True)
-        server = ThreadingHTTPServer((host, port), handler_for(state, origins, host, port))
+        allowed_hosts = allowed_hosts_configuration(host, port)
+        if server_factory is None:
+            if not ipaddress.ip_address(host).is_loopback:
+                raise ValueError("Use production_server.py for non-loopback serving.")
+            server = ThreadingHTTPServer((host, port), handler_for(state, origins, host, port, allowed_hosts))
+        else:
+            server = server_factory(state, origins, host, port, allowed_hosts)
         server.daemon_threads = True
         if fps:
             if tracking_enabled:
@@ -413,7 +436,7 @@ def main():
             capture.start()
         worker = threading.Thread(target=server.serve_forever, daemon=True)
         worker.start()
-        print("Local segmentation feed started. Ctrl+C to stop.", flush=True)
+        print("Segmentation feed started. Ctrl+C to stop.", flush=True)
         sampling_loop(state, interval, stop, settings, requests)
     except KeyboardInterrupt:
         print("Segmentation feed stopped.", flush=True)
@@ -422,6 +445,7 @@ def main():
         return 1
     finally:
         stop.set()
+        signal.signal(signal.SIGTERM, previous_term)
         if capture is not None:
             capture.close()
         if tracking is not None:
