@@ -1,4 +1,9 @@
 {
+  "hosting": {
+    "public": "hosting-dist",
+    "ignore": ["**/.*", "**/node_modules/**"],
+    "predeploy": ["node scripts/build-hosting.cjs"]
+  },
   "firestore": {
     "database": "(default)",
     "location": "asia-southeast1",
