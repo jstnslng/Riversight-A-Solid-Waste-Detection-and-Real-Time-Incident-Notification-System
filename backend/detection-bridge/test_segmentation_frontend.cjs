@@ -9,6 +9,154 @@ const source = fs.readFileSync(path.join(root, 'js/monitoring/segmentation-feed.
 const html = fs.readFileSync(path.join(root, 'lib/monitoring/Waste-Management.html'), 'utf8');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const now = Date.now();
+const roiSource = fs.readFileSync(path.join(root,'js/admin/admin-system-monitoring.js'),'utf8');
+test('waste class approval requires fresh complete exact active mapping',()=>{
+  const context={};
+  vm.runInNewContext(roiSource.slice(roiSource.indexOf('export const WASTE_CLASS_CANDIDATES'),roiSource.indexOf('\n(() => {')).replaceAll('export ',''),context);
+  const names=['food_pack','non_pla','Composite_Rubber_Textile','Organic','Paper','Plastic'];
+  const health={cameraDocId:'camera',status:'ok',latestFrameAvailable:true,lastInferenceAt:new Date(now).toISOString(),modelClassNames:names};
+  assert.equal(context.verifiedWasteMapping(health,'camera',now),true);
+  for(const changes of [{modelClassNames:undefined},{modelClassNames:names.slice(1)},
+    {modelClassNames:[...names].reverse()},{status:'degraded'},{cameraDocId:'other'},
+    {lastInferenceAt:new Date(now-15000).toISOString()}])
+    assert.equal(context.verifiedWasteMapping({...health,...changes},'camera',now),false);
+});
+test('waste class transactions save drafts and block unverified or conflicting approval',async()=>{
+  const begin=roiSource.indexOf('  async function saveWasteClasses(state)');
+  const end=roiSource.indexOf("  document.getElementById('wasteClassDraft')",begin);
+  async function run(state,{verified=true,conflict=false,confirmed=true}={}) {
+    let written;
+    const names=['food_pack','non_pla','Composite_Rubber_Textile','Organic','Paper','Plastic'];
+    const context={classBusy:false,classCamera:{id:'camera'},classVersion:2,classGeneration:0,
+      classList:{querySelectorAll:()=>[{value:'food_pack'},{value:'Plastic'}]},classMessage:{textContent:''},classDialog:{open:true},
+      window:{confirm:()=>confirmed},WASTE_CLASS_CANDIDATES:names,requireAdministrator:async()=>({uid:'admin',getIdToken:async()=> 'PRIVATE'}),
+      auth:{currentUser:{uid:'admin'}},document:{querySelector:()=>({content:'https://bridge.invalid'})},URL,AbortSignal,
+      fetch:async()=>({ok:true,json:async()=>({cameraDocId:'camera',status:'ok',latestFrameAvailable:true,
+        lastInferenceAt:new Date().toISOString(),modelClassNames:verified?names:undefined})}),
+      verifiedWasteMapping:health=>Array.isArray(health.modelClassNames),
+      doc:()=>({}),db:{},serverTimestamp:()=> 'timestamp',runTransaction:async (_db,callback)=>callback({
+        get:async()=>({exists:()=>true,data:()=>({wasteCoverageClasses:{version:conflict?3:2}})}),
+        update:(_ref,value)=>{written=value.wasteCoverageClasses;}})};
+    vm.runInNewContext(roiSource.slice(begin,end),context);
+    await context.saveWasteClasses(state);
+    assert(!context.classMessage.textContent.includes('PRIVATE'));
+    return written;
+  }
+  const draft=await run('draft');assert.equal(draft.state,'draft');assert.equal(draft.version,3);
+  assert.equal(draft.approvedBy,null);assert.equal(draft.modelVerification,null);
+  assert.equal(await run('approved',{verified:false}),undefined);
+  assert.equal(await run('approved',{conflict:true}),undefined);
+  assert.equal(await run('approved',{confirmed:false}),undefined);
+  const approved=await run('approved');assert.equal(approved.approvedBy,'admin');assert.equal(approved.classListVersion,1);
+});
+function roiValidator() {
+  const context={};
+  vm.runInNewContext(roiSource.slice(roiSource.indexOf('export function validRoiPoints'),roiSource.indexOf('\n(() => {')).replaceAll('export ',''),context);
+  return context.validRoiPoints;
+}
+test('ROI save payload uses Firestore maps, roundtrips drafts, and rejects version conflicts',async()=>{
+  const helpers={};
+  vm.runInNewContext(roiSource.slice(roiSource.indexOf('export function validRoiPoints'),roiSource.indexOf('\n(() => {')).replaceAll('export ',''),helpers);
+  const pairs=[[.2,.3],[.7,.3],[.7,.8]];
+  const canonical=JSON.parse(JSON.stringify(helpers.serializeRoiPoints(pairs)));
+  assert.deepEqual(canonical,[{x:.2,y:.3},{x:.7,y:.3},{x:.7,y:.8}]);
+  const config={points:canonical,coordinateSpace:'normalized',imageDimensions:{width:100,height:100}};
+  assert.deepEqual(JSON.parse(JSON.stringify(helpers.storedRoiPoints(config))),pairs);
+  assert.deepEqual(JSON.parse(JSON.stringify(helpers.storedRoiPoints({...config,points:pairs}))),pairs);
+  for(const points of [[{x:'0.2',y:.3}], [{x:NaN,y:0}], [{x:0}], [{x:0,y:0,z:1}],
+    [{x:0,y:0},{x:1,y:1},{x:0,y:1},{x:1,y:0}]]) assert.equal(helpers.storedRoiPoints({...config,points}).length,0);
+  function assertFirestoreValue(value,parentIsArray=false) {
+    if(Array.isArray(value)) {
+      assert(!parentIsArray,'Firestore arrays cannot directly contain arrays');
+      value.forEach(item=>assertFirestoreValue(item,true));
+    } else if(value && typeof value==='object') Object.values(value).forEach(item=>assertFirestoreValue(item,false));
+    else if(typeof value==='number') assert(Number.isFinite(value));
+  }
+  assert.throws(()=>assertFirestoreValue({points:pairs}));
+  assertFirestoreValue(config);
+  const start=roiSource.indexOf('  async function saveRoi(state)'), end=roiSource.indexOf("  document.getElementById('roiLoad')",start);
+  async function save(conflict=false,state='draft') {
+    let payload;
+    const context={busy:false,roiCamera:{id:'camera'},snapshot:{width:100,height:100},points:pairs,
+      revision:{value:'installation-1'},roiMessage:{},openedVersion:2,generation:0,roiDialog:{open:true},
+      validRoiPoints:helpers.validRoiPoints,serializeRoiPoints:helpers.serializeRoiPoints,storedRoiPoints:helpers.storedRoiPoints,
+      window:{confirm:()=>true},requireAdministrator:async()=>({uid:'admin'}),auth:{currentUser:{uid:'admin'}},
+      db:{},doc:()=>({}),serverTimestamp:()=>({timestamp:true}),
+      runTransaction:async(_db,callback)=>callback({get:async()=>({exists:()=>true,data:()=>({waterwayRoi:{...config,version:conflict?3:2}})}),
+        update:(_ref,value)=>{assertFirestoreValue(value);payload=value;}})};
+    vm.runInNewContext(roiSource.slice(start,end),context);await context.saveRoi(state);return payload;
+  }
+  for(const state of ['draft','approved','needs_recalibration']) {
+    const saved=await save(false,state);
+    assert.deepEqual(JSON.parse(JSON.stringify(saved.waterwayRoi.points)),canonical);
+    assert.equal(saved.waterwayRoi.version,3);
+    assert.equal(saved.waterwayRoi.state,state);
+    assert.equal(saved.waterwayRoi.approvedBy,state==='approved'?'admin':null);
+  }
+  assert.equal(await save(true),undefined);
+});
+test('ROI snapshot reports prefetch failures and HTTP rejections without sensitive errors',async()=>{
+  const start=roiSource.indexOf('  async function loadRoiSnapshot()');
+  const end=roiSource.indexOf("  canvas?.addEventListener('click'",start);
+  async function run({base='https://bridge.invalid',authError=false,tokenError=false,status=200,stale=false,headers={}}={}) {
+    let requests=0;
+    const context={busy:false,roiCamera:{id:'camera-doc'},generation:0,snapshot:null,points:[],
+      roiMessage:{},roiDialog:{open:true},drawRoi(){},document:{querySelector:()=>({content:base})},
+      requireAdministrator:async()=>{if(authError)throw new Error('PRIVATE');return {getIdToken:async()=>{
+        if(tokenError)throw new Error('PRIVATE');return 'PRIVATE';}};},
+      fetch:async(url,options)=>{requests++;assert(url.includes('cameraDocId=camera-doc'));
+        assert.equal(options.headers.Authorization,'Bearer PRIVATE');
+        return {ok:status===200,status,headers:{get:name=>({'Content-Type':'image/jpeg',
+          'X-Camera-Doc-Id':'camera-doc','X-Feed-Status':'ok',
+          'X-Inference-At':new Date(Date.now()-(stale?20000:0)).toISOString(),...headers})[name]},blob:async()=>({})};},
+      createImageBitmap:async()=>({width:100,height:100,close(){}}),canvas:{},
+      URL,Date,AbortController,setTimeout,clearTimeout};
+    vm.runInNewContext(roiSource.slice(start,end),context);
+    await context.loadRoiSnapshot();
+    assert(!context.roiMessage.textContent.includes('PRIVATE'));
+    return {requests,message:context.roiMessage.textContent};
+  }
+  for(const options of [{base:''},{base:'http://bridge.invalid'},{authError:true},{tokenError:true}])
+    assert.equal((await run(options)).requests,0);
+  for(const status of [401,403,404,503]) {
+    const result=await run({status});assert.equal(result.requests,1);assert(result.message.includes(`HTTP ${status}`));
+  }
+  assert((await run({stale:true})).message.includes('stale'));
+  for (const [headers,category] of [
+    [{'Content-Type':'application/json'},'not a JPEG'],
+    [{'X-Camera-Doc-Id':null},'camera metadata is missing'],
+    [{'X-Camera-Doc-Id':'other'},'identity does not match'],
+    [{'X-Feed-Status':null},'status metadata is missing'],
+    [{'X-Feed-Status':'degraded'},'inference is degraded'],
+    [{'X-Inference-At':null},'timestamp is missing'],
+    [{'X-Inference-At':'invalid'},'timestamp is invalid'],
+    [{'X-Inference-At':new Date(Date.now()+60000).toISOString()},'ahead of the browser clock']
+  ]) assert((await run({headers})).message.includes(category));
+  assert((await run()).message.includes('Snapshot loaded'));
+});
+test('ROI geometry accepts convex/concave polygons and rejects invalid boundaries',()=>{
+  const valid=roiValidator();
+  assert.equal(valid([[0,0],[1,0],[1,1],[0,1]]),true);
+  assert.equal(valid([[0,0],[1,0],[.5,.5],[1,1],[0,1]]),true);
+  for(const polygon of [[],[[0,0],[1,1]],[[0,0],[1,1],[0,1],[1,0]],
+    [[0,0],[0,0],[1,1]],[[0,0],[2,0],[1,1]],[[0,0],[NaN,0],[1,1]],
+    [[0,0],[.5,.5],[1,1]],Array.from({length:257},(_,i)=>[i/257,0])]) assert.equal(valid(polygon),false);
+});
+test('ROI approval cancellation and nonadministrator saves cannot write',async()=>{
+  const start=roiSource.indexOf('  async function saveRoi(state)');
+  const end=roiSource.indexOf("  document.getElementById('roiLoad')",start);
+  let writes=0,checks=0;
+  const context={busy:false,roiCamera:{id:'camera'},snapshot:{width:100,height:100},
+    points:[[0,0],[1,0],[1,1]],revision:{value:'installation-1'},roiMessage:{},openedVersion:0,generation:0,
+    validRoiPoints:roiValidator(),window:{confirm:()=>false},
+    requireAdministrator:async()=>{checks++;throw new Error('denied');},
+    runTransaction:async()=>{writes++;}};
+  vm.runInNewContext(roiSource.slice(start,end),context);
+  await context.saveRoi('approved');
+  assert.equal(checks,0);assert.equal(writes,0);
+  await context.saveRoi('draft');
+  assert.equal(checks,1);assert.equal(writes,0);
+});
 function setup(fetch, cameraId = 'doc-1', protocol = 'http:', configuredBase = '', tokenProvider, clock) {
   const classes = new Set();
   const iframe = {};

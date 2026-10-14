@@ -35,6 +35,18 @@ def payload(rows):
 
 
 class SegmentationTests(unittest.TestCase):
+    def test_active_class_inventory_is_sanitized_and_preserves_dataset_underscores(self):
+        names=['food_pack','non_pla','Composite_Rubber_Textile','Organic','Paper','Plastic']
+        source=payload([row(name='food_pack')]);source['metadata']['classNames']=names
+        predictions,_=one_frame.safe_predictions(source)
+        self.assertEqual(predictions.class_names,names)
+        self.assertEqual(predictions[0]['name'],'food_pack')
+        source['metadata']['classNames']={str(i):name for i,name in enumerate(names)}
+        self.assertEqual(one_frame.safe_predictions(source)[0].class_names,names)
+        for metadata in [None,['bad/url'],['same','same'],{'1':'Plastic'}]:
+            source['metadata']['classNames']=metadata
+            self.assertIsNone(one_frame.safe_predictions(source)[0].class_names)
+
     def setUp(self):
         self.stack = contextlib.ExitStack()
         self.addCleanup(self.stack.close)

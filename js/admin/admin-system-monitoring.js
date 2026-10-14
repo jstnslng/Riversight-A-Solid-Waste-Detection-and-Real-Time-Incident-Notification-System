@@ -1,4 +1,4 @@
-import { db } from "../shared/firebase-config.js";
+import { auth, db } from "../shared/firebase-config.js";
 import {
   collection,
   onSnapshot,
@@ -6,10 +6,300 @@ import {
   doc,
   updateDoc,
   serverTimestamp,
+  getDoc,
+  runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
 
+export const WASTE_CLASS_CANDIDATES = ['food_pack','non_pla','Composite_Rubber_Textile','Organic','Paper','Plastic'];
+export function verifiedWasteMapping(health, cameraId, now=Date.now()) {
+  const age=now-Date.parse(health?.lastInferenceAt);
+  return health?.cameraDocId===cameraId && health.status==='ok' && health.latestFrameAvailable===true &&
+    Number.isFinite(age) && age>=-5000 && age<15000 && Array.isArray(health.modelClassNames) &&
+    health.modelClassNames.length===WASTE_CLASS_CANDIDATES.length &&
+    health.modelClassNames.every((name,id)=>name===WASTE_CLASS_CANDIDATES[id]);
+}
+export function validRoiPoints(points) {
+  if (!Array.isArray(points) || points.length < 3 || points.length > 256 ||
+      points.some(p => !Array.isArray(p) || p.length !== 2 || p.some(v => !Number.isFinite(v) || v < 0 || v > 1)) ||
+      new Set(points.map(p => JSON.stringify(p))).size !== points.length) return false;
+  const cross = (a,b,c) => (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+  const on = (a,b,c) => cross(a,b,c) === 0 && c.every((v,k) => v >= Math.min(a[k],b[k]) && v <= Math.max(a[k],b[k]));
+  for (let i=0;i<points.length;i++) for (let j=i+1;j<points.length;j++) {
+    if (j === i+1 || (i===0 && j===points.length-1)) continue;
+    const a=points[i], b=points[(i+1)%points.length], c=points[j], d=points[(j+1)%points.length];
+    if ((cross(a,b,c)*cross(a,b,d)<0 && cross(c,d,a)*cross(c,d,b)<0) ||
+        on(a,b,c) || on(a,b,d) || on(c,d,a) || on(c,d,b)) return false;
+  }
+  return Math.abs(points.reduce((s,a,i) => s+a[0]*points[(i+1)%points.length][1]-a[1]*points[(i+1)%points.length][0],0)) >= 1e-9;
+}
+
+export function storedRoiPoints(config) {
+  if (!config || !Array.isArray(config.points)) return [];
+  const converted=config.points.map(point => {
+    if (Array.isArray(point) && point.length===2) return [...point];
+    if (point && typeof point==='object' && Object.keys(point).length===2 && 'x' in point && 'y' in point) return [point.x,point.y];
+    return null;
+  });
+  if (converted.some(point=>!point || point.some(value=>!Number.isFinite(value)))) return [];
+  if (config.coordinateSpace==='pixels') {
+    const {width,height}=config.imageDimensions || {};
+    if (!Number.isInteger(width) || !Number.isInteger(height) || width<2 || height<2) return [];
+    converted.forEach(point=>{point[0]/=width-1;point[1]/=height-1;});
+  } else if (config.coordinateSpace!=='normalized') return [];
+  return validRoiPoints(converted) ? converted : [];
+}
+export function serializeRoiPoints(points) {
+  if (!validRoiPoints(points)) throw new Error('Invalid ROI geometry');
+  return points.map(([x,y])=>({x,y}));
+}
+
 (() => {
+  const roiDialog = document.getElementById('roiDialog');
+  const canvas = document.getElementById('roiCanvas');
+  const roiMessage = document.getElementById('roiMessage');
+  const revision = document.getElementById('roiRevision');
+  let administrator = false, roiCamera = null, points = [], snapshot = null, busy = false, generation = 0;
+  let openedVersion = 0;
+  const classDialog=document.getElementById('wasteClassDialog');
+  const classMessage=document.getElementById('wasteClassMessage');
+  const classList=document.getElementById('wasteClassList');
+  let classCamera=null,classVersion=0,classBusy=false,classGeneration=0;
+  function openWasteClasses(camera) {
+    if (!administrator || classBusy) return;
+    classCamera=camera;classVersion=camera.wasteCoverageClasses?.version || 0;classGeneration++;
+    const selected=camera.wasteCoverageClasses?.names || ['food_pack','Composite_Rubber_Textile','Paper','Plastic'];
+    classList.replaceChildren();
+    WASTE_CLASS_CANDIDATES.forEach((name,id)=>{
+      const label=document.createElement('label'), input=document.createElement('input');
+      input.type='checkbox';input.value=name;input.checked=selected.includes(name);
+      label.append(input,document.createTextNode(`${id} = ${name}${['non_pla','Organic'].includes(name)?' — group clarification required':''}`));
+      classList.appendChild(label);
+    });
+    classMessage.textContent='Candidate dataset mapping only. Approval requires a fresh matching class inventory from this camera’s active cloud inference.';
+    classDialog.showModal();
+  }
+  async function saveWasteClasses(state) {
+    if (classBusy || !classCamera) return;
+    const names=Array.from(classList.querySelectorAll('input:checked'),input=>input.value);
+    if (!names.length || names.some(name=>!WASTE_CLASS_CANDIDATES.includes(name))) {
+      classMessage.textContent='Select at least one candidate class.';return;
+    }
+    if (state==='approved' && names.some(name=>['non_pla','Organic'].includes(name))) {
+      classMessage.textContent='Approval blocked: non_pla and Organic require group clarification. Save a draft or exclude them.';return;
+    }
+    if (state==='approved' && !window.confirm('Approve these selected waste classes? This does not approve a waterway ROI.')) return;
+    classBusy=true;
+    const current=classGeneration, cameraId=classCamera.id, expectedVersion=classVersion;
+    try {
+      const user=await requireAdministrator();
+      let verification=null;
+      if (state==='approved') {
+        const base=new URL(document.querySelector('meta[name="riversight-ai-backend"]')?.content);
+        if(base.protocol!=='https:' || base.username || base.password || base.search || base.hash || base.pathname!=='/') throw new Error();
+        classMessage.textContent='Verifying active cloud class mapping…';
+        const response=await fetch(`${base.origin}/feed-health?cameraDocId=${encodeURIComponent(cameraId)}`,{
+          headers:{Authorization:`Bearer ${await user.getIdToken()}`},credentials:'omit',cache:'no-store',
+          referrerPolicy:'no-referrer',signal:AbortSignal.timeout(10000)
+        });
+        if(!response.ok) throw new Error();
+        const health=await response.json();
+        if(!verifiedWasteMapping(health,cameraId)) throw new Error();
+        verification={classNames:[...health.modelClassNames],inferenceAt:health.lastInferenceAt};
+      }
+      await runTransaction(db,async transaction=>{
+        const ref=doc(db,'camera_feeds',cameraId), existing=await transaction.get(ref);
+        if(!existing.exists() || auth.currentUser?.uid!==user.uid || current!==classGeneration || !classDialog.open ||
+           (existing.data().wasteCoverageClasses?.version || 0)!==expectedVersion) throw new Error();
+        if(verification && !verifiedWasteMapping({cameraDocId:cameraId,status:'ok',latestFrameAvailable:true,
+            modelClassNames:verification.classNames,lastInferenceAt:verification.inferenceAt},cameraId)) throw new Error();
+        transaction.update(ref,{wasteCoverageClasses:{state,names,version:expectedVersion+1,
+          classListVersion:1,candidateClassNames:[...WASTE_CLASS_CANDIDATES],
+          modelVerification:verification,updatedAt:serverTimestamp(),updatedBy:user.uid,
+          approvedAt:state==='approved'?serverTimestamp():null,approvedBy:state==='approved'?user.uid:null}});
+      });
+      classVersion++;classMessage.textContent=`Saved ${state}. ROI approval remains separate.`;
+    } catch {classMessage.textContent=state==='approved'
+      ? 'Approval blocked: active class mapping could not be verified, access was denied, or configuration changed. Nothing was approved; Save Draft remains available.'
+      : 'Draft not saved: access denied or conflicting edit. Reopen and retry.';}
+    finally {classBusy=false;}
+  }
+  document.getElementById('wasteClassDraft')?.addEventListener('click',()=>saveWasteClasses('draft'));
+  document.getElementById('wasteClassApprove')?.addEventListener('click',()=>saveWasteClasses('approved'));
+  document.getElementById('wasteClassClose')?.addEventListener('click',()=>classDialog.close());
+  classDialog?.addEventListener('close',()=>{classGeneration++;});
+  async function requireAdministrator() {
+    await auth.authStateReady();
+    const user = auth.currentUser;
+    if (!user || (await getDoc(doc(db,'users',user.uid))).data()?.role !== 'Administrator') throw new Error('Denied');
+    if (auth.currentUser?.uid !== user.uid) throw new Error('Denied');
+    return user;
+  }
+  onAuthStateChanged(auth, async () => {
+    administrator = false;
+    generation++;
+    roiDialog?.close();
+    classDialog?.close();
+    snapshot = null;
+    try { await requireAdministrator(); administrator = true; } catch {}
+    renderCameras();
+  });
+  function drawRoi() {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if (snapshot) ctx.drawImage(snapshot,0,0);
+    ctx.strokeStyle = '#ffdf00'; ctx.fillStyle = '#ffdf00'; ctx.lineWidth = Math.max(2,canvas.width/500);
+    if (points.length) {
+      ctx.beginPath();
+      points.forEach(([x,y],i) => i ? ctx.lineTo(x*(canvas.width-1),y*(canvas.height-1)) : ctx.moveTo(x*(canvas.width-1),y*(canvas.height-1)));
+      if (points.length>=3) ctx.closePath();
+      ctx.stroke();
+      points.forEach(([x,y]) => {ctx.beginPath();ctx.arc(x*(canvas.width-1),y*(canvas.height-1),4,0,2*Math.PI);ctx.fill();});
+    }
+  }
+  async function openRoi(camera) {
+    if (busy) return;
+    try {
+      await requireAdministrator();
+      snapshot?.close();
+      roiCamera = camera; snapshot = null; points = [];
+      openedVersion = camera.waterwayRoi?.version || 0;
+      revision.value = camera.waterwayRoi?.installationRevision || '';
+      document.getElementById('roiCameraName').textContent = camera.title;
+      roiMessage.textContent = `ROI: ${camera.waterwayRoi?.state || 'unconfigured'}. Load a current snapshot before drawing.`;
+      canvas.width=640; canvas.height=360; drawRoi();
+      roiDialog.showModal();
+    } catch { showNotification('Administrator access required.','error'); }
+  }
+  async function loadRoiSnapshot() {
+    if (busy) {roiMessage.textContent='A save is in progress. Retry when it completes.';return;}
+    if (!roiCamera?.id || !/^[A-Za-z0-9_-]{1,128}$/.test(roiCamera.id)) {
+      roiMessage.textContent='Camera configuration unavailable: select a valid camera document.';return;
+    }
+    const current = ++generation;
+    let message='Snapshot editor initialization failed. Reopen the editor.';
+    const controller=new AbortController();
+    let timeout;
+    try {
+      snapshot?.close();snapshot=null; points=[]; drawRoi();
+      message='AI backend configuration missing or invalid. Reload the page after Hosting configuration is corrected.';
+      const configured=document.querySelector('meta[name="riversight-ai-backend"]')?.content?.trim();
+      if (!configured) throw new Error();
+      const base = new URL(configured);
+      if (base.protocol!=='https:' || base.username || base.password || base.search || base.hash || base.pathname!=='/') throw new Error();
+      message='Administrator authentication could not be verified. Sign in again or check access to your user profile.';
+      const user = await requireAdministrator();
+      message='Firebase authentication token unavailable. Sign in again.';
+      const token=await user.getIdToken();
+      if (!token) throw new Error();
+      if (current!==generation || !roiDialog.open) return;
+      message='Snapshot request failed: network, HTTPS origin/CORS, or timeout. No HTTP response was readable.';
+      roiMessage.textContent='Requesting authorized camera snapshot…';
+      timeout=setTimeout(()=>controller.abort(),10000);
+      const response = await fetch(`${base.origin}/latest-segmentation.jpg?cameraDocId=${encodeURIComponent(roiCamera.id)}`, {
+        headers:{Authorization:`Bearer ${token}`}, credentials:'omit',cache:'no-store',
+        referrerPolicy:'no-referrer',signal:controller.signal
+      });
+      if (!response.ok) {
+        message=response.status===401 ? 'HTTP 401: Firebase sign-in required. Sign in again.'
+          : response.status===403 ? 'HTTP 403: access denied. Verify the selected camera, active administrator account and explicit camera viewer grant; administrator role alone does not grant feed access.'
+          : response.status===404 ? 'HTTP 404: snapshot endpoint not found. Verify the backend deployment and configured origin.'
+          : response.status===503 ? 'HTTP 503: camera snapshot is not available yet. Retry when inference is healthy.'
+          : `Snapshot request returned HTTP ${response.status}. Retry or contact an administrator.`;
+        throw new Error();
+      }
+      const contentType=response.headers.get('Content-Type');
+      const cameraId=response.headers.get('X-Camera-Doc-Id');
+      const feedStatus=response.headers.get('X-Feed-Status');
+      const inferenceAt=response.headers.get('X-Inference-At');
+      message='Snapshot rejected: response is not a JPEG.';
+      if (!contentType?.startsWith('image/jpeg')) throw new Error();
+      message='Snapshot rejected: camera metadata is missing or not exposed through CORS.';
+      if (!cameraId) throw new Error();
+      message='Snapshot rejected: camera identity does not match the selected camera.';
+      if (cameraId!==roiCamera.id) throw new Error();
+      message='Snapshot rejected: feed status metadata is missing or not exposed through CORS.';
+      if (!feedStatus) throw new Error();
+      message=feedStatus==='degraded' ? 'Snapshot rejected: inference is degraded; a retained JPEG is not healthy.'
+        : 'Snapshot rejected: feed is not healthy.';
+      if (feedStatus!=='ok') throw new Error();
+      message='Snapshot rejected: inference timestamp is missing or not exposed through CORS.';
+      if (!inferenceAt) throw new Error();
+      const age = Date.now()-Date.parse(inferenceAt);
+      message='Snapshot rejected: inference timestamp is invalid.';
+      if (!Number.isFinite(age)) throw new Error();
+      message='Snapshot rejected: inference timestamp is ahead of the browser clock by more than 5 seconds. Check clock synchronization.';
+      if (age < -5000) throw new Error();
+      message='Snapshot rejected: inference is stale (15 seconds or older). Wait for fresh successful inference.';
+      if (age>=15000) throw new Error();
+      message='Snapshot image could not be decoded or has unsupported dimensions.';
+      const bitmap=await createImageBitmap(await response.blob());
+      if (current!==generation || !roiDialog.open) {bitmap.close();return;}
+      if (bitmap.width<2 || bitmap.height<2 || bitmap.width*bitmap.height>16777216) {bitmap.close();throw new Error();}
+      const decodedAge=Date.now()-Date.parse(inferenceAt);
+      if (decodedAge>=15000 || decodedAge < -5000) {
+        bitmap.close();message='Snapshot rejected: frame expired while downloading or decoding. Retry for a fresh snapshot.';throw new Error();
+      }
+      snapshot=bitmap; canvas.width=bitmap.width;canvas.height=bitmap.height;
+      const reference=roiCamera.waterwayRoi?.imageDimensions;
+      if (reference?.width*bitmap.height===reference?.height*bitmap.width) points=storedRoiPoints(roiCamera.waterwayRoi);
+      drawRoi();
+      roiMessage.textContent='Snapshot loaded. Click the waterway boundary; confirm the installation revision before saving.';
+    } catch { if(current===generation) roiMessage.textContent=message; }
+    finally {clearTimeout(timeout);controller.abort();}
+  }
+  canvas?.addEventListener('click', event => {
+    if (!snapshot || busy || points.length>=256) return;
+    const bounds=canvas.getBoundingClientRect();
+    const next=[...points,[Math.max(0,Math.min(1,(event.clientX-bounds.left)/bounds.width)),Math.max(0,Math.min(1,(event.clientY-bounds.top)/bounds.height))]];
+    if (next.length>=3 && !validRoiPoints(next)) {roiMessage.textContent='Point rejected: polygon would be invalid or intersect itself.';return;}
+    points=next;drawRoi();
+  });
+  async function saveRoi(state) {
+    if (busy || !roiCamera) return;
+    if (state!=='needs_recalibration' && (!snapshot || !validRoiPoints(points) || !revision.value.trim())) {
+      roiMessage.textContent='Load a snapshot, draw 3–256 valid vertices, and enter an installation revision.';return;
+    }
+    if (state==='approved' && !window.confirm('Approve this waterway polygon for this camera and installation revision? Confirm that the snapshot represents its current position.')) return;
+    if (state==='needs_recalibration' && !window.confirm('Invalidate this camera ROI after relocation? Coverage will become unavailable.')) return;
+    busy=true;
+    const expectedVersion=openedVersion, editGeneration=generation;
+    try {
+      const user=await requireAdministrator(), cameraId=roiCamera.id;
+      if (!roiDialog.open || editGeneration!==generation) throw new Error();
+      const geometry=state==='needs_recalibration' ? null : serializeRoiPoints(points), dimensions=snapshot ? {width:snapshot.width,height:snapshot.height}:null;
+      const installationRevision=revision.value.trim();
+      await runTransaction(db, async transaction => {
+        const ref=doc(db,'camera_feeds',cameraId), existing=await transaction.get(ref);
+        if (!existing.exists() || auth.currentUser?.uid!==user.uid || editGeneration!==generation) throw new Error();
+        const old=existing.data().waterwayRoi || {};
+        if ((old.version || 0)!==expectedVersion) throw new Error();
+        const oldPoints=storedRoiPoints(old);
+        const roi=state==='needs_recalibration' ? {...old,coordinateSpace:'normalized',
+          points:oldPoints.length ? serializeRoiPoints(oldPoints) : []} : {
+          coordinateSpace:'normalized',points:geometry,imageDimensions:dimensions,installationRevision
+        };
+        transaction.update(ref,{waterwayRoi:{...roi,state,version:expectedVersion+1,
+          updatedAt:serverTimestamp(),updatedBy:user.uid,
+          approvedAt:state==='approved'?serverTimestamp():null,approvedBy:state==='approved'?user.uid:null}});
+      });
+      openedVersion++;
+      // Retain the last saved draft geometry for a subsequent snapshot reload.
+      if (geometry) roiCamera.waterwayRoi={coordinateSpace:'normalized',points:geometry,imageDimensions:dimensions,
+        installationRevision,state,version:openedVersion};
+      roiMessage.textContent=`Saved ${state}. Waste class approval remains separate.`;
+    } catch {roiMessage.textContent='Save denied or camera configuration changed. Reopen the editor and retry.';}
+    finally {busy=false;}
+  }
+  document.getElementById('roiLoad')?.addEventListener('click',loadRoiSnapshot);
+  document.getElementById('roiUndo')?.addEventListener('click',()=>{if(!busy){points.pop();drawRoi();}});
+  document.getElementById('roiReset')?.addEventListener('click',()=>{if(!busy){points=[];drawRoi();}});
+  document.getElementById('roiDraft')?.addEventListener('click',()=>saveRoi('draft'));
+  document.getElementById('roiApprove')?.addEventListener('click',()=>saveRoi('approved'));
+  document.getElementById('roiInvalidate')?.addEventListener('click',()=>saveRoi('needs_recalibration'));
+  document.getElementById('roiClose')?.addEventListener('click',()=>roiDialog.close());
+  roiDialog?.addEventListener('close',()=>{generation++;snapshot?.close();snapshot=null;points=[];});
   let cameras = [];
   let systemMetrics = {
     cpu: 0,
@@ -139,6 +429,10 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
       <button type="button" data-action="restart">Restart Camera</button>
       <button type="button" data-action="reconnect">Reconnect</button>
       <button type="button" class="light" data-action="settings">Settings</button>`;
+    if (administrator) {
+      const button=document.createElement('button');button.type='button';button.dataset.action='roi';button.textContent='Configure Waterway ROI';actions.appendChild(button);
+      const classes=document.createElement('button');classes.type='button';classes.dataset.action='waste-classes';classes.textContent='Configure Waste Classes';actions.appendChild(classes);
+    }
     actions.querySelectorAll("[data-action]").forEach((button) => {
       button.addEventListener("click", () => handleCameraAction(camera, button.dataset.action));
     });
@@ -148,6 +442,8 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
   }
 
   function handleCameraAction(camera, action) {
+    if (action === 'waste-classes') { openWasteClasses(camera); return; }
+    if (action === 'roi') { openRoi(camera); return; }
     if (action === "view") {
       window.location.href = `../monitoring/Live-Monitoring.html?cameraId=${encodeURIComponent(camera.camId)}`;
       return;
@@ -354,6 +650,8 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
       const data = cameraDoc.data();
       return {
         id: cameraDoc.id,
+        waterwayRoi: data.waterwayRoi || null,
+        wasteCoverageClasses: data.wasteCoverageClasses || null,
         camId: data.camId || cameraDoc.id,
         title: data.title || "Unknown Camera",
         region: data.region || "N/A",

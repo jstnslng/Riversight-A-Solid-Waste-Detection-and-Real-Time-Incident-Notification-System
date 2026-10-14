@@ -15,11 +15,124 @@ from urllib.parse import parse_qs, urlsplit
 
 import cv2
 import numpy as np
+import copy
 
 from one_frame import configuration, capture_one_frame, predict
 from evidence_renderer import render_predictions
 from live_capture import LiveCapture
 from visual_tracking import MAX_TRACKS, TrackingWorker
+from prediction_geometry import normalized_roi, validated_segments, finite_number, safe_class_name
+
+
+def unavailable_coverage(reason):
+    return dict(available=False, reason=reason, percentage=None)
+
+
+class CameraConfigurationCache:
+    """One camera, one refresh thread, one value; never used for viewer grants."""
+    TTL_SECONDS = 5
+    REFRESH_SECONDS = 2
+
+    def __init__(self, camera_id, read):
+        self.camera_id, self.read = camera_id, read
+        self.lock = threading.Lock()
+        self.stop = threading.Event()
+        self.document, self.expires = None, 0
+        self.worker = threading.Thread(target=self._run, daemon=True)
+
+    def start(self):
+        self.worker.start()
+
+    def close(self):
+        self.stop.set()
+        with self.lock:
+            self.document, self.expires = None, 0
+
+    def snapshot(self, camera_id):
+        with self.lock:
+            if camera_id != self.camera_id or self.stop.is_set() or time.monotonic() >= self.expires:
+                return None, 0
+            return self.document, self.expires
+
+    def _refresh(self):
+        # Age begins before I/O: slow reads never make old approval look fresh.
+        expires = time.monotonic() + self.TTL_SECONDS
+        try:
+            value = self.read(f"camera_feeds/{self.camera_id}")
+            document = {key: copy.deepcopy(value.get(key)) for key in ("waterwayRoi", "wasteCoverageClasses")} if isinstance(value, dict) else None
+        except Exception:
+            document = None  # Fixed unavailable state; never log SDK errors.
+        with self.lock:
+            if self.stop.is_set() or time.monotonic() >= expires:
+                document = None
+            self.document, self.expires = document, expires if document is not None else 0
+
+    def _run(self):
+        while not self.stop.is_set():
+            self._refresh()
+            self.stop.wait(self.REFRESH_SECONDS)
+
+
+def waterway_coverage(document, predictions, width, height):
+    """Union exact cloud polygons in source pixels; no bbox/tracker estimates."""
+    try:
+        if not isinstance(document, dict):
+            return unavailable_coverage("unconfigured")
+        roi = document.get("waterwayRoi")
+        if not isinstance(roi, dict):
+            return unavailable_coverage("unconfigured")
+        points = normalized_roi(roi, width, height)
+        policy = document.get("wasteCoverageClasses", {})
+        names = policy.get("names")
+        if (policy.get("state") != "approved" or type(policy.get("version")) is not int
+                or policy["version"] < 1 or not isinstance(names, list) or not 1 <= len(names) <= 256
+                or not all(safe_class_name(name) for name in names) or len(set(names)) != len(names)):
+            return unavailable_coverage("waste_classes_not_approved")
+        if width * height > 16777216:
+            return unavailable_coverage("image_too_large")
+        if getattr(predictions, "source_shape", (height,width)) != (height,width):
+            return unavailable_coverage("prediction_dimensions_mismatch")
+        if set(names) & getattr(predictions, "invalid_mask_names", set()):
+            return unavailable_coverage("missing_or_invalid_mask")
+        if hasattr(predictions, "class_names") and (
+                predictions.class_names is None or not set(names) <= set(predictions.class_names)):
+            return unavailable_coverage("model_classes_unverified")
+        verification = policy.get("modelVerification")
+        if verification is not None and (not isinstance(verification, dict)
+                or verification.get("classNames") != getattr(predictions,"class_names",None)):
+            return unavailable_coverage("model_class_mapping_changed")
+        region = np.zeros((height, width), np.uint8)
+        polygon = np.rint(np.array(points) * [width-1, height-1]).astype(np.int32)
+        cv2.fillPoly(region, [polygon], 1)
+        denominator = int(np.count_nonzero(region))
+        if not denominator:
+            return unavailable_coverage("invalid_roi")
+        waste = np.zeros_like(region)
+        selected = [p for p in predictions if p.get("name") in names]
+        if not selected:
+            return unavailable_coverage("no_waste_masks")
+        for prediction in selected:
+            segments = prediction.get("segments")
+            if (not finite_number(prediction.get("confidence")) or not 0 <= prediction["confidence"] <= 1
+                    or not isinstance(segments, dict)):
+                return unavailable_coverage("missing_or_invalid_mask")
+            xs, ys = segments.get("x"), segments.get("y")
+            if (not isinstance(xs, list) or not isinstance(ys, list)
+                    or not all(finite_number(x) and 0 <= x <= width-1 for x in xs)
+                    or not all(finite_number(y) and 0 <= y <= height-1 for y in ys)):
+                return unavailable_coverage("missing_or_invalid_mask")
+            # Reuse strict simple-polygon validation without changing cloud geometry.
+            normalized_roi(dict(state="approved", version=1, imageDimensions=dict(width=width,height=height),
+                                coordinateSpace="pixels", points=[list(p) for p in zip(xs,ys)]), width, height)
+            if validated_segments(segments, width, height) is None:
+                return unavailable_coverage("missing_or_invalid_mask")
+            cv2.fillPoly(waste, [np.rint(np.column_stack((xs,ys))).astype(np.int32)], 1)
+        numerator = int(np.count_nonzero(waste & region))
+        return dict(available=True, reason=None, percentage=100*numerator/denominator,
+                    wastePixels=numerator, waterwayPixels=denominator, roiVersion=roi["version"],
+                    classPolicyVersion=policy["version"], imageWidth=width, imageHeight=height)
+    except Exception:
+        return unavailable_coverage("invalid_configuration_or_mask")
 
 
 def tracking_configuration():
@@ -78,6 +191,12 @@ class LatestFrame:
         self.at = None
         self.count = 0
         self.failed = False
+        self.coverage_reader = None
+        self.coverage_cache = None
+        self.coverage_config_expires = None
+        self.coverage = unavailable_coverage("unconfigured")
+        self.coverage_mono = 0
+        self.model_classes = None
         self.latencies = deque(maxlen=60)
         self.timing = dict(lastInferenceCapturedAt=None, lastCloudRequestAt=None, lastCloudResponseAt=None,
                            latestInferenceLatencyMs=None, averageInferenceLatencyMs=None, inferenceFrameAgeMs=None)
@@ -91,12 +210,16 @@ class LatestFrame:
                                averageInferenceLatencyMs=round(sum(self.latencies) / len(self.latencies), 2),
                                inferenceFrameAgeMs=round(max(0, (ended - captured_mono) * 1000), 2))
 
-    def publish(self, jpeg, count):
+    def publish(self, jpeg, count, coverage=None, captured_mono=0, model_classes=None, config_expires=None):
         # JPEG and matching metadata become visible in one locked operation.
         with self.lock:
             self.jpeg, self.count = bytes(jpeg), count
             self.at = datetime.now(timezone.utc).isoformat()
             self.failed = False
+            self.coverage = coverage or unavailable_coverage("unconfigured")
+            self.coverage_mono = captured_mono
+            self.model_classes = model_classes
+            self.coverage_config_expires = config_expires
 
     def failure(self):
         with self.lock:
@@ -104,10 +227,26 @@ class LatestFrame:
 
     def snapshot(self):
         with self.lock:
+            coverage = self.coverage
+            if coverage.get("available") and self.coverage_cache is not None:
+                document, _ = self.coverage_cache.snapshot(self.camera_doc_id)
+                if not document:
+                    coverage = unavailable_coverage("configuration_unavailable")
+                elif any(not isinstance(document.get(key), dict) or document[key].get("state") != "approved"
+                         or document[key].get("version") != coverage.get(version)
+                         for key, version in (("waterwayRoi", "roiVersion"), ("wasteCoverageClasses", "classPolicyVersion"))):
+                    coverage = unavailable_coverage("configuration_changed")
+            if self.failed:
+                coverage = unavailable_coverage("inference_unavailable")
+            elif coverage.get("available") and self.coverage_config_expires is not None and time.monotonic() >= self.coverage_config_expires:
+                coverage = unavailable_coverage("configuration_expired")
+            elif coverage.get("available") and time.monotonic() - self.coverage_mono >= 15:
+                coverage = unavailable_coverage("stale_prediction")
             return self.jpeg, {"status": "degraded" if self.failed else "ok" if self.jpeg else "waiting",
                                "model": "YOLOv8n-seg", "latestFrameAvailable": self.jpeg is not None,
                                "lastInferenceAt": self.at, "lastPredictionCount": self.count,
-                               "cameraDocId": self.camera_doc_id, **self.timing}
+                               "cameraDocId": self.camera_doc_id, "waterwayCoverage": coverage, **self.timing,
+                               **({"modelClassNames": list(self.model_classes)} if self.model_classes is not None else {})}
 
 
 class StreamingFrame(LatestFrame):
@@ -153,6 +292,7 @@ class StreamingFrame(LatestFrame):
 
     def capture_failed(self):
         with self.lock:
+            self.coverage = unavailable_coverage("capture_unavailable")
             self.raw = None
             self.epoch += 1
             self.pending = None
@@ -166,12 +306,12 @@ class StreamingFrame(LatestFrame):
                 raise ValueError("No fresh camera frame.")
             return self.raw, self.raw_at, self.raw_mono, self.epoch
 
-    def publish_result(self, jpeg, count, captured_at, correction=None):
+    def publish_result(self, jpeg, count, captured_at, correction=None, coverage=None, captured_mono=0, model_classes=None, config_expires=None):
         if correction is not None:
             source, predictions, stamp, epoch = correction
             correction = (source, tuple(sorted(predictions, key=lambda row: row['confidence'], reverse=True)[:MAX_TRACKS]), stamp, epoch)
         with self.lock:
-            super().publish(jpeg, count)
+            super().publish(jpeg, count, coverage, captured_mono, model_classes, config_expires)
             self.result_mono = time.monotonic()
             if self.tracking_enabled and correction is not None and correction[3] == self.epoch:
                 self.pending = correction  # Single latest-result mailbox, not a queue.
@@ -201,6 +341,8 @@ class StreamingFrame(LatestFrame):
             capture_active = self.raw is not None and time.monotonic() - self.raw_mono < 3
             healthy = (capture_active and not self.failed and self.jpeg is not None
                        and time.monotonic() - self.result_mono < 15 and not self.stop.is_set())
+            if not capture_active or self.stop.is_set():
+                health["waterwayCoverage"] = unavailable_coverage("capture_unavailable")
             health.update(streamEnabled=True, streamAvailable=healthy,
                           captureActive=capture_active, lastFrameAt=self.raw_at,
                           inferenceIntervalSeconds=self.interval, streamTargetFps=self.fps,
@@ -248,10 +390,26 @@ def sample_cycle(state, rtsp, endpoint, key, requests):
     ended_at, ended = datetime.now(timezone.utc).isoformat(), time.monotonic()
     state.record_timing(captured_at, captured_mono, started_at, started, ended_at, ended)
     processed, count = processed_jpeg(jpeg, predictions)
+    coverage = unavailable_coverage("unconfigured")
+    config_expires = None
+    if state.coverage_cache is not None or state.coverage_reader is not None:
+        try:
+            if state.coverage_cache is not None:
+                document, config_expires = state.coverage_cache.snapshot(state.camera_doc_id)
+                if document is None:
+                    raise ValueError()
+            else:
+                document = state.coverage_reader()  # Optional offline/local injection.
+            original = cv2.imdecode(np.frombuffer(jpeg, dtype=np.uint8), cv2.IMREAD_COLOR)
+            height, width = original.shape[:2]
+            coverage = waterway_coverage(document, predictions, width, height)
+            coverage["sourceCapturedAt"] = captured_at
+        except Exception:
+            coverage = unavailable_coverage("configuration_unavailable")
     if isinstance(state, StreamingFrame):
-        state.publish_result(processed, count, captured_at, (jpeg, predictions, captured_mono, epoch))
+        state.publish_result(processed, count, captured_at, (jpeg, predictions, captured_mono, epoch), coverage, captured_mono, getattr(predictions,"class_names",None), config_expires)
     else:
-        state.publish(processed, count)
+        state.publish(processed, count, coverage, captured_mono, getattr(predictions,"class_names",None), config_expires)
 
 
 def sampling_loop(state, interval, stop, settings, requests):

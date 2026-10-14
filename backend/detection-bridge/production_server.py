@@ -137,9 +137,12 @@ class ProductionServer:
             raise feed.StartupError("https_origins_required")
         self.socket_map = {}
         self.ended = threading.Event()
+        access = FirebaseAccess.from_environment()
+        self.configuration_cache = feed.CameraConfigurationCache(state.camera_doc_id, access.read)
+        state.coverage_cache = self.configuration_cache
         self.server = create_server(
             secure_application(application_for(state, origins, host, port, allowed_hosts),
-                               FirebaseAccess.from_environment(), state.camera_doc_id, origins, allowed_hosts),
+                               access, state.camera_doc_id, origins, allowed_hosts),
             host=host, port=port,
             map=self.socket_map,
             threads=16, connection_limit=32, backlog=32, channel_timeout=10,
@@ -151,6 +154,7 @@ class ProductionServer:
 
     def serve_forever(self):
         from waitress import wasyncore
+        self.configuration_cache.start()
         try:
             while not self.ended.is_set():
                 wasyncore.loop(timeout=1, count=1, map=self.socket_map)
@@ -162,9 +166,11 @@ class ProductionServer:
                 channel.close()
 
     def shutdown(self):
+        self.configuration_cache.close()
         self.ended.set()
 
     def server_close(self):
+        self.configuration_cache.close()
         for channel in list(self.socket_map.values()):
             channel.close()
         self.server.task_dispatcher.shutdown(timeout=5)

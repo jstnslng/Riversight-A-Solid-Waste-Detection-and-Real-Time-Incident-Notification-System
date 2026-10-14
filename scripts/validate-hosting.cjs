@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../hosting-dist');
 let checked = 0;
+let optional = 0;
 const missing = new Set();
 function check(file, reference) {
   if (!reference || /^(?:[a-z][a-z\d+.-]*:|\/\/|#)/i.test(reference) || reference.includes('${')) return;
@@ -11,6 +12,12 @@ function check(file, reference) {
   const relative = path.relative(root, file).split(path.sep).join('/');
   const url = new URL(pathname, `https://hosting.invalid/${relative}`);
   const target = path.join(root, decodeURIComponent(url.pathname));
+  // This exact existing dashboard override is optional and excluded by staging.
+  // Its onerror handler removes the failed script; public runtime-config.js remains.
+  if (relative === 'lib/admin/Admin-Dashboard.html' && url.pathname === '/js/shared/runtime-config.local.js') {
+    optional++;
+    return;
+  }
   checked++;
   if (!fs.existsSync(target)) missing.add(`${relative} -> ${pathname}`);
 }
@@ -32,5 +39,6 @@ for (const required of ['lib/monitoring/Monitoring-Login.html', 'lib/monitoring/
 }
 walk(root);
 console.log(`Checked ${checked} static local references; ${missing.size} missing.`);
+console.log(`Recognized ${optional} optional local runtime configuration reference(s), excluded from Hosting.`);
 for (const item of missing) console.log(item);
 process.exitCode = missing.size ? 1 : 0;

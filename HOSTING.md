@@ -21,17 +21,13 @@ credentials and backend configuration must never be placed in frontend files.
 Signature scanning cannot prove the absence of every possible secret, so changes
 to frontend configuration still require review.
 
-Known existing path issues reported by the validator:
-
-- `Monitoring-Login.html` links to absent `Monitoring-SignUp.html`.
-- `Incident-Evaluation.html` references absent `severity-trends-module.js`.
-- `Waste-Management.html` references absent `detection-timeline-module.js`.
-- `Admin-Dashboard.html` references excluded optional `runtime-config.local.js`.
-
-These references have not been changed. The manual validator exits unsuccessfully
-until missing references are resolved; staging and Hosting's predeploy build
-still succeed. Resolve the three missing page/module references before relying
-on the affected functionality. Dynamic paths and external services are outside
+The monitoring timeline and severity chart use existing `waste-detection-timeline.js`
+and `evaluation-severity-trends.js`. The unused commented signup link was removed;
+no signup page exists. `Admin-Dashboard.html` retains its optional
+`runtime-config.local.js` override with an error handler. The staging script excludes
+that local file, and the validator recognizes only this exact optional reference;
+missing required files still fail validation. Do not put private secrets into any
+browser configuration, including local overrides. Dynamic paths and external services are outside
 this static validation. Browser login and camera authorization need separate
 live validation. The AI backend meta configuration remains unchanged.
 

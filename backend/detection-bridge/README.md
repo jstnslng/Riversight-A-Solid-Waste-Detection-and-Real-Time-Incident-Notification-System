@@ -1,5 +1,144 @@
 # RiverSight detection bridge: YOLOv8n-seg cloud inference
 
+## Phase 1: configurable waterway ROI coverage
+
+Phase 3 adds Configure Waste Classes on the existing administrator camera controls.
+Dataset candidates are IDs 0–5: food_pack, non_pla, Composite_Rubber_Textile,
+Organic, Paper, Plastic. Four proposed artificial-waste classes are preselected
+only when no saved configuration exists; no approval is automatic. non_pla and
+Organic can be drafted but cannot be approved until group clarification is reflected
+in a reviewed implementation change. Class names are exact and underscores are
+supported by the existing safe-name parser.
+
+`wasteCoverageClasses` stores `state`, `names`, `version`, `classListVersion:1`,
+`candidateClassNames` (ordered by ID), `updatedBy/updatedAt`, `approvedBy/approvedAt`,
+and `modelVerification` (null for drafts; classNames and inferenceAt for approval).
+Transactions compare the version opened in the editor; draft saves clear approvals.
+Approval explicitly confirms selection, rechecks Administrator identity, and reads
+authenticated `/feed-health`. Its successful latest inference must be under 15
+seconds old and expose all six exact ordered names in `modelClassNames`; absent,
+mismatched, degraded or stale metadata blocks approval. The bridge sanitizes this
+bounded inventory directly from cloud `metadata.classNames`, never legacy constants
+or detection samples. It publishes inventory atomically with that inference's JPEG.
+Public `/health` remains minimal; no new endpoint or permission is added.
+
+Deploying these backend changes is required before an older bridge can provide
+verification metadata. If cloud responses omit complete class metadata, approval
+remains blocked: an authorized deployment-metadata source would need a separate
+reviewed implementation. Dataset names alone cannot verify active weights/version.
+Coverage also becomes unavailable if an approved recorded mapping differs from the
+current response. A matching mapping does not prove the weights have not changed.
+No live metadata was accessed or configurations approved during implementation.
+
+Phase 2 administrator editor is on Admin System Monitoring, using its existing
+HTML/CSS/JS. Each camera exposes Configure Waterway ROI only after checking the
+current Firebase user document for the Administrator role. All saves recheck
+authorization; existing Firestore rules enforce camera updates administrator-only.
+No rule change or new collection is required. Version-checked transactions reject
+concurrent ROI edits instead of overwriting another administrator's calibration.
+
+Load camera snapshot uses the configured public HTTPS bridge origin and Firebase
+Bearer header. It requires a fresh `ok` JPEG with matching camera metadata, and an
+explicit bridge camera grant even for administrators. No iframe scraping, public
+snapshot route, placeholder thumbnail, tokens in logs, or ticket requests are added.
+The single-camera bridge cannot supply snapshots for other camera IDs. Missing
+grants, unhealthy inference, or Origin restrictions block drawing; a future trusted
+per-camera authorized snapshot provider would be needed for additional cameras.
+
+Click 3–256 ordered points, Undo/Reset as needed, and specify an installation
+revision. Save Draft disables coverage; Approve requires explicit confirmation.
+Mark needs recalibration invalidates the ROI after relocation. Each save increments
+version and writes updatedAt/updatedBy; approval writes approvedAt/approvedBy and
+draft/invalidation clears approval metadata. Waste-class approval is untouched.
+Canvas dimensions come from the decoded source JPEG, not CSS display dimensions.
+The editor does not auto-approve, persist local images, or write until a save action.
+This phase has offline tests only; production browser and Firestore transaction
+validation remain required before rollout. A live camera position change cannot
+be detected automatically: the administrator must invalidate and redraw.
+
+Production reads the existing `camera_feeds/{SEGMENTATION_CAMERA_DOC_ID}` document
+in one background configuration worker using the existing Firebase Admin read client.
+It refreshes immediately on serving startup, then waits 2 seconds after each read;
+one read is in flight at a time, with the existing 5-second SDK timeout and no retries.
+Only ROI/class fields are retained for one immutable camera ID, with a 5-second TTL
+measured from read start, not completion. Expired or failed reads make coverage
+unavailable; slow reads that outlive their TTL are discarded. Inference publication
+never waits for configuration I/O. Published coverage is also invalidated on TTL
+expiry, observed configuration failure, draft state, or configuration version change.
+Configuration updates may take up to the short TTL to be observed; a sample is
+never reused past that TTL. The worker stops on server shutdown; an in-flight SDK
+read is allowed to finish without blocking camera or HTTP shutdown.
+Viewer/user authorization, camera grants, and stream-ticket revalidation remain
+uncached and unchanged. No writes, new collections, incidents, alerts, or automatic
+approvals are added. Local development
+defaults to coverage unavailable; offline callers can inject `state.coverage_reader`.
+
+Proposed optional camera fields (schema illustration only, **not approved data**):
+
+```json
+{
+  "waterwayRoi": {
+    "state": "draft",
+    "version": 1,
+    "coordinateSpace": "normalized",
+    "imageDimensions": {"width": 1920, "height": 1080},
+    "points": [],
+    "installationRevision": "operator-defined",
+    "approvedBy": null,
+    "approvedAt": null
+  },
+  "wasteCoverageClasses": {
+    "state": "draft",
+    "version": 1,
+    "names": [],
+    "approvedBy": null,
+    "approvedAt": null
+  }
+}
+```
+
+ROI states: `unconfigured`, `draft`, `approved`, `needs_recalibration`. Both ROI
+and explicit class-name allowlist must be approved by an authorized administrator.
+Class names match cloud labels exactly; no default waste classes are assumed.
+Existing camera write rules remain administrator-only. Approval metadata is an
+audit convention; Phase 1 validates state/version, not an approval signature.
+
+Firestore points are ordered maps: `[{"x":0.2,"y":0.3},{"x":0.7,"y":0.3},{"x":0.7,"y":0.8}]`
+(3–256 unique vertices, no repeated closing point). The drawing canvas keeps pairs
+only in memory; every save serializes maps, including relocation invalidation.
+Python also reads legacy local `[x,y]` pairs for compatibility; no database migration
+is performed. Draft reload converts maps to pairs only when reference aspect ratio
+matches the current snapshot. Invalid saved geometry requires redrawing.
+Normalized coordinates lie within `[0,1]`; optional `pixels` coordinates are
+normalized using `(referenceWidth-1, referenceHeight-1)`. Reject out-of-bounds,
+non-finite, degenerate and self-intersecting geometry. Same-aspect-ratio resolution
+changes scale coordinates; aspect-ratio changes require recalibration. Dimensions
+alone cannot detect installation movement/cropping: an operator must mark
+`needs_recalibration` and approve a new version after any such change.
+
+Authenticated `/feed-health` adds `waterwayCoverage`; JPEG/MJPEG behavior and public
+minimal `/health` stay unchanged. Coverage rasterizes exact cloud polygons, unions
+approved waste masks, intersects with the ROI, and divides intersection pixels by
+ROI pixels. No bounding boxes, tracker shapes, confidence weighting, or physical
+area/mass estimates are used. Masks over 256 vertices conservatively remain
+unavailable in Phase 1; do not simplify them silently. Images over 16 megapixels
+are rejected for bounded mask allocation. Integer rasterization defines pixel area.
+
+An available result contains `percentage`, `wastePixels`, `waterwayPixels`,
+`roiVersion`, `classPolicyVersion`, source dimensions and `sourceCapturedAt`.
+Unavailable results contain `available:false`, a fixed reason and `percentage:null`.
+Missing/non-approved configuration, missing/invalid/clipped masks for selected
+classes, incompatible dimensions, inference/configuration failure or source frames
+15 seconds old disable coverage. Empty selected predictions are unavailable, not
+0%; valid masks wholly outside the ROI legitimately yield 0%. A mask missing from
+one selected object invalidates the whole measurement. Existing frontend ignores
+the additive field; ROI editing/display and severity classification are future work.
+
+Coverage measures visible image-plane ROI occupancy, including waste-covered
+waterway pixels in the denominator. It does not measure physical water surface
+area. Before enabling it, approve the ROI, actual cloud waste classes, installation
+revision, expected image geometry, and verify masks against exact source evidence.
+
 Linux production preparation, startup, ingress requirements and health checks:
 see [DEPLOYMENT.md](DEPLOYMENT.md). No deployment has been performed.
 Production Firebase authentication and per-camera grants are now mandatory;

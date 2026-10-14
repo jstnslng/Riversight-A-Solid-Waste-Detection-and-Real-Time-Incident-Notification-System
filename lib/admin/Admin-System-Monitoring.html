@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="riversight-ai-backend" content="https://riversight-a-solid-waste-detection-and-real-time-production.up.railway.app">
 <script src="../../js/shared/theme-init.js"></script>
 <title>RiverSight — System Monitoring</title>
 <link rel="stylesheet" href="../../css/admin/Admin-Dashboard.css">
@@ -312,6 +313,28 @@
     </div>
   </div>
 
+  <dialog id="wasteClassDialog" class="roi-dialog" aria-labelledby="wasteClassTitle">
+    <h2 id="wasteClassTitle">Configure Waste Classes</h2>
+    <p>Review the dataset candidates. Preselection is a proposal, not approval. non_pla and Organic require group clarification.</p>
+    <fieldset id="wasteClassList"><legend>Classes included in waterway waste coverage</legend></fieldset>
+    <p id="wasteClassMessage" role="status" aria-live="polite"></p>
+    <div class="roi-actions"><button type="button" id="wasteClassDraft">Save Draft</button>
+      <button type="button" id="wasteClassApprove">Approve</button><button type="button" id="wasteClassClose">Close</button></div>
+  </dialog>
+  <dialog id="roiDialog" class="roi-dialog" aria-labelledby="roiTitle">
+    <h2 id="roiTitle">Waterway ROI — <span id="roiCameraName"></span></h2>
+    <p>Load a current authorized camera snapshot, then click around the visible waterway. Undo removes the last point. Saving a draft does not enable coverage.</p>
+    <button type="button" id="roiLoad">Load camera snapshot</button>
+    <label for="roiRevision">Installation revision</label>
+    <input id="roiRevision" maxlength="128" placeholder="Identify this camera position and installation">
+    <canvas id="roiCanvas" width="640" height="360" aria-label="Click to draw waterway boundary"></canvas>
+    <p id="roiMessage" role="status" aria-live="polite"></p>
+    <div class="roi-actions">
+      <button type="button" id="roiUndo">Undo</button><button type="button" id="roiReset">Reset</button>
+      <button type="button" id="roiDraft">Save Draft</button><button type="button" id="roiApprove">Approve</button>
+      <button type="button" id="roiInvalidate">Mark needs recalibration</button><button type="button" id="roiClose">Close</button>
+    </div>
+  </dialog>
   <script>
     const profileMenu = document.querySelector('[data-profile-menu]');
     const profileToggle = document.querySelector('[data-profile-toggle]');

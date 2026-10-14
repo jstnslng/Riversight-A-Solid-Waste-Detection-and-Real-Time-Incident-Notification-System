@@ -65,6 +65,11 @@ class BridgeError(Exception):
     """Only fixed, credential-free messages may be passed to this exception."""
 
 
+class CloudPredictions(list):
+    """List-compatible source geometry provenance for coverage only."""
+    pass
+
+
 def configuration():
     try:
         from dotenv import load_dotenv
@@ -162,10 +167,29 @@ def safe_predictions(payload, sensitive_values=()):
             raise ValueError()
         metadata = payload.get("metadata", {})
         class_names = metadata.get("classNames") if isinstance(metadata, dict) else None
-        predictions = []
+        predictions = CloudPredictions()
+        predictions.source_shape = tuple(shape)
+        predictions.class_names = None
+        inventory = class_names
+        if isinstance(inventory, dict):
+            try:
+                inventory = [inventory[str(i)] if str(i) in inventory else inventory[i] for i in range(len(inventory))]
+            except (KeyError, TypeError):
+                inventory = None
+        if (isinstance(inventory, list) and 1 <= len(inventory) <= 256
+                and all(safe_class_name(name, sensitive_values) for name in inventory)
+                and len(set(inventory)) == len(inventory)):
+            predictions.class_names = list(inventory)
+        predictions.invalid_mask_names = set()
         for row in rows:
             try:
                 class_id, confidence, name = row["class"], row["confidence"], row["name"]
+                raw_segments = row.get("segments")
+                validated = validated_segments(raw_segments, shape[1], shape[0])
+                if safe_class_name(name, sensitive_values) and (
+                        validated is None or validated != raw_segments or not finite_number(confidence)
+                        or not 0 <= confidence <= 1 or validated_box(row.get("box"),shape[1],shape[0]) is None):
+                    predictions.invalid_mask_names.add(name)
                 if type(class_id) is not int or not 0 <= class_id <= 10000:
                     continue
                 if not safe_class_name(name, sensitive_values):

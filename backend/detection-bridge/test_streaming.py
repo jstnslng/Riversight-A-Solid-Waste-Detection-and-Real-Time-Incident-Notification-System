@@ -156,7 +156,7 @@ class StreamingTests(unittest.TestCase):
             'captureActive', 'lastFrameAt', 'inferenceIntervalSeconds', 'streamTargetFps',
             'trackingEnabled', 'activeTrackCount', 'lastTrackingUpdateAt', 'trackMaxAgeSeconds',
             'lastInferenceCapturedAt', 'lastCloudRequestAt', 'lastCloudResponseAt',
-            'latestInferenceLatencyMs', 'averageInferenceLatencyMs', 'inferenceFrameAgeMs'})
+            'latestInferenceLatencyMs', 'averageInferenceLatencyMs', 'inferenceFrameAgeMs', 'waterwayCoverage'})
         self.assertNotIn('PRIVATE', json.dumps(health))
         self.assertIs(self.state.raw, self.newer)
         self.assertEqual(self.state.latencies.maxlen, 60)
