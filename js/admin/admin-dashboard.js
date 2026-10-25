@@ -1,4 +1,5 @@
 import { db } from "../shared/firebase-config.js";
+import { renderSeverityDistribution } from "./severity-distribution.js";
 import {
   collection,
   query,
@@ -51,15 +52,117 @@ function setText(elementId, value) {
   }
 }
 
+function parseReportDate(timestamp) {
+  if (!timestamp) return null;
+
+  let date;
+  if (typeof timestamp.toDate === "function") {
+    date = timestamp.toDate();
+  } else if (typeof timestamp.seconds === "number") {
+    date = new Date(timestamp.seconds * 1000);
+  } else {
+    date = new Date(timestamp);
+  }
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function renderDetectionTrend(reports) {
+  const svg = document.getElementById("dashboard-detection-trend-svg");
+  if (!svg) return;
+
+  const now = new Date();
+  const windowStart = now.getTime() - 24 * 60 * 60 * 1000;
+  const binDuration = 4 * 60 * 60 * 1000;
+  const counts = new Array(6).fill(0);
+
+  reports.forEach((report) => {
+    const date = parseReportDate(report.createdAt);
+    if (!date || date.getTime() < windowStart || date > now) return;
+
+    const bin = Math.min(5, Math.floor((date.getTime() - windowStart) / binDuration));
+    counts[bin]++;
+  });
+
+  const maxCount = Math.max(20, Math.ceil(Math.max(...counts) / 10) * 10);
+  const midpoint = maxCount / 2;
+  const plot = { left: 40, right: 310, top: 16, bottom: 140 };
+  const points = counts.map((count, index) => {
+    const x = plot.left + (index * (plot.right - plot.left)) / (counts.length - 1);
+    const y = plot.bottom - (count / maxCount) * (plot.bottom - plot.top);
+    return { x, y, count };
+  });
+  const linePath = points.map(({ x, y }, index) => `${index === 0 ? "M" : "L"}${x},${y}`).join(" ");
+  const areaPath = `${linePath} L${plot.right},${plot.bottom} L${plot.left},${plot.bottom} Z`;
+  const xLabels = ["24h ago", "20h ago", "16h ago", "12h ago", "8h ago", "4h ago"];
+  const chartDescription = `Detections in six four-hour periods over the last 24 hours: ${counts.join(", ")}.`;
+
+  svg.setAttribute("aria-label", chartDescription);
+  svg.innerHTML = `
+    <line x1="${plot.left}" y1="${plot.top}" x2="${plot.left}" y2="${plot.bottom}" stroke="#e2e2e2" stroke-width="1"/>
+    <line x1="${plot.left}" y1="${plot.bottom}" x2="${plot.right}" y2="${plot.bottom}" stroke="#e2e2e2" stroke-width="1"/>
+    <text x="6" y="${plot.top + 4}" class="axis-label">${maxCount}</text>
+    <text x="14" y="${(plot.top + plot.bottom) / 2 + 3}" class="axis-label">${midpoint}</text>
+    <text x="14" y="${plot.bottom + 3}" class="axis-label">0</text>
+    <path d="${areaPath}" fill="#111111" fill-opacity="0.06"/>
+    <path d="${linePath}" fill="none" stroke="#111111" stroke-width="2.2"/>
+    ${points.map(({ x, y, count }, index) => `
+      <circle cx="${x}" cy="${y}" r="3" fill="#111111">
+        <title>${xLabels[index]}: ${count} detections</title>
+      </circle>
+      <text x="${x}" y="158" class="axis-label" text-anchor="middle">${xLabels[index]}</text>
+    `).join("")}
+  `;
+}
+
 // ---------- Total detections in selected range ----------
 async function loadTotalDetections(dateRange) {
-  const q = query(
-    collection(db, "reports"),
-    where("createdAt", ">=", Timestamp.fromDate(dateRange.start)),
-    where("createdAt", "<", Timestamp.fromDate(getEndExclusive(dateRange.end)))
-  );
-  const snapshot = await getDocs(q);
-  setText("total-detections", snapshot.size);
+  const periodDays = Math.round((dateRange.end - dateRange.start) / 86400000) + 1;
+  const previousEnd = new Date(dateRange.start);
+  previousEnd.setDate(previousEnd.getDate() - 1);
+  const previousStart = new Date(previousEnd);
+  previousStart.setDate(previousStart.getDate() - periodDays + 1);
+
+  const countReports = async (range) => {
+    const q = query(
+      collection(db, "reports"),
+      where("createdAt", ">=", Timestamp.fromDate(range.start)),
+      where("createdAt", "<", Timestamp.fromDate(getEndExclusive(range.end)))
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.size;
+  };
+
+  const [currentCount, previousCount] = await Promise.all([
+    countReports(dateRange),
+    countReports({ start: previousStart, end: previousEnd }),
+  ]);
+
+  setText("total-detections", currentCount);
+
+  const change = document.getElementById("detection-change");
+  const comparisonNote = document.getElementById("detection-comparison-note");
+  if (!change) return;
+
+  change.className = "stat-sub muted";
+  if (previousCount === 0) {
+    change.textContent = currentCount === 0 ? "No change" : "New";
+  } else {
+    const percentChange = Math.round(((currentCount - previousCount) / previousCount) * 100);
+    if (percentChange > 0) {
+      change.textContent = `↑ ${percentChange}%`;
+      change.className = "stat-sub good";
+    } else if (percentChange < 0) {
+      change.textContent = `↓ ${Math.abs(percentChange)}%`;
+      change.className = "stat-sub down";
+    } else {
+      change.textContent = "No change";
+    }
+  }
+
+  if (comparisonNote) {
+    comparisonNote.textContent = `vs. previous ${periodDays} ${periodDays === 1 ? "day" : "days"}`;
+  }
 }
 
 // ---------- Active Incidents ----------
@@ -102,6 +205,14 @@ async function loadActiveCameras() {
   setText("active-cameras", `${onlineSnapshot.size}/${total}`);
 }
 
+async function loadReportVisualizations() {
+  const snapshot = await getDocs(collection(db, "reports"));
+  const reports = snapshot.docs.map((report) => report.data());
+  const donut = document.getElementById("dashboard-severity-donut-svg");
+  renderSeverityDistribution(donut, reports);
+  renderDetectionTrend(reports);
+}
+
 // ---------- Run everything once the page loads ----------
 async function loadDashboard(dateRange = selectedDateRange) {
   try {
@@ -110,6 +221,7 @@ async function loadDashboard(dateRange = selectedDateRange) {
       loadActiveIncidents(),
       loadResolvedIncidents(dateRange),
       loadActiveCameras(),
+      loadReportVisualizations(),
     ]);
   } catch (err) {
     console.error("Failed to load dashboard data:", err);

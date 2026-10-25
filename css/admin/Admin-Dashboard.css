@@ -450,6 +450,7 @@ body {
 }
 .stat-sub { font-size: 12px; font-weight: 700; }
 .stat-sub.good { color: var(--green); }
+.stat-sub.down { color: var(--red); }
 .stat-sub.muted { color: var(--muted); font-weight: 500; }
 .pill-red {
   background: #fbeaea;
@@ -662,9 +663,9 @@ body {
 }
 .legend span { display: flex; align-items: center; gap: 6px; }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-.dot.low { background: #e6e6e6; }
+.dot.critical { background: var(--red); }
+.dot.high { background: var(--orange); }
 .dot.medium { background: #7a7a7a; }
-.dot.high { background: #111111; }
 
 .health-item {
   display: flex;

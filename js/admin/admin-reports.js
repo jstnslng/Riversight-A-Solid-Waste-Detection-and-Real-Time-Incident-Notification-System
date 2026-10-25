@@ -1,5 +1,6 @@
 import { auth, db, firebaseConfig } from "../shared/firebase-config.js";
 import { collection, getDoc, doc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { renderSeverityDistribution } from "./severity-distribution.js";
 import {
     signOut as authSignOut,
     onAuthStateChanged
@@ -119,7 +120,7 @@ async function fetchReportStats() {
 
         renderDetectionTrend(allReports);
         renderMonthlyReports(allReports);
-        renderSeverityDistribution(allReports);
+        renderSeverityDistribution(severityDonutSvg, allReports);
         renderCameraActivity(allReports, allCameras);
 
     } catch (error) {
@@ -369,36 +370,6 @@ function renderMonthlyReports(reports) {
         `;
         monthlyBarContainer.appendChild(row);
     }
-}
-
-function renderSeverityDistribution(reports) {
-    if (!severityDonutSvg) return;
-
-    let critical = 0, high = 0, low = 0;
-    reports.forEach(r => {
-        const sev = (r.severity || '').toLowerCase();
-        if (sev === 'critical' || sev === 'severe') critical++;
-        else if (sev === 'high' || sev === 'medium') high++;
-        else low++;
-    });
-
-    const total = critical + high + low || 1;
-    const critPct = (critical / total) * 100;
-    const highPct = (high / total) * 100;
-
-    const critDash = `${critPct} ${100 - critPct}`;
-    const highDash = `${highPct} ${100 - highPct}`;
-    const lowDash = `${(low / total) * 100} ${100 - (low / total) * 100}`;
-
-    severityDonutSvg.innerHTML = `
-        <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#ececec" stroke-width="6.5"></circle>
-        <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#111111" stroke-width="6.5" 
-            stroke-dasharray="${critDash}" stroke-dashoffset="25"></circle>
-        <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#7a7a7a" stroke-width="6.5" 
-            stroke-dasharray="${highDash}" stroke-dashoffset="${25 - critPct}"></circle>
-        <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e0a020" stroke-width="6.5" 
-            stroke-dasharray="${lowDash}" stroke-dashoffset="${25 - critPct - highPct}"></circle>
-    `;
 }
 
 function renderCameraActivity(reports, cameras) {

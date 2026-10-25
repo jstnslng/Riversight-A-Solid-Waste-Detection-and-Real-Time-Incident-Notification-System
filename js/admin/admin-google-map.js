@@ -51,14 +51,20 @@ function createMarkerContent(detection) {
 }
 
 function infoContent(detection) {
-  const severityClass = detection.severity.toLowerCase();
-  return `<div class="map-info-window map-info-${severityClass}">
-    <strong>${detection.cameraId}</strong>
-    <div>Detection: <b>${detection.detectionType}</b></div>
-    <div>Severity Level: <b>${detection.severity}</b></div>
-    <div>Confidence: <b>${detection.confidence.toFixed(1)}%</b></div>
-    <div>Detected: <b>${detection.timestamp}</b></div>
-  </div>`;
+  const content = document.createElement("div");
+  content.className = `map-info-window map-info-${detection.severity.toLowerCase()}`;
+
+  const cameraLabel = document.createElement("strong");
+  cameraLabel.textContent = detection.cameraId;
+  content.appendChild(cameraLabel);
+
+  ["Detection:", "Severity Level:", "Confidence:", "Detected:"].forEach((label) => {
+    const row = document.createElement("div");
+    row.append(document.createTextNode(`${label} `), document.createElement("b"));
+    content.appendChild(row);
+  });
+
+  return content;
 }
 
 async function initializeMap() {

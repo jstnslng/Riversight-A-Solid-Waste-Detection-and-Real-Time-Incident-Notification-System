@@ -135,8 +135,8 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4.5-7.5 11-7.5S23 12 23 12s-4.5 7.5-11 7.5S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
             </span>
           </div>
-          <div class="stat-value"><span id="total-detections">--</span> <span class="stat-sub good">↑ 12%</span></div>
-          <div class="stat-note">Since 12:00 AM</div>
+          <div class="stat-value"><span id="total-detections">--</span> <span id="detection-change" class="stat-sub muted">--</span></div>
+          <div class="stat-note" id="detection-comparison-note">vs. previous period</div>
         </div>
 
         <div class="stat-card">
@@ -201,42 +201,24 @@
       <section class="bottom-grid">
         <div class="card">
           <h3>Detection Trend</h3>
-          <div class="card-sub">Detections over last 24 hours</div>
-          <svg class="trend-chart" viewBox="0 0 320 170" preserveAspectRatio="none">
-            <line x1="34" y1="10" x2="34" y2="140" stroke="#e2e2e2" stroke-width="1"/>
-            <line x1="34" y1="140" x2="310" y2="140" stroke="#e2e2e2" stroke-width="1"/>
-            <text x="8" y="14" class="axis-label">150</text>
-            <text x="8" y="78" class="axis-label">100</text>
-            <text x="14" y="112" class="axis-label">50</text>
-            <path d="M34,120 C60,110 75,60 95,45 C120,25 140,15 160,20 C185,28 195,70 215,95 C235,118 255,132 280,138 L280,140 L34,140 Z" fill="#111111" fill-opacity="0.06"/>
-            <path d="M34,120 C60,110 75,60 95,45 C120,25 140,15 160,20 C185,28 195,70 215,95 C235,118 255,132 280,138" fill="none" stroke="#111111" stroke-width="2.2"/>
-            <text x="30" y="155" class="axis-label">00:00</text>
-            <text x="78" y="155" class="axis-label">03:00</text>
-            <text x="120" y="155" class="axis-label">06:00</text>
-            <text x="163" y="155" class="axis-label">09:00</text>
-            <text x="205" y="155" class="axis-label">12:00</text>
-            <text x="248" y="155" class="axis-label">15:00</text>
-            <text x="284" y="155" class="axis-label">18:00</text>
-            <text x="300" y="155" class="axis-label">21:00</text>
+          <div class="card-sub">Detections per 4-hour period over the last 24 hours</div>
+          <svg id="dashboard-detection-trend-svg" class="trend-chart" viewBox="0 0 320 170"
+            preserveAspectRatio="none" role="img" aria-label="Loading detection trend">
           </svg>
         </div>
 
         <div class="card">
           <h3>Incident Severity</h3>
-          <div class="card-sub">Monthly distribution</div>
+          <div class="card-sub">Incident severity snapshot</div>
           <div class="donut-wrap">
-            <svg viewBox="0 0 42 42" class="donut">
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#e6e6e6" stroke-width="6.5"></circle>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#111111" stroke-width="6.5"
-                stroke-dasharray="18 82" stroke-dashoffset="25" stroke-linecap="butt"></circle>
-              <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#7a7a7a" stroke-width="6.5"
-                stroke-dasharray="30 70" stroke-dashoffset="7" stroke-linecap="butt"></circle>
+            <svg id="dashboard-severity-donut-svg" viewBox="0 0 42 42" class="donut"
+              role="img" aria-label="Loading incident severity distribution">
             </svg>
           </div>
           <div class="legend">
-            <span><i class="dot low"></i>Low</span>
-            <span><i class="dot medium"></i>Medium</span>
-            <span><i class="dot high"></i>High</span>
+            <span><i class="dot critical"></i>Critical/Severe</span>
+            <span><i class="dot high"></i>High/Medium</span>
+            <span><i class="dot medium"></i>Low</span>
           </div>
         </div>
 
