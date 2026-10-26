@@ -274,11 +274,17 @@
   padding: 12px 14px;
 }
 .pill-total { background: #fdeeee; }
-.pill-eff { background: #eafaf1; }
+.pill-confidence { background: #eafaf1; }
 .pill-label { font-size: 9.5px; font-weight: 700; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 4px; }
 .pill-value { font-size: 20px; font-weight: 700; }
-.pill-eff .pill-value { color: var(--green); }
+.pill-confidence .pill-value { color: var(--green); }
 .pill-total .pill-value { color: #b23434; }
+.summary-data-status {
+  margin: -8px 0 16px;
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.4;
+}
 
 .breakdown-label {
   font-size: 10.5px;
@@ -448,86 +454,76 @@
   transform: translateY(0);
 }
 
-.gauge-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 220px;
-  height: 120px; /* explicit fallback so gauge-center always has something to anchor to */
-  aspect-ratio: 2 / 1;
-  margin: 4px auto 6px;
-}
-
-.gauge-svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.gauge-track,
-.gauge-arc {
-  fill: none;
-  stroke-width: 14;
-  stroke-linecap: round;
-}
-
-.gauge-track {
-  stroke: #edf2f7;
-}
-
-.gauge-arc {
-  stroke: var(--gauge-color, #e0a020);
-  transition: stroke 0.25s ease, stroke-dashoffset 0.35s ease;
-}
-
-.gauge-center {
-  position: absolute;
-  left: 50%;
-  bottom: 4px;
-  transform: translateX(-50%);
-  width: 80%;
+.recorded-volume {
+  padding: 18px 0 10px;
   text-align: center;
 }
 
-.gauge-percentage {
-  font-size: 26px;
+.recorded-volume-gauge {
+  position: relative;
+  width: 138px;
+  height: 138px;
+  margin: 0 auto 14px;
+}
+
+.recorded-volume-gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.recorded-volume-gauge-track,
+.recorded-volume-gauge-fill {
+  fill: none;
+  stroke-width: 8;
+}
+
+.recorded-volume-gauge-track {
+  stroke: #edf2f7;
+}
+
+.recorded-volume-gauge-fill {
+  stroke: var(--green);
+  stroke-linecap: round;
+}
+
+.recorded-volume-gauge-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.recorded-volume-percent {
+  color: var(--ink);
+  font-size: 24px;
   font-weight: 800;
   line-height: 1;
-  color: var(--ink);
 }
 
-.gauge-risk-label {
-  margin-top: 4px;
-  font-size: 11px;
+.recorded-volume-capacity {
+  color: var(--muted);
+  font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.buildup-stats {
-  display: grid;
-  gap: 8px;
-  padding-top: 12px;
-  margin-top: 4px;
-  border-top: 1px solid var(--border);
-}
-
-.stat-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12.5px;
+.recorded-volume-value {
   color: var(--ink);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
-.stat-icon {
-  font-size: 14px;
-  flex-shrink: 0;
+.recorded-volume-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
-
-.trend-positive { color: var(--red); }
-.trend-negative { color: var(--green); }
-
-.stat-row strong { font-weight: 700; }
 
 .dispatch-btn {
   width: 100%;

@@ -254,66 +254,63 @@
             <div class="summary-pills">
               <div class="summary-pill pill-total">
                 <div class="pill-label">TOTAL TODAY</div>
-                <div class="pill-value">48</div>
+                <div class="pill-value" data-detection-total>Loading…</div>
               </div>
-              <div class="summary-pill pill-eff">
-                <div class="pill-label">EFFICIENCY</div>
-                <div class="pill-value">94.8%</div>
+              <div class="summary-pill pill-confidence">
+                <div class="pill-label">AVERAGE CONFIDENCE</div>
+                <div class="pill-value" data-average-confidence>Loading…</div>
               </div>
             </div>
+            <p class="summary-data-status" data-summary-data-status role="status" aria-live="polite">Loading today’s Firestore detections…</p>
 
             <div class="breakdown-label">BREAKDOWN BY SEVERITY</div>
 
             <div class="breakdown-item">
-              <div class="breakdown-row"><span>Low Severity</span><span class="breakdown-count">34 events</span></div>
-              <div class="progress-track"><div class="progress-fill fill-blue" style="width:72%"></div></div>
+              <div class="breakdown-row"><span>Low</span><span class="breakdown-count" data-severity-count="low">—</span></div>
+              <div class="progress-track"><div class="progress-fill fill-blue" data-severity-bar="low" style="width:0%"></div></div>
             </div>
             <div class="breakdown-item">
-              <div class="breakdown-row"><span>Medium Severity</span><span class="breakdown-count">9 events</span></div>
-              <div class="progress-track"><div class="progress-fill fill-orange" style="width:52%"></div></div>
+              <div class="breakdown-row"><span>Medium</span><span class="breakdown-count" data-severity-count="medium">—</span></div>
+              <div class="progress-track"><div class="progress-fill fill-orange" data-severity-bar="medium" style="width:0%"></div></div>
             </div>
             <div class="breakdown-item">
-              <div class="breakdown-row"><span>Severe</span><span class="breakdown-count">4 events</span></div>
-              <div class="progress-track"><div class="progress-fill fill-red" style="width:38%"></div></div>
+              <div class="breakdown-row"><span>High / Critical</span><span class="breakdown-count" data-severity-count="severe">—</span></div>
+              <div class="progress-track"><div class="progress-fill fill-red" data-severity-bar="severe" style="width:0%"></div></div>
+            </div>
+            <div class="breakdown-item">
+              <div class="breakdown-row"><span>Unclassified</span><span class="breakdown-count" data-severity-count="unclassified">—</span></div>
+              <div class="progress-track"><div class="progress-fill fill-purple" data-severity-bar="unclassified" style="width:0%"></div></div>
             </div>
           </div>
 
           <div class="card buildup-card">
             <div class="card-head">
-              <h3>Waste Buildup Level</h3>
-              <button class="info-tooltip" type="button" aria-label="Waste buildup metric info">
+              <h3>Recorded Waste Volume Today</h3>
+              <button class="info-tooltip" type="button" aria-label="Recorded waste volume metric info">
                 ?
-                <span class="tooltip-text">Estimated waste accumulation based on detection frequency and debris density in the monitored area.</span>
+                <span class="tooltip-text">Total waste volume recorded in today’s Firestore detections.</span>
               </button>
             </div>
 
-            <div class="buildup-gauge" data-waste-buildup-gauge>
-              <div class="gauge-wrapper">
-                <svg viewBox="0 0 200 110" class="gauge-svg" aria-hidden="true">
-                  <path class="gauge-track" d="M20 100 A80 80 0 0 1 180 100"/>
-                  <path class="gauge-arc" d="M20 100 A80 80 0 0 1 180 100"/>
+            <div class="recorded-volume">
+              <div class="recorded-volume-gauge" role="img" aria-label="Waste capacity fill is not configured; 0 percent is a visual placeholder">
+                <svg class="recorded-volume-gauge-svg" viewBox="0 0 120 120" aria-hidden="true">
+                  <circle class="recorded-volume-gauge-track" cx="60" cy="60" r="50"/>
+                  <circle class="recorded-volume-gauge-fill" cx="60" cy="60" r="50" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
                 </svg>
-                <div class="gauge-center">
-                  <div class="gauge-percentage" data-gauge-percentage>68%</div>
-                  <div class="gauge-risk-label" data-gauge-risk-label>MODERATE RISK</div>
+                <div class="recorded-volume-gauge-center">
+                  <span class="recorded-volume-percent">0%</span>
+                  <span class="recorded-volume-capacity">CAPACITY NOT SET</span>
                 </div>
               </div>
+              <div class="recorded-volume-value" data-recorded-volume>Loading…</div>
+              <p class="recorded-volume-note" data-volume-note role="status" aria-live="polite">Loading recorded volume…</p>
+            </div>
 
-              <div class="buildup-stats">
-                <div class="stat-row stat-trend">
-                  <span class="stat-icon trend-positive" data-trend-icon aria-hidden="true">↗</span>
-                  <span><strong>Trend:</strong> <span class="trend-value" data-trend-value>+12%/hr</span> <span class="trend-label" data-trend-label>Increasing</span></span>
-                </div>
-                <div class="stat-row">
-                  <span class="stat-icon" aria-hidden="true">🕐</span>
-                  <span><strong>Est. Fill Time:</strong> <span class="fill-time" data-fill-time>1h 20m</span></span>
-                </div>
-              </div>
-
-              <button class="dispatch-btn" type="button" data-dispatch-cleanup title="Cleanup dispatch is not connected to a response service" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="8" width="14" height="9" rx="1.5"/><path d="M15 11h4l3 3v3h-7z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
-                Alert Cleanup Team
-              </button>
+            <button class="dispatch-btn" type="button" data-dispatch-cleanup title="Cleanup dispatch is not connected to a response service" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="8" width="14" height="9" rx="1.5"/><path d="M15 11h4l3 3v3h-7z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
+              Alert Cleanup Team
+            </button>
             </div>
           </div>
 
@@ -329,6 +326,7 @@
     <script type="module" src="../../js/shared/global-search-ui.js"></script>
     <script type="module" src="../../js/monitoring/monitoring-auth-guard.js"></script>
     <script type="module" src="../../js/monitoring/waste-detection-timeline.js"></script>
+    <script type="module" src="../../js/monitoring/waste-detection-summary.js"></script>
     <script src="../../js/monitoring/monitoring-nav.js"></script>
     <script type="module" src="../../js/shared/global.js"></script>
 </body>
