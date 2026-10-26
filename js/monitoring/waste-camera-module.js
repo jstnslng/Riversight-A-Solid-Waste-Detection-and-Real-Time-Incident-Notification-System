@@ -10,8 +10,55 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
   const streamTag = document.querySelector("[data-camera-stream-tag]");
   const sectorLabel = document.querySelector("[data-camera-sector-label]");
   const reportsLink = document.querySelector("[data-incident-eval-link]");
+  const activeNodeList = document.querySelector("[data-active-node-list]");
   const expandButton = document.querySelector(".feed-expand");
   let cameras = [];
+
+  function renderActiveNodes() {
+    if (!activeNodeList) return;
+    activeNodeList.replaceChildren();
+
+    if (!cameras.length) {
+      const emptyMessage = document.createElement("div");
+      emptyMessage.className = "node-status-item node-status-empty";
+      emptyMessage.textContent = "No cameras configured";
+      activeNodeList.appendChild(emptyMessage);
+      return;
+    }
+
+    cameras.forEach((camera) => {
+      const normalizedStatus = camera.status.toUpperCase();
+      const isOnline = normalizedStatus === "ONLINE";
+      const isOffline = normalizedStatus === "OFFLINE";
+      const isWeak = normalizedStatus === "WEAK";
+      const statusLabel = isOnline ? "MONITORING"
+        : isWeak ? "WEAK SIGNAL"
+          : normalizedStatus;
+      const statusClass = isOnline ? "good"
+        : isWeak ? "warn"
+          : isOffline ? "danger" : "neutral";
+      const dotClass = isOnline ? "green"
+        : isWeak ? "orange"
+          : isOffline ? "red" : "neutral";
+
+      const row = document.createElement("div");
+      row.className = "node-status-item";
+
+      const dot = document.createElement("span");
+      dot.className = `status-dot ${dotClass}`;
+
+      const name = document.createElement("span");
+      name.className = "node-status-name";
+      name.textContent = camera.id;
+
+      const status = document.createElement("span");
+      status.className = `node-status-pill ${statusClass}`;
+      status.textContent = statusLabel;
+
+      row.append(dot, name, status);
+      activeNodeList.appendChild(row);
+    });
+  }
 
   expandButton?.addEventListener("click", async () => {
     try {
@@ -118,12 +165,13 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
         title: data.title || data.camId || "Unknown Camera",
         location: data.location || data.sectorLabel || "General Sector",
         sectorLabel: data.sectorLabel || data.location || "Monitoring Area",
-        status: data.status || "ONLINE",
+        status: String(data.status || "ONLINE").trim().toUpperCase(),
         embedUrl: data.embedUrl || "",
         image: data.thumbnailUrl || data.image || "",
       };
     });
 
+    renderActiveNodes();
     if (!selector) return;
     if (!cameras.length) {
       console.warn("Camera record missing: camera_feeds is empty");
@@ -136,6 +184,12 @@ import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed
     renderSelector();
   }, (error) => {
     console.error("Failed to load camera_feeds from Firestore (Waste Detection):", error);
+    if (activeNodeList) {
+      const unavailableMessage = document.createElement("div");
+      unavailableMessage.className = "node-status-item node-status-empty";
+      unavailableMessage.textContent = "Camera status unavailable";
+      activeNodeList.replaceChildren(unavailableMessage);
+    }
     if (selector) selector.replaceChildren(new Option("Camera feeds unavailable", ""));
     showUnavailableFeed();
   });

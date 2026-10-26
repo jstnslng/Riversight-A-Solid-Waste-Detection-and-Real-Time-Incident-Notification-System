@@ -22,6 +22,7 @@
   margin-bottom: 4px;
 }
 .node-status-name { font-size: 12px; font-weight: 600; flex: 1; }
+.node-status-empty { color: var(--muted); font-size: 11px; }
 .node-status-pill {
   font-size: 9px;
   font-weight: 700;
@@ -31,6 +32,11 @@
 }
 .node-status-pill.good { background: #eafaf1; color: var(--green); }
 .node-status-pill.warn { background: #fff7e6; color: var(--orange); }
+.node-status-pill.danger { background: #fbeaea; color: var(--red); }
+.node-status-pill.neutral { background: #f1f1f1; color: var(--muted); }
+.status-dot.orange { background: var(--orange); }
+.status-dot.red { background: var(--red); }
+.status-dot.neutral { background: var(--muted); }
 
 /* Page title extras */
 .updated-row { flex-wrap: wrap; }
