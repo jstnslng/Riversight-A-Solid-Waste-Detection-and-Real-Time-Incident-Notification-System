@@ -57,6 +57,8 @@ const fetchAuditLogs = async () => {
             };
         });
 
+        updateFilterDropdowns(auditLogs);
+
         applyFilters();
     } catch (error) {
         console.error("Error fetching audit logs:", error);
@@ -244,7 +246,7 @@ function bindFilters() {
         resetFiltersButton.addEventListener('click', () => {
             if (startDateInput) startDateInput.value = '';
             if (endDateInput) endDateInput.value = '';
-            if (actionFilterSelect) actionFilterSelect.value = 'all';
+            if (actionFilterSelect) actionFilterSelect.value = 'All Actions';
             applyFilters();
         });
     }
@@ -252,6 +254,31 @@ function bindFilters() {
     if (applyFiltersButton) {
         applyFiltersButton.addEventListener('click', applyFilters);
     }
+}
+
+function populateSelectOptions(selectElement, items, defaultLabel) {
+    if (!selectElement) return;
+
+    selectElement.innerHTML = `<option value="ALL">${defaultLabel}</option>`;
+
+    items.sort().forEach(value => {
+        if (value) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            selectElement.appendChild(option);
+        }
+    });
+}
+
+function updateFilterDropdowns(auditLogs) {
+    const actions = [...new Set(auditLogs.map(log => {
+        if (!log.action) return null;
+        return log.action.charAt(0).toUpperCase() + log.action.slice(1);
+    }).filter(Boolean))];
+
+
+    populateSelectOptions(actionFilterSelect, actions, 'All Actions');
 }
 
 reloadButton?.addEventListener('click', () => {
