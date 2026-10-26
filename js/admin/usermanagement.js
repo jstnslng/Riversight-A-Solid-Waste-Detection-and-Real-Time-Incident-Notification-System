@@ -386,7 +386,7 @@ editUserForm?.addEventListener('submit', async (e) => {
             action: "Update",
             timestamp: serverTimestamp(),
             target: "Users",
-            details: `Administrator ${userData.username || userData.email} updated user details: ${updatedPayload.username} (${updatedPayload.email_address}).`,
+            details: `Administrator ${userData.username || userData.email} updated user details: ${allUsersData[index].username} (${allUsersData[index].email_address}).`,
             role: userData.role || "Administrator",
             status: "Success"
         }
