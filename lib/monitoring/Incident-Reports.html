@@ -150,19 +150,20 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
             </span>
           </div>
-          <div class="stat-value">14.2m <span class="stat-sub good">↑ 5%</span></div>
-          <div class="stat-note">Target: &lt; 15 minutes</div>
+          <div class="stat-value" id="averageResponseTime">—</div>
+          <div class="stat-note" id="responseTimeNote">Request created to in-app acknowledgment · last 30 days</div>
         </div>
 
         <div class="stat-card">
           <div class="stat-top">
-            <span class="stat-label">Cleanup Success</span>
+            <span class="stat-label">Verified Cleanup Success</span>
             <span class="stat-icon icon-green">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 7.5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z"/><path d="M15 10l6-3.2v10.4L15 14"/></svg>
             </span>
           </div>
-          <div class="stat-value" id="cleanupSuccessRate">0%</div>
+          <div class="stat-value" id="cleanupSuccessRate">—</div>
           <div class="progress-track"><div class="progress-fill" id="cleanupProgressBar" style="width:0%"></div></div>
+          <div class="stat-note" id="cleanupSuccessNote">Verified outcomes · last 30 days</div>
         </div>
       </section>
 

@@ -61,6 +61,51 @@ service cloud.firestore {
       allow read, create: if canAccessMonitoringData();
     }
 
+    match /cleanup_requests/{requestId} {
+      allow read: if canAccessMonitoringData();
+      allow create: if canAccessMonitoringData()
+        && request.resource.data.keys().hasOnly([
+          "cameraDocId", "cameraId", "location", "requestedAt",
+          "requestedByUid", "requestedByEmail", "status"
+        ])
+        && request.resource.data.keys().hasAll([
+          "cameraDocId", "cameraId", "location", "requestedAt",
+          "requestedByUid", "status"
+        ])
+        && request.resource.data.requestedByUid == request.auth.uid
+        && request.resource.data.requestedAt == request.time
+        && request.resource.data.status == "pending_acknowledgment";
+      allow update: if canAccessMonitoringData()
+        && (
+          (
+            resource.data.status == "pending_acknowledgment"
+            && request.resource.data.status == "acknowledged"
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              "status", "acknowledgedAt", "acknowledgedByUid", "acknowledgedByEmail"
+            ])
+            && request.resource.data.diff(resource.data).affectedKeys().hasAll([
+              "status", "acknowledgedAt", "acknowledgedByUid"
+            ])
+            && request.resource.data.acknowledgedAt == request.time
+            && request.resource.data.acknowledgedByUid == request.auth.uid
+          )
+          || (
+            resource.data.status == "acknowledged"
+            && request.resource.data.status == "verified"
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              "status", "cleanupOutcome", "verifiedAt", "verifiedByUid", "verifiedByEmail"
+            ])
+            && request.resource.data.diff(resource.data).affectedKeys().hasAll([
+              "status", "cleanupOutcome", "verifiedAt", "verifiedByUid"
+            ])
+            && request.resource.data.cleanupOutcome in ["successful", "unsuccessful"]
+            && request.resource.data.verifiedAt == request.time
+            && request.resource.data.verifiedByUid == request.auth.uid
+          )
+        );
+      allow delete: if false;
+    }
+
     match /camera_feeds/{cameraId} {
       allow read: if canAccessMonitoringData();
       allow create, update, delete: if isAdministrator();

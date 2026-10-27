@@ -78,3 +78,20 @@ This server is for trusted local development only. Python's static server serves
 files beneath the repository root, including ignored files when requested;
 `.gitignore` is not HTTP access control. Keep the loopback bind and do not expose
 or forward this server. The website code does not load backend `.env` files.
+
+## In-app cleanup requests
+
+The Waste Detection page can create a cleanup request in the Firestore
+`cleanup_requests` collection for the selected camera and location. This is an
+internal RiverSight queue only: it does not contact an external cleanup team,
+and requests are not linked to an individual detection. Monitoring users can
+acknowledge a request and later record a manually verified successful or
+unsuccessful outcome.
+
+Incident Reports calculates the average time from request creation to first
+in-app acknowledgment and the success percentage among manually verified
+outcomes for requests created in the last 30 days. It shows no value when there
+is no eligible data. To enable the workflow, deploy the updated Firestore rules with
+`firebase deploy --only firestore:rules` after authenticating the Firebase CLI
+for the configured project. The metrics update live from Firestore snapshots;
+no external notification integration is configured.

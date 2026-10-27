@@ -290,11 +290,23 @@
               <p class="recorded-volume-note" data-volume-note role="status" aria-live="polite">Loading recorded volume…</p>
             </div>
 
-            <button class="dispatch-btn" type="button" data-dispatch-cleanup title="Cleanup dispatch is not connected to a response service" disabled>
+            <button class="dispatch-btn" type="button" data-dispatch-cleanup>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="8" width="14" height="9" rx="1.5"/><path d="M15 11h4l3 3v3h-7z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
-              Alert Cleanup Team
+              <span>Create in-app cleanup request</span>
             </button>
+            <p class="cleanup-request-disclaimer">This creates a RiverSight-only request for the selected camera/location. No external team is notified, and the request is not linked to a specific detection.</p>
             </div>
+          </div>
+
+          <div class="card cleanup-requests-card">
+            <div class="card-head">
+              <div>
+                <h3>In-app cleanup requests</h3>
+                <div class="card-sub">Acknowledge requests and record verified outcomes</div>
+              </div>
+            </div>
+            <p class="cleanup-requests-status" data-cleanup-requests-status role="status" aria-live="polite">Loading cleanup requests…</p>
+            <div class="cleanup-requests-list" data-cleanup-requests-list></div>
           </div>
 
         </div>
@@ -304,6 +316,7 @@
   </div>
 
     <script type="module" src="../../js/monitoring/waste-camera-module.js"></script>
+    <script type="module" src="../../js/monitoring/cleanup-request-module.js"></script>
     <script type="module" src="../../js/monitoring/ai-feed-auth.js"></script>
     <script src="../../js/monitoring/segmentation-feed.js" defer></script>
     <script type="module" src="../../js/shared/global-search-ui.js"></script>

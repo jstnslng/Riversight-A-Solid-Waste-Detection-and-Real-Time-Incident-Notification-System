@@ -10,6 +10,7 @@ import {
 
 let db = sharedDb; 
 let currentReportsData = []; 
+let cleanupRequestsData = [];
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", verifyAndInitializeApp);
@@ -38,6 +39,7 @@ function verifyAndInitializeApp() {
   if (!tableBody) return;
 
   initializeReportsListener();
+  initializeCleanupRequestsListener();
   setupControlListeners();
 }
 
@@ -79,6 +81,92 @@ function initializeReportsListener() {
   }
 }
 
+function initializeCleanupRequestsListener() {
+  onSnapshot(collection(db, "cleanup_requests"), (snapshot) => {
+    cleanupRequestsData = snapshot.docs.map((requestDoc) => ({
+      ...requestDoc.data(),
+      id: requestDoc.id
+    }));
+    updateCleanupMetrics();
+  }, (error) => {
+    console.error("Cleanup request metrics stream encountered an error:", error);
+    const responseTimeLabel = document.getElementById("averageResponseTime");
+    const responseTimeNote = document.getElementById("responseTimeNote");
+    const successRateLabel = document.getElementById("cleanupSuccessRate");
+    const successRateNote = document.getElementById("cleanupSuccessNote");
+    const successProgressBar = document.getElementById("cleanupProgressBar");
+    if (responseTimeLabel) responseTimeLabel.textContent = "Unavailable";
+    if (responseTimeNote) responseTimeNote.textContent = "Could not load in-app cleanup requests.";
+    if (successRateLabel) successRateLabel.textContent = "Unavailable";
+    if (successRateNote) successRateNote.textContent = "Could not load verified cleanup outcomes.";
+    if (successProgressBar) successProgressBar.style.width = "0%";
+  });
+}
+
+function getTimestampDate(timestamp) {
+  if (!timestamp) return null;
+  const date = typeof timestamp.toDate === "function"
+    ? timestamp.toDate()
+    : typeof timestamp.seconds === "number"
+      ? new Date(timestamp.seconds * 1000)
+      : new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function updateCleanupMetrics() {
+  const responseTimeLabel = document.getElementById("averageResponseTime");
+  const responseTimeNote = document.getElementById("responseTimeNote");
+  const successRateLabel = document.getElementById("cleanupSuccessRate");
+  const successRateNote = document.getElementById("cleanupSuccessNote");
+  const successProgressBar = document.getElementById("cleanupProgressBar");
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const recentRequests = cleanupRequestsData.filter((request) => {
+    const requestedAt = getTimestampDate(request.requestedAt);
+    return requestedAt && requestedAt.getTime() >= cutoff && requestedAt.getTime() <= Date.now();
+  });
+  const responseMinutes = recentRequests
+    .filter((request) => request.acknowledgedAt)
+    .map((request) => {
+      const requestedAt = getTimestampDate(request.requestedAt);
+      const acknowledgedAt = getTimestampDate(request.acknowledgedAt);
+      return requestedAt && acknowledgedAt
+        ? (acknowledgedAt.getTime() - requestedAt.getTime()) / 60000
+        : null;
+    })
+    .filter((minutes) => minutes !== null && minutes >= 0);
+
+  if (responseTimeLabel) {
+    if (responseMinutes.length) {
+      const average = responseMinutes.reduce((sum, minutes) => sum + minutes, 0) / responseMinutes.length;
+      responseTimeLabel.textContent = `${average.toFixed(1)}m`;
+    } else {
+      responseTimeLabel.textContent = "—";
+    }
+  }
+  if (responseTimeNote) {
+    responseTimeNote.textContent = responseMinutes.length
+      ? `Request created to in-app acknowledgment · ${responseMinutes.length} acknowledged in last 30 days`
+      : "No in-app acknowledgments in the last 30 days";
+  }
+
+  const verifiedRequests = recentRequests.filter((request) =>
+    request.status === "verified" &&
+    (request.cleanupOutcome === "successful" || request.cleanupOutcome === "unsuccessful")
+  );
+  const successfulCount = verifiedRequests.filter((request) => request.cleanupOutcome === "successful").length;
+  const successRate = verifiedRequests.length
+    ? Math.round((successfulCount / verifiedRequests.length) * 100)
+    : null;
+
+  if (successRateLabel) successRateLabel.textContent = successRate === null ? "—" : `${successRate}%`;
+  if (successRateNote) {
+    successRateNote.textContent = verifiedRequests.length
+      ? `${successfulCount} successful of ${verifiedRequests.length} verified · last 30 days`
+      : "No verified cleanup outcomes in the last 30 days";
+  }
+  if (successProgressBar) successProgressBar.style.width = `${successRate ?? 0}%`;
+}
+
 function processAndRenderDashboard() {
   const tableBody = document.getElementById("incidentTableBody");
   if (!tableBody) return;
@@ -104,19 +192,17 @@ function processAndRenderDashboard() {
   
   let activeCount = 0;
   let totalCount = filtered.length;
-  let resolvedCount = 0;
   let severityCounts = { SEVERE: 0, MEDIUM: 0, NORMAL: 0 };
   let weeklyTrends = { plastic: [0, 0, 0, 0], organic: [0, 0, 0, 0] };
 
   if (filtered.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--muted);">No matching reports found.</td></tr>`;
-    updateDashboardMetrics(0, 0, 0, severityCounts, weeklyTrends);
+    updateDashboardMetrics(0, 0, severityCounts, weeklyTrends);
     return;
   }
 
   filtered.forEach((item) => {
-    if (item.status === "Resolved") resolvedCount++;
-    else activeCount++;
+    if (item.status !== "Resolved") activeCount++;
 
     if (severityCounts[item.severity] !== undefined) {
       severityCounts[item.severity]++;
@@ -174,14 +260,12 @@ function processAndRenderDashboard() {
     tableBody.appendChild(tr);
   });
 
-  updateDashboardMetrics(activeCount, totalCount, resolvedCount, severityCounts, weeklyTrends);
+  updateDashboardMetrics(activeCount, totalCount, severityCounts, weeklyTrends);
 }
 
-function updateDashboardMetrics(active, total, resolved, severities, trends) {
+function updateDashboardMetrics(active, total, severities, trends) {
   const activeCountLabel = document.getElementById("activeIncidentsCount");
   const totalCountLabel = document.getElementById("totalDetectionsCount");
-  const successRateLabel = document.getElementById("cleanupSuccessRate");
-  const successProgressBar = document.getElementById("cleanupProgressBar");
   const donutCenterLabel = document.getElementById("donutPercentage");
 
   if (totalCountLabel) totalCountLabel.textContent = total.toLocaleString();
@@ -191,10 +275,6 @@ function updateDashboardMetrics(active, total, resolved, severities, trends) {
       ? `${active} <span class="stat-sub pill-red">HIGH RISK</span>`
       : `0 <span class="stat-sub good">CLEAR</span>`;
   }
-
-  const successRate = total > 0 ? Math.round((resolved / total) * 100) : 100;
-  if (successRateLabel) successRateLabel.innerHTML = `${successRate}% <span class="stat-sub good">Live</span>`;
-  if (successProgressBar) successProgressBar.style.width = `${successRate}%`;
 
   const urgentCount = severities.SEVERE;
   const urgentPercent = total > 0 ? Math.round((urgentCount / total) * 100) : 0;
