@@ -12,11 +12,9 @@
 <body class="auth-pending">
 
    <div class="topbar">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon">...</svg>
-    Personnel Reports Module
-    <div class="global-search-wrap">
-      <input type="text" id="globalSearchInput" placeholder="Search incidents, detections, reports..." autocomplete="off">
-      <div id="globalSearchResults" class="global-search-results"></div>
+    <div class="topbar-title-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5Z"/></svg>
+      Personnel Reports Module
     </div>
   </div>
 
@@ -62,10 +60,11 @@
       <header class="header-row">
         <div class="breadcrumb">Monitoring <span>›</span> <strong>Reports Module</strong></div>
 
-        <!-- <div class="search-wrap">
+        <div class="search-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" placeholder="Search reports or incidents...">
-        </div> -->
+          <input type="text" id="globalSearchInput" placeholder="Global system search..." autocomplete="off">
+          <div id="globalSearchResults" class="global-search-results"></div>
+        </div>
 
         <div class="header-right">
           

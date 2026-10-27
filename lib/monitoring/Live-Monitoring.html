@@ -11,17 +11,9 @@
 </head>
 <body class="auth-pending" data-page="live-monitoring">
 
-
-<div class="topbar">
-  <div class="topbar-title-wrap">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon">...</svg>
-    Live Waterway Monitoring
+  <div class="topbar">
+    <div class="topbar-title-wrap">Live Waterway Monitoring</div>
   </div>
-  <div class="global-search-wrap">
-    <input type="text" id="globalSearchInput" placeholder="Search incidents, detections, reports..." autocomplete="off">
-    <div id="globalSearchResults" class="global-search-results"></div>
-  </div>
-</div>
 
   <div class="layout">
     <aside class="sidebar">
@@ -40,7 +32,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6l1 4H8l1-4Z"/><path d="M5 7h14l-1.2 13.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 7Z"/><path d="M10 11v6M14 11v6"/></svg>
           Waste Detection
         </a>
-         <a href="Incident-Evaluation.html" class="nav-item">
+        <a href="Incident-Evaluation.html" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 1 21h22L12 3Z"/><path d="M12 9.5v5M12 17.5h.01"/></svg>
           Incident Evaluation
         </a>
@@ -52,9 +44,7 @@
 
       <div class="feed-selector" id="sidebarFeedSelector">
         <div class="feed-selector-label">ACTIVE FEED SELECTOR</div>
-
       </div>
-
 
       <div class="sidebar-footer">
         <span class="status-dot green"></span>
@@ -70,10 +60,11 @@
       <header class="header-row">
         <div class="breadcrumb">Monitoring <span>›</span> <strong>Live Feeds</strong></div>
 
-        <!-- <div class="search-wrap">
+        <div class="search-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" placeholder="Search camera or location...">
-        </div> -->
+          <input type="text" id="globalSearchInput" placeholder="Global system search..." autocomplete="off">
+          <div id="globalSearchResults" class="global-search-results"></div>
+        </div>
 
         <div class="header-right">
           <button class="icon-btn">
@@ -110,7 +101,8 @@
       <div class="page-title-row">
         <div>
           <h1>Live Waterway Monitoring</h1>
-        <div class="updated-row"><span class="live-dot"></span> Live Stream · <span id="activeSourcesCount">0 Active Sources</span></div>        </div>
+          <div class="updated-row"><span class="live-dot"></span> Live Stream · <span id="activeSourcesCount">0 Active Sources</span></div>
+        </div>
         <div class="page-title-actions">
           <button class="date-btn active" type="button" data-view-mode="grid" aria-pressed="true">Grid (2×2)</button>
           <button class="date-btn" type="button" data-view-mode="fullscreen" aria-pressed="false">Full Screen Mode</button>
@@ -127,10 +119,10 @@
     </main>
   </div>
 
-<script type="module" src="../../js/monitoring/camera-feed-module.js"></script>
-<script type="module" src="../../js/shared/global-search-ui.js"></script>
-<script type="module" src="../../js/monitoring/monitoring-auth-guard.js"></script>
-<script src="../../js/monitoring/monitoring-nav.js"></script>
-<script type="module" src="../../js/shared/global.js"></script>
+  <script type="module" src="../../js/monitoring/camera-feed-module.js"></script>
+  <script type="module" src="../../js/shared/global-search-ui.js"></script>
+  <script type="module" src="../../js/monitoring/monitoring-auth-guard.js"></script>
+  <script src="../../js/monitoring/monitoring-nav.js"></script>
+  <script type="module" src="../../js/shared/global.js"></script>
 </body>
 </html>

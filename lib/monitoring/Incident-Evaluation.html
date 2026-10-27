@@ -13,11 +13,9 @@
 <body class="auth-pending">
 
   <div class="topbar">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon">...</svg>
-    Incident Evaluation Module
-    <div class="global-search-wrap">
-      <input type="text" id="globalSearchInput" placeholder="Search incidents, detections, reports..." autocomplete="off">
-      <div id="globalSearchResults" class="global-search-results"></div>
+    <div class="topbar-title-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="topbar-icon"><path d="M12 3 1 21h22L12 3Z"/><path d="M12 9.5v5M12 17.5h.01"/></svg>
+      Incident Evaluation Module
     </div>
   </div>
 
@@ -74,6 +72,12 @@
 
       <header class="header-row">
         <div class="breadcrumb">Monitoring <span>›</span> <strong>Incident Evaluation &amp; Notification</strong></div>
+
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="globalSearchInput" placeholder="Global system search..." autocomplete="off">
+          <div id="globalSearchResults" class="global-search-results"></div>
+        </div>
 
         <div class="header-right">
           <button class="icon-btn">
