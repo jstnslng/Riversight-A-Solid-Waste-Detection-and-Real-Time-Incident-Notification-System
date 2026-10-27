@@ -1,436 +1,152 @@
-import { auth, db as sharedDb } from "../shared/firebase-config.js";
-
-import { 
-  collection, 
-  onSnapshot, 
-  query, 
+import { db } from "../shared/firebase-config.js";
+import {
+  collection,
+  query,
   orderBy,
-  initializeFirestore
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-let db = sharedDb; 
-let currentReportsData = []; 
-let cleanupRequestsData = [];
+document.addEventListener("DOMContentLoaded", () => {
+  initSummaryCards();
+  initWasteTrendsChart();
+  initIncidentArchiveTable();
+});
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", verifyAndInitializeApp);
-} else {
-  verifyAndInitializeApp();
-}
+export function initSummaryCards() {
+  const totalDetectionsElem = document.getElementById("totalDetectionsCount");
+  const activeIncidentsElem = document.getElementById("activeIncidentsCount");
 
-function verifyAndInitializeApp() {
-  console.log("RiverSight Report Engine Running. Core DB Hook state:", db ? "Connected" : "Requires Recovery Injection");
+  onSnapshot(collection(db, "reports"), (snapshot) => {
+    let activeCount = 0;
 
-  if (!db && auth && auth.app) {
-    try {
-      console.warn("Attempting Long Polling fallback interface injection...");
-      db = initializeFirestore(auth.app, { experimentalForceLongPolling: true });
-    } catch (fallbackErr) {
-      console.error("Critical error during database reconstruction:", fallbackErr);
-    }
-  }
-
-  if (!db) {
-    console.error("Database initialization totally failed. Check imports in firebase-config.js");
-    return;
-  }
-  
-  const tableBody = document.getElementById("incidentTableBody");
-  if (!tableBody) return;
-
-  initializeReportsListener();
-  initializeCleanupRequestsListener();
-  setupControlListeners();
-}
-
-function initializeReportsListener() {
-  const tableBody = document.getElementById("incidentTableBody");
-  if (!tableBody) return;
-
-  try {
-    const targetCollection = collection(db, "reports");
-    const baseQuery = query(targetCollection);
-
-    console.log("Subscribing to Firestore updates...");
-    
-    onSnapshot(baseQuery, (snapshot) => {
-      console.log(`Snapshot active. Pulled ${snapshot.size} valid record nodes.`);
-      currentReportsData = [];
-      
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        currentReportsData.push({
-          id: doc.id,
-          reportId: data.reportId || `EV-${doc.id.substring(0, 4).toUpperCase()}`,
-          dateText: data.dateText || data.evaluatedAt || "Just now",
-          location: data.location || "Unknown Sector",
-          detectionType: data.detectionType || "Evaluated Incident",
-          confidence: data.confidence ? parseFloat(data.confidence) : 100,
-          severity: (data.severity || "NORMAL").toUpperCase(),
-          status: data.status || "Evaluated",
-          timestamp: data.timestamp 
-        });
-      });
-
-      processAndRenderDashboard();
-    }, (error) => {
-      console.error("Firestore Snapshot stream encountered an error:", error);
-    });
-  } catch (err) {
-    console.error("Initialization error inside collection query engine:", err);
-  }
-}
-
-function initializeCleanupRequestsListener() {
-  onSnapshot(collection(db, "cleanup_requests"), (snapshot) => {
-    cleanupRequestsData = snapshot.docs.map((requestDoc) => ({
-      ...requestDoc.data(),
-      id: requestDoc.id
-    }));
-    updateCleanupMetrics();
-  }, (error) => {
-    console.error("Cleanup request metrics stream encountered an error:", error);
-    const responseTimeLabel = document.getElementById("averageResponseTime");
-    const responseTimeNote = document.getElementById("responseTimeNote");
-    const successRateLabel = document.getElementById("cleanupSuccessRate");
-    const successRateNote = document.getElementById("cleanupSuccessNote");
-    const successProgressBar = document.getElementById("cleanupProgressBar");
-    if (responseTimeLabel) responseTimeLabel.textContent = "Unavailable";
-    if (responseTimeNote) responseTimeNote.textContent = "Could not load in-app cleanup requests.";
-    if (successRateLabel) successRateLabel.textContent = "Unavailable";
-    if (successRateNote) successRateNote.textContent = "Could not load verified cleanup outcomes.";
-    if (successProgressBar) successProgressBar.style.width = "0%";
-  });
-}
-
-function getTimestampDate(timestamp) {
-  if (!timestamp) return null;
-  const date = typeof timestamp.toDate === "function"
-    ? timestamp.toDate()
-    : typeof timestamp.seconds === "number"
-      ? new Date(timestamp.seconds * 1000)
-      : new Date(timestamp);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function updateCleanupMetrics() {
-  const responseTimeLabel = document.getElementById("averageResponseTime");
-  const responseTimeNote = document.getElementById("responseTimeNote");
-  const successRateLabel = document.getElementById("cleanupSuccessRate");
-  const successRateNote = document.getElementById("cleanupSuccessNote");
-  const successProgressBar = document.getElementById("cleanupProgressBar");
-  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  const recentRequests = cleanupRequestsData.filter((request) => {
-    const requestedAt = getTimestampDate(request.requestedAt);
-    return requestedAt && requestedAt.getTime() >= cutoff && requestedAt.getTime() <= Date.now();
-  });
-  const responseMinutes = recentRequests
-    .filter((request) => request.acknowledgedAt)
-    .map((request) => {
-      const requestedAt = getTimestampDate(request.requestedAt);
-      const acknowledgedAt = getTimestampDate(request.acknowledgedAt);
-      return requestedAt && acknowledgedAt
-        ? (acknowledgedAt.getTime() - requestedAt.getTime()) / 60000
-        : null;
-    })
-    .filter((minutes) => minutes !== null && minutes >= 0);
-
-  if (responseTimeLabel) {
-    if (responseMinutes.length) {
-      const average = responseMinutes.reduce((sum, minutes) => sum + minutes, 0) / responseMinutes.length;
-      responseTimeLabel.textContent = `${average.toFixed(1)}m`;
-    } else {
-      responseTimeLabel.textContent = "—";
-    }
-  }
-  if (responseTimeNote) {
-    responseTimeNote.textContent = responseMinutes.length
-      ? `Request created to in-app acknowledgment · ${responseMinutes.length} acknowledged in last 30 days`
-      : "No in-app acknowledgments in the last 30 days";
-  }
-
-  const verifiedRequests = recentRequests.filter((request) =>
-    request.status === "verified" &&
-    (request.cleanupOutcome === "successful" || request.cleanupOutcome === "unsuccessful")
-  );
-  const successfulCount = verifiedRequests.filter((request) => request.cleanupOutcome === "successful").length;
-  const successRate = verifiedRequests.length
-    ? Math.round((successfulCount / verifiedRequests.length) * 100)
-    : null;
-
-  if (successRateLabel) successRateLabel.textContent = successRate === null ? "—" : `${successRate}%`;
-  if (successRateNote) {
-    successRateNote.textContent = verifiedRequests.length
-      ? `${successfulCount} successful of ${verifiedRequests.length} verified · last 30 days`
-      : "No verified cleanup outcomes in the last 30 days";
-  }
-  if (successProgressBar) successProgressBar.style.width = `${successRate ?? 0}%`;
-}
-
-function processAndRenderDashboard() {
-  const tableBody = document.getElementById("incidentTableBody");
-  if (!tableBody) return;
-
-  const searchInput = document.querySelector('input[type="search"], input[placeholder*="Search"]');
-  const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
-  
-  const severityFilter = getDropdownValue("severity");
-  const statusFilter = getDropdownValue("status");
-
-  let filtered = currentReportsData.filter(item => {
-    const matchesSearch = item.reportId.toLowerCase().includes(searchVal) || 
-                          item.location.toLowerCase().includes(searchVal) || 
-                          item.detectionType.toLowerCase().includes(searchVal);
-
-    const matchesSeverity = severityFilter === "ALL" || item.severity === severityFilter;
-    const matchesStatus = statusFilter === "ALL" || item.status === statusFilter;
-
-    return matchesSearch && matchesSeverity && matchesStatus;
-  });
-
-  tableBody.innerHTML = "";
-  
-  let activeCount = 0;
-  let totalCount = filtered.length;
-  let severityCounts = { SEVERE: 0, MEDIUM: 0, NORMAL: 0 };
-  let weeklyTrends = { plastic: [0, 0, 0, 0], organic: [0, 0, 0, 0] };
-
-  if (filtered.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--muted);">No matching reports found.</td></tr>`;
-    updateDashboardMetrics(0, 0, severityCounts, weeklyTrends);
-    return;
-  }
-
-  filtered.forEach((item) => {
-    if (item.status !== "Resolved") activeCount++;
-
-    if (severityCounts[item.severity] !== undefined) {
-      severityCounts[item.severity]++;
-    }
-
-    let docDate = null;
-    if (item.timestamp && typeof item.timestamp.toDate === "function") {
-      docDate = item.timestamp.toDate();
-    } else if (item.dateText) {
-      const dateOnly = item.dateText.split('•')[0].trim();
-      docDate = new Date(dateOnly);
-    }
-
-    if (docDate && !isNaN(docDate.getTime())) {
-      const day = docDate.getDate();
-      let weekIdx = Math.min(Math.floor((day - 1) / 7), 3);
-      
-      const typeLower = item.detectionType.toLowerCase();
-      if (typeLower.includes("plastic") || typeLower.includes("trash") || typeLower.includes("waste")) {
-        weeklyTrends.plastic[weekIdx]++;
-      } else {
-        weeklyTrends.organic[weekIdx]++;
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.status && data.status.toLowerCase() !== "resolved") {
+        activeCount++;
       }
-    } else {
-      weeklyTrends.organic[0]++;
+    });
+
+    if (totalDetectionsElem) {
+      totalDetectionsElem.textContent = snapshot.size;
     }
 
-    let dotColor = "green";
-    if (item.severity === "SEVERE") dotColor = "red";
-    else if (item.severity === "MEDIUM") dotColor = "orange";
-
-    let statusDotColor = "gray";
-    if (item.status === "Resolved") statusDotColor = "green";
-    if (item.status === "Dispatched") statusDotColor = "blue";
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>
-        <div class="report-id">${item.reportId}</div>
-        <div class="report-date">${item.dateText}</div>
-      </td>
-      <td><span class="status-dot ${dotColor} inline"></span>${item.location}</td>
-      <td>
-        <div class="detect-type">${item.detectionType}</div>
-        <div class="detect-conf good">${item.confidence}% Confidence</div>
-      </td>
-      <td><span class="severity-pill ${item.severity.toLowerCase()}">${item.severity}</span></td>
-      <td><span class="status-text ${statusDotColor}"><i class="dot dot-${statusDotColor}"></i>${item.status}</span></td>
-      <td class="action-cell">
-        <button class="kebab-btn" aria-label="Actions">
-          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
-        </button>
-      </td>
-    `;
-    tableBody.appendChild(tr);
+    if (activeIncidentsElem) {
+      if (activeCount === 0) {
+        activeIncidentsElem.innerHTML = `0 <span class="stat-sub good">Clear</span>`;
+      } else {
+        activeIncidentsElem.innerHTML = `${activeCount} <span class="stat-sub warn">Active</span>`;
+      }
+    }
+  }, (error) => {
+    console.error("Error streaming summary counts:", error);
   });
-
-  updateDashboardMetrics(activeCount, totalCount, severityCounts, weeklyTrends);
 }
 
-function updateDashboardMetrics(active, total, severities, trends) {
-  const activeCountLabel = document.getElementById("activeIncidentsCount");
-  const totalCountLabel = document.getElementById("totalDetectionsCount");
-  const donutCenterLabel = document.getElementById("donutPercentage");
+export function initWasteTrendsChart() {
+  const chartGroupLines = document.getElementById("chartGroupLines");
+  const chartGroupBars = document.getElementById("chartGroupBars");
+  const btnShowLines = document.getElementById("btnShowLines");
+  const btnShowBars = document.getElementById("btnShowBars");
 
-  if (totalCountLabel) totalCountLabel.textContent = total.toLocaleString();
-
-  if (activeCountLabel) {
-    activeCountLabel.innerHTML = active > 0 
-      ? `${active} <span class="stat-sub pill-red">HIGH RISK</span>`
-      : `0 <span class="stat-sub good">CLEAR</span>`;
-  }
-
-  const urgentCount = severities.SEVERE;
-  const urgentPercent = total > 0 ? Math.round((urgentCount / total) * 100) : 0;
-  if (donutCenterLabel) donutCenterLabel.textContent = `${urgentPercent}%`;
-
-  const circles = document.querySelectorAll(".donut circle");
-  if (circles.length === 3) {
-    const totalCircleLen = 100;
-    let pNormal = total > 0 ? (severities.NORMAL / total) * totalCircleLen : 33.33;
-    let pMedium = total > 0 ? (severities.MEDIUM / total) * totalCircleLen : 33.33;
-    let pSevere = total > 0 ? (severities.SEVERE / total) * totalCircleLen : 33.34;
-
-    circles[0].setAttribute("stroke-dasharray", `${pNormal} ${totalCircleLen - pNormal}`);
-    circles[0].setAttribute("stroke-dashoffset", `0`);
-
-    circles[1].setAttribute("stroke-dasharray", `${pMedium} ${totalCircleLen - pMedium}`);
-    circles[1].setAttribute("stroke-dashoffset", `-${pNormal}`);
-
-    circles[2].setAttribute("stroke-dasharray", `${pSevere} ${totalCircleLen - pSevere}`);
-    circles[2].setAttribute("stroke-dashoffset", `-${pNormal + pMedium}`);
-  }
-
-  const maxVal = Math.max(...trends.plastic, ...trends.organic, 5);
-  const xCoords = [34, 150, 270, 390];
-
-  const chartPaths = document.querySelectorAll("#chartGroupLines path");
-  if (chartPaths.length >= 2) {
-    const getLinePath = (dataPoints) => {
-      const points = dataPoints.map((val, i) => ({
-        x: xCoords[i],
-        y: 180 - ((val / maxVal) * 140)
-      }));
-      return `M${points[0].x},${points[0].y} L${points[1].x},${points[1].y} L${points[2].x},${points[2].y} L${points[3].x},${points[3].y}`;
+  onSnapshot(collection(db, "reports"), (querySnapshot) => {
+    const weeklyData = {
+      plastic: [0, 0, 0, 0],
+      organic: [0, 0, 0, 0]
     };
 
-    chartPaths[0].setAttribute("d", getLinePath(trends.plastic));
-    chartPaths[1].setAttribute("d", getLinePath(trends.organic));
-  }
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.createdAt) {
+        const date = data.createdAt.toDate();
+        const day = date.getDate();
 
-  const chartBarsGroup = document.getElementById("chartGroupBars");
-  if (chartBarsGroup) {
-    const xOffsets = [55, 165, 285, 405];
-    let barsHTML = "";
+        const weekIndex = Math.min(Math.floor((day - 1) / 7), 3);
+        const type = (data.detectionType || "").toLowerCase();
 
-    xOffsets.forEach((x, i) => {
-      const plasticVal = trends.plastic[i];
-      const organicVal = trends.organic[i];
-
-      const pHeight = (plasticVal / maxVal) * 140;
-      const oHeight = (organicVal / maxVal) * 140;
-
-      const pY = 180 - pHeight;
-      const oY = 180 - oHeight;
-
-      barsHTML += `<rect x="${x}" y="${pY}" width="16" height="${pHeight}" fill="#2f6fd6" rx="3"/>`;
-      barsHTML += `<rect x="${x + 20}" y="${oY}" width="16" height="${oHeight}" fill="#1a9e57" rx="3"/>`;
+        if (type.includes("plastic")) {
+          weeklyData.plastic[weekIndex] += 1;
+        } else {
+          weeklyData.organic[weekIndex] += 1;
+        }
+      }
     });
 
-    chartBarsGroup.innerHTML = barsHTML;
-  }
-}
+    if (btnShowLines && btnShowBars && chartGroupLines && chartGroupBars) {
+      btnShowLines.onclick = () => {
+        btnShowLines.classList.add("active");
+        btnShowBars.classList.remove("active");
+        chartGroupLines.style.display = "block";
+        chartGroupBars.style.display = "none";
+      };
 
-function getDropdownValue(type) {
-  const selects = Array.from(document.querySelectorAll("select"));
-  let selectEl = null;
-
-  if (type === "severity") {
-    selectEl = selects.find(s => s.id.toLowerCase().includes("severity") || s.name.toLowerCase().includes("severity")) || selects[0];
-  } else {
-    selectEl = selects.find(s => s.id.toLowerCase().includes("status") || s.name.toLowerCase().includes("status")) || selects[1];
-  }
-
-  if (selectEl && selectEl.value) {
-    if (type === "severity") {
-      const val = selectEl.value.toUpperCase();
-      return val.includes("ALL") ? "ALL" : val;
-    } else {
-      return selectEl.value === "ALL" || selectEl.value.toUpperCase().includes("ALL") ? "ALL" : selectEl.value;
+      btnShowBars.onclick = () => {
+        btnShowBars.classList.add("active");
+        btnShowLines.classList.remove("active");
+        chartGroupLines.style.display = "none";
+        chartGroupBars.style.display = "block";
+      };
     }
-  }
-  
-  return "ALL";
+  }, (error) => {
+    console.error("Error streaming Waste Detection Trends:", error);
+  });
 }
 
-function setupControlListeners() {
-  const searchInput = document.querySelector('input[type="search"], input[placeholder*="Search"]');
-  if (searchInput) {
-    searchInput.addEventListener("input", processAndRenderDashboard);
-  }
+export function initIncidentArchiveTable() {
+  const tableBody = document.getElementById("incidentTableBody");
+  if (!tableBody) return;
 
-  document.querySelectorAll("select").forEach(dropdown => {
-    dropdown.addEventListener("change", processAndRenderDashboard);
-  });
+  const severityFilter = document.getElementById("severitySelect");
+  const statusFilter = document.getElementById("statusSelect");
 
-  const btnShowLines = document.getElementById('btnShowLines');
-  const btnShowBars = document.getElementById('btnShowBars');
-  const chartLines = document.getElementById('chartGroupLines');
-  const chartBars = document.getElementById('chartGroupBars');
+  const q = query(collection(db, "reports"), orderBy("createdAt", "desc"));
 
-  if (btnShowLines && btnShowBars && chartLines && chartBars) {
-    btnShowLines.addEventListener('click', () => {
-      btnShowLines.classList.add('active');
-      btnShowBars.classList.remove('active');
-      chartLines.style.display = 'block';
-      chartBars.style.display = 'none';
+  onSnapshot(q, (querySnapshot) => {
+    const selectedSeverity = severityFilter ? severityFilter.value : "ALL";
+    const selectedStatus = statusFilter ? statusFilter.value : "ALL";
+
+    tableBody.innerHTML = "";
+
+    let count = 0;
+    querySnapshot.forEach((docSnap) => {
+      const item = docSnap.data();
+
+      if (selectedSeverity !== "ALL" && (item.severity || "").toLowerCase() !== selectedSeverity.toLowerCase()) {
+        return;
+      }
+      if (selectedStatus !== "ALL" && (item.status || "").toLowerCase() !== selectedStatus.toLowerCase()) {
+        return;
+      }
+
+      count++;
+      const row = document.createElement("tr");
+
+      const formattedDate = item.createdAt 
+        ? item.createdAt.toDate().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+        : "N/A";
+
+      const severityClass = (item.severity || "normal").toLowerCase();
+      const statusClass = (item.status || "resolved").toLowerCase();
+
+      row.innerHTML = `
+        <td><strong>${item.reportId || docSnap.id.substring(0, 8)}</strong><br><small style="color: #6b7280;">${formattedDate}</small></td>
+        <td>${item.location || "PH-MNL-QC"}</td>
+        <td>${item.detectionType || "Camera Detection"}</td>
+        <td><span class="badge severity-${severityClass}">${item.severity || "NORMAL"}</span></td>
+        <td><span class="badge status-${statusClass}">${item.status || "Resolved"}</span></td>
+        <td></td>
+      `;
+
+      tableBody.appendChild(row);
     });
 
-    btnShowBars.addEventListener('click', () => {
-      btnShowBars.classList.add('active');
-      btnShowLines.classList.remove('active');
-      chartLines.style.display = 'none';
-      chartBars.style.display = 'block';
-    });
-  }
-
-  const allButtons = Array.from(document.querySelectorAll("button"));
-  
-  const csvBtn = allButtons.find(el => el.textContent.trim().toUpperCase().includes("EXPORT CSV"));
-  if (csvBtn) csvBtn.addEventListener("click", exportToCSV);
-
-  const pdfBtn = allButtons.find(el => el.textContent.trim().toUpperCase().includes("EXPORT PDF"));
-  if (pdfBtn) pdfBtn.addEventListener("click", exportToPDF);
-}
-
-function exportToCSV() {
-  if (currentReportsData.length === 0) {
-    alert("No data available to export.");
-    return;
-  }
-
-  const headers = ["Report ID", "Timestamp/Date", "Location Node", "Detection Type", "Confidence Rating", "Severity Level", "Status"];
-  const csvRows = [headers.join(",")];
-
-  currentReportsData.forEach(item => {
-    const fields = [
-      `"${item.reportId}"`,
-      `"${item.dateText}"`,
-      `"${item.location}"`,
-      `"${item.detectionType}"`,
-      `"${item.confidence}%"`,
-      `"${item.severity}"`,
-      `"${item.status}"`
-    ];
-    csvRows.push(fields.join(","));
+    if (count === 0) {
+      tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 1.5rem; color: #6b7280;">No reports found matching criteria.</td></tr>`;
+    }
+  }, (error) => {
+    console.error("Error streaming archive table:", error);
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #ef4444; padding: 1.5rem;">Failed to stream records.</td></tr>`;
   });
 
-  const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `Incident_Log_Report_${new Date().toISOString().split('T')[0]}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-function exportToPDF() {
-  window.print();
+  if (severityFilter) severityFilter.addEventListener("change", () => initIncidentArchiveTable());
+  if (statusFilter) statusFilter.addEventListener("change", () => initIncidentArchiveTable());
 }

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="riversight-ai-backend" content="https://riversight-a-solid-waste-detection-and-real-time-production.up.railway.app">
 <script src="../../js/shared/theme-init.js"></script>
 <title>RiverSight — Incident Evaluation Module</title>
 <link rel="stylesheet" href="../../css/monitoring/Live-Monitoring.css">
@@ -10,23 +11,24 @@
 <link rel="stylesheet" href="../../css/shared/global.css">
 <script type="module" src="../../js/shared/header.js" defer></script>
 </head>
-<body class="auth-pending">
+<body class="auth-pending" data-page="incident-evaluation">
 
   <div class="topbar">
-  <div class="topbar-title-wrap">
-    Incident Evaluation Module
+    <div class="topbar-title-wrap">
+      Incident Evaluation Module
+    </div>
   </div>
-</div>
 
   <div class="layout">
 
     <aside class="sidebar">
       <div class="sidebar-brand">
-      <img src="../../assets/Riversight-logo.png" alt="RiverSight logo" class="brand-logo">        <div class="brand-name">RiverSight</div>
+        <img src="../../assets/Riversight-logo.png" alt="RiverSight logo" class="brand-logo">
+        <div class="brand-name">RiverSight</div>
         <div class="brand-tagline">Creek Waterway Monitoring</div>
       </div>
 
-        <nav class="nav">
+      <nav class="nav">
         <a href="Live-Monitoring.html" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.6"/><path d="M1 12s4.5-7.5 11-7.5S23 12 23 12s-4.5 7.5-11 7.5S1 12 1 12Z"/></svg>
           Live Monitoring
@@ -39,7 +41,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 1 21h22L12 3Z"/><path d="M12 9.5v5M12 17.5h.01"/></svg>
           Incident Evaluation
         </a>
-         <a href="./Incident-Reports.html" class="nav-item">
+        <a href="./Incident-Reports.html" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5Z"/></svg>
           Incident Reports
         </a>
@@ -48,12 +50,12 @@
         <div class="severity-filter-item">
           <span class="severity-swatch critical"></span>
           <span class="severity-filter-name">Critical</span>
-          <span class="severity-filter-count critical">12</span>
+          <span class="severity-filter-count critical" id="filterCountCritical">0</span>
         </div>
         <div class="severity-filter-item">
           <span class="severity-swatch high"></span>
           <span class="severity-filter-name">High</span>
-          <span class="severity-filter-count high">08</span>
+          <span class="severity-filter-count high" id="filterCountHigh">0</span>
         </div>
       </nav>
 
@@ -66,7 +68,6 @@
       </div>
     </aside>
 
-    <!-- Main content -->
     <main class="main">
 
       <header class="header-row">
@@ -87,8 +88,8 @@
             <button class="user-chip user-chip-button" type="button" data-profile-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Open profile menu">
               <img src="../../assets/admin-profile-pic.jpg" alt="Admin avatar">
               <div>
-              <div class="user-name">Live Monitoring</div>
-              <div class="user-role">Monitoring Personnel</div>
+                <div class="user-name">Live Monitoring</div>
+                <div class="user-role">Monitoring Personnel</div>
               </div>
             </button>
 
@@ -119,40 +120,42 @@
           <div class="sensitivity-label">ALERT TRIGGER SENSITIVITY</div>
           <div class="sensitivity-pill">
             <span class="proc-dot"></span>
-            Detection Threshold: &gt; 10 items
-            <button class="modify-link" type="button" title="Threshold editing is not connected to incident settings" disabled>MODIFY</button>
+            Detection Threshold: &gt; <span id="lblVolumeThreshold">10</span> items
+            <button class="modify-link" type="button" id="btnModifySensitivity">MODIFY</button>
           </div>
         </div>
       </div>
 
-      <!-- Content grid -->
       <section class="content-grid">
         <div class="left-col">
 
-          <!-- Detection card -->
-          <div class="card detection-card">
+          <div class="card feed-card">
             <div class="detection-head">
               <div class="detection-head-left">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="warn-icon"><path d="M12 3 1 21h22L12 3Z"/><path d="M12 9.5v5M12 17.5h.01"/></svg>
                 <div>
-                  <div class="detection-id">Detection ID: EV-8892-X</div>
-                  <div class="detection-sub">Captured by CAM-001 • 15:42:01</div>
+                  <div class="detection-id" id="activeDetectionIdText">Detection ID: Syncing...</div>
+                  <div class="detection-sub" id="activeDetectionMetaText">Captured by CAM-001 • --:--:--</div>
                 </div>
               </div>
-              <span class="severity-badge critical">CRITICAL INCIDENT</span>
+              <span class="severity-badge critical" id="activeSeverityBadge">CRITICAL INCIDENT</span>
             </div>
 
-            <div class="feed-frame">
-              <img src="https://picsum.photos/seed/riversight-incident/900/420" alt="Detection snapshot — Main North Inlet Sector" class="feed-img">
-              <div class="detect-box" style="top:40%; left:28%; width:26%; height:22%;">
-                <span class="detect-label">High Density Waste Block - 88.4%</span>
+            <p class="segmentation-status" data-segmentation-status role="status" aria-live="polite">Waiting for camera stream...</p>
+            <div class="feed-frame" data-camera-feed-frame>
+              <div data-live-camera-media>
+                <div class="feed-img feed-img--unavailable">Loading camera feed...</div>
               </div>
+              
+              <img class="segmentation-image" data-segmentation-image alt="Current camera stream with AI annotations" hidden>
+
               <div class="feed-tag feed-tag-live">
-                <span class="rec-dot"></span> Live Stream Active
+                <span class="rec-dot"></span> <span data-feed-source-label>LIVE CAMERA</span>
               </div>
+              <div class="feed-sector-label" id="activeLocationSector">Main North Inlet Sector</div>
             </div>
 
-                       <div class="protocol-row">
+            <div class="protocol-row">
               <div class="protocol-label">
                 <div class="protocol-title">PROTOCOL ACTION</div>
                 <div class="protocol-sub">Select response for this detected anomaly.</div>
@@ -168,34 +171,33 @@
             </div>
           </div>
 
-          <!-- Escalation workflow -->
           <div class="card">
             <div class="workflow-title">ESCALATION WORKFLOW STATUS</div>
             <div class="workflow-stepper">
               <div class="step-track">
-                <div class="step-line done"></div>
-                <div class="step-line"></div>
-                <div class="step-line"></div>
+                <div class="step-line done" id="wfLine1"></div>
+                <div class="step-line" id="wfLine2"></div>
+                <div class="step-line" id="wfLine3"></div>
               </div>
-              <div class="step done">
+              <div class="step done" id="wfStepCaptured">
                 <div class="step-icon done">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
                 </div>
                 <div class="step-label done">Detection Captured</div>
               </div>
-              <div class="step">
+              <div class="step" id="wfStepReviewed">
                 <div class="step-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
                 </div>
-                <div class="step-label"></div>
+                <div class="step-label">Reviewed</div>
               </div>
-              <div class="step">
+              <div class="step" id="wfStepEscalated">
                 <div class="step-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
                 </div>
                 <div class="step-label">LGU Notification Sent</div>
               </div>
-              <div class="step">
+              <div class="step" id="wfStepResolved">
                 <div class="step-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
                 </div>
@@ -204,15 +206,13 @@
             </div>
           </div>
 
-          <!-- Incident engine status -->
           <div class="processor-status">
             <span class="proc-dot"></span>
             <span class="proc-text"><strong>Incident Engine: ACTIVE</strong></span>
-            <span class="proc-mid">12 CRITICALS UNRESOLVED</span>
-            <span class="proc-uptime">LAST SYNC: 1s AGO</span>
+            <span class="proc-mid" id="engineUnresolvedCount">0 CRITICALS UNRESOLVED</span>
+            <span class="proc-uptime" id="engineLastSync">LAST SYNC: JUST NOW</span>
           </div>
 
-          <!-- Severity trends -->
           <div class="card">
             <div class="card-head">
               <div>
@@ -234,48 +234,13 @@
               <text x="6" y="94" class="axis-label">20</text>
               <text x="14" y="174" class="axis-label">0</text>
 
-                           <!-- Mon -->
-              <g>
-                <rect id="bar-mon-critical" x="52" width="32" fill="#d33c3c"/>
-                <rect id="bar-mon-high" x="52" width="32" fill="#e0a020"/>
-                <rect id="bar-mon-medium" x="52" width="32" fill="#2f6fd6"/>
-              </g>
-              <!-- Tue -->
-              <g>
-                <rect id="bar-tue-critical" x="120" width="32" fill="#d33c3c"/>
-                <rect id="bar-tue-high" x="120" width="32" fill="#e0a020"/>
-                <rect id="bar-tue-medium" x="120" width="32" fill="#2f6fd6"/>
-              </g>
-              <!-- Wed -->
-              <g>
-                <rect id="bar-wed-critical" x="188" width="32" fill="#d33c3c"/>
-                <rect id="bar-wed-high" x="188" width="32" fill="#e0a020"/>
-                <rect id="bar-wed-medium" x="188" width="32" fill="#2f6fd6"/>
-              </g>
-              <!-- Thu -->
-              <g>
-                <rect id="bar-thu-critical" x="256" width="32" fill="#d33c3c"/>
-                <rect id="bar-thu-high" x="256" width="32" fill="#e0a020"/>
-                <rect id="bar-thu-medium" x="256" width="32" fill="#2f6fd6"/>
-              </g>
-              <!-- Fri -->
-              <g>
-                <rect id="bar-fri-critical" x="324" width="32" fill="#d33c3c"/>
-                <rect id="bar-fri-high" x="324" width="32" fill="#e0a020"/>
-                <rect id="bar-fri-medium" x="324" width="32" fill="#2f6fd6"/>
-              </g>
-              <!-- Sat -->
-              <g>
-                <rect id="bar-sat-critical" x="392" width="32" fill="#d33c3c"/>
-                <rect id="bar-sat-high" x="392" width="32" fill="#e0a020"/>
-                <rect id="bar-sat-medium" x="392" width="32" fill="#2f6fd6"/>
-              </g>
-              <!-- Sun -->
-              <g>
-                <rect id="bar-sun-critical" x="460" width="32" fill="#d33c3c"/>
-                <rect id="bar-sun-high" x="460" width="32" fill="#e0a020"/>
-                <rect id="bar-sun-medium" x="460" width="32" fill="#2f6fd6"/>
-              </g>
+              <g><rect id="bar-mon-critical" x="52" width="32" fill="#d33c3c"/><rect id="bar-mon-high" x="52" width="32" fill="#e0a020"/><rect id="bar-mon-medium" x="52" width="32" fill="#2f6fd6"/></g>
+              <g><rect id="bar-tue-critical" x="120" width="32" fill="#d33c3c"/><rect id="bar-tue-high" x="120" width="32" fill="#e0a020"/><rect id="bar-tue-medium" x="120" width="32" fill="#2f6fd6"/></g>
+              <g><rect id="bar-wed-critical" x="188" width="32" fill="#d33c3c"/><rect id="bar-wed-high" x="188" width="32" fill="#e0a020"/><rect id="bar-wed-medium" x="188" width="32" fill="#2f6fd6"/></g>
+              <g><rect id="bar-thu-critical" x="256" width="32" fill="#d33c3c"/><rect id="bar-thu-high" x="256" width="32" fill="#e0a020"/><rect id="bar-thu-medium" x="256" width="32" fill="#2f6fd6"/></g>
+              <g><rect id="bar-fri-critical" x="324" width="32" fill="#d33c3c"/><rect id="bar-fri-high" x="324" width="32" fill="#e0a020"/><rect id="bar-fri-medium" x="324" width="32" fill="#2f6fd6"/></g>
+              <g><rect id="bar-sat-critical" x="392" width="32" fill="#d33c3c"/><rect id="bar-sat-high" x="392" width="32" fill="#e0a020"/><rect id="bar-sat-medium" x="392" width="32" fill="#2f6fd6"/></g>
+              <g><rect id="bar-sun-critical" x="460" width="32" fill="#d33c3c"/><rect id="bar-sun-high" x="460" width="32" fill="#e0a020"/><rect id="bar-sun-medium" x="460" width="32" fill="#2f6fd6"/></g>
 
               <text x="60" y="188" class="axis-label">Mon</text>
               <text x="128" y="188" class="axis-label">Tue</text>
@@ -291,28 +256,27 @@
 
         <div class="right-col">
 
-          <!-- Incident data -->
           <div class="card">
             <h3>Incident Data</h3>
             <div class="data-row">
               <span class="data-label">Location Node</span>
-              <span class="data-value">PH-MNL-QC (North)</span>
+              <span class="data-value" id="dataLocationNode">PH-MNL-QC (North)</span>
             </div>
             <div class="data-row">
               <span class="data-label">AI Confidence Score</span>
-              <span class="data-value good">88.42%</span>
+              <span class="data-value good" id="dataConfidenceScore">88.42%</span>
             </div>
             <div class="data-row">
               <span class="data-label">Est. Waste Volume</span>
-              <span class="data-value warn">~12.5 kg (Massive)</span>
+              <span class="data-value warn" id="dataWasteVolume">~12.5 kg (Massive)</span>
             </div>
             <div class="data-row">
               <span class="data-label">Primary Material</span>
-              <span class="data-value bad">Mixed Plastic Poly</span>
+              <span class="data-value bad" id="dataPrimaryMaterial">Mixed Plastic Poly</span>
             </div>
             <div class="data-row">
               <span class="data-label">Timestamp</span>
-              <span class="data-value">2023-10-19 15:42:01</span>
+              <span class="data-value" id="dataTimestamp">2023-10-19 15:42:01</span>
             </div>
 
             <div class="alert-protocol-box">
@@ -321,59 +285,41 @@
             </div>
           </div>
 
-          <!-- Alert log -->
           <div class="card">
             <div class="card-head">
-              <div></div>
+              <div><h3>Sub-Events &amp; Log</h3></div>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon-sm"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
             </div>
 
-            <div class="alert-log-item">
-              <div class="alert-log-top">
-                <span class="alert-status-tag sent">SENT</span>
-                <span class="alert-log-time">15:00</span>
+            <div id="incidentEventsList">
+              <div class="alert-log-item">
+                <div class="alert-log-top">
+                  <span class="alert-status-tag sent">SENT</span>
+                  <span class="alert-log-time">15:00</span>
+                </div>
+                <div class="alert-log-title">Alert Sent to QC Waste Management</div>
+                <div class="alert-log-desc">Emergency notification regarding incident EV-8892. Response acknowledged.</div>
               </div>
-              <div class="alert-log-title">Alert Sent to QC Waste Management</div>
-              <div class="alert-log-desc">Emergency notification regarding incident EV-8892. Response acknowledged.</div>
-            </div>
-
-            <div class="alert-log-item">
-              <div class="alert-log-top">
-                <span class="alert-status-tag pending">PENDING</span>
-                <span class="alert-log-time">15:40</span>
-              </div>
-              <div class="alert-log-title">Regional Environmental Office</div>
-              <div class="alert-log-desc">High-confidence detection in downstream area. Awaiting admin approval.</div>
-            </div>
-
-            <div class="alert-log-item">
-              <div class="alert-log-top">
-                <span class="alert-status-tag failed">FAILED</span>
-                <span class="alert-log-time">14:55</span>
-              </div>
-              <div class="alert-log-title">Local Barangay Sector 4</div>
-              <div class="alert-log-desc">Delivery failed — node unreachable. Retry scheduled.</div>
             </div>
           </div>
 
-          <!-- Alert configuration -->
           <div class="card">
             <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="title-icon"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg> Alert Configuration</h3>
 
             <div class="config-row">
               <span>Detection Volume Trigger</span>
-              <span class="config-value">10 Units</span>
+              <span class="config-value" id="cfgDisplayVolume">10 Units</span>
             </div>
             <div class="config-desc">Trigger alert when more than 10 items are detected in a 5-min window.</div>
 
             <div class="config-row config-row-top">
               <span>Confidence Required</span>
-              <span class="config-value">85%</span>
+              <span class="config-value" id="cfgDisplayConfidence">85%</span>
             </div>
-            <div class="progress-track"><div class="progress-fill fill-blue" style="width:85%"></div></div>
+            <div class="progress-track"><div class="progress-fill fill-blue" id="cfgConfidenceBar" style="width:85%"></div></div>
             <div class="config-desc">Detections below this score are automatically flagged for manual review.</div>
 
-            <button class="advanced-btn" type="button" title="Advanced incident settings are not configured" disabled>Open Advanced Settings</button>
+            <button class="advanced-btn" type="button" id="btnOpenAdvancedSettings">Open Advanced Settings</button>
           </div>
 
         </div>
@@ -384,12 +330,15 @@
 
   <div id="toast-container" class="toast-container"></div>
 
-    <script type="module" src="../../js/shared/global.js"></script>
-    <script type="module" src="../../js/shared/global-search-ui.js"></script>
-    <script type="module" src="../../js/monitoring/incident-evaluation-module.js"></script>
-    <script type="module" src="../../js/monitoring/evaluation-severity-trends.js"></script>
-    <script type="module" src="../../js/monitoring/monitoring-auth-guard.js"></script>
-    <script src="../../js/monitoring/monitoring-nav.js"></script>
+  <script type="module" src="../../js/monitoring/waste-camera-module.js"></script>
+  <script type="module" src="../../js/monitoring/ai-feed-auth.js"></script>
+  <script src="../../js/monitoring/segmentation-feed.js" defer></script>
+  <script type="module" src="../../js/shared/global.js"></script>
+  <script type="module" src="../../js/shared/global-search-ui.js"></script>
+  <script type="module" src="../../js/monitoring/incident-evaluation-module.js"></script>
+  <script type="module" src="../../js/monitoring/evaluation-severity-trends.js"></script>
+  <script type="module" src="../../js/monitoring/monitoring-auth-guard.js"></script>
+  <script src="../../js/monitoring/monitoring-nav.js"></script>
 
 </body>
 </html>

@@ -1,44 +1,117 @@
 import { auth, db as sharedDb } from "../shared/firebase-config.js";
-import { buildKeywords } from "../shared/search-module.js";
 import {
   collection,
   doc,
   writeBatch,
   serverTimestamp,
-  onSnapshot
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+  limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = sharedDb;
-const activeDetectionId = "sk4uXAjxkGS3XvCjdAQI";
+let activeDetectionId = null;
 let activeDetectionData = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const detectionRef = doc(db, "detections", activeDetectionId);
-
-  onSnapshot(detectionRef, (docSnap) => {
-    if (docSnap.exists()) {
-      activeDetectionData = docSnap.data();
-      console.log("Active detection loaded:", activeDetectionData);
-    } else {
-      console.error("No detection document found for ID:", activeDetectionId);
-    }
-  });
-
-  bindActionButton(".btn-dismiss", "dismiss_false_positive");
-  bindActionButton(".btn-flag", "flag_for_review");
-  bindActionButton(".btn-escalate", "escalate_to_lgu");
+  initActiveConsoleStream();
+  initProtocolActionButtons();
+  initIncidentEngine();
+  initSidebarFilters();
 });
+
+function initActiveConsoleStream() {
+  const q = query(
+    collection(db, "reports"),
+    orderBy("createdAt", "desc"),
+    limit(1)
+  );
+
+  onSnapshot(q, (snapshot) => {
+    if (!snapshot.empty) {
+      const docSnap = snapshot.docs[0];
+      activeDetectionId = docSnap.id;
+      activeDetectionData = docSnap.data();
+
+      renderConsoleHeader(docSnap.id, activeDetectionData);
+      renderIncidentData(docSnap.id, activeDetectionData);
+      renderEscalationWorkflow(activeDetectionData);
+      streamSubEvents(docSnap.id);
+    } else {
+      renderEmptyConsoleState();
+    }
+  }, (error) => {
+    console.error("Error streaming Active Incident Console:", error);
+  });
+}
+
+function renderConsoleHeader(id, data) {
+  const titleElem = document.getElementById("activeDetectionIdText");
+  const metaElem = document.getElementById("activeDetectionMetaText");
+  const badgeElem = document.getElementById("activeSeverityBadge");
+  const sectorElem = document.getElementById("activeLocationSector");
+
+  const camName = data.camId ? data.camId.toUpperCase() : "CAMERA";
+  const confidenceVal = data.confidence ? `${data.confidence}%` : "N/A";
+  const typeText = data.detectionType || "Camera Detection";
+
+  if (titleElem) {
+    titleElem.textContent = `Detection ID: ${data.reportId || id.substring(0, 8)}`;
+  }
+
+  if (metaElem) {
+    metaElem.textContent = `Captured by ${camName} • ${typeText} (${confidenceVal}) • ${formatTime(data.createdAt)}`;
+  }
+
+  if (sectorElem) {
+    sectorElem.textContent = data.location || "Main North Inlet Sector";
+  }
+
+  if (badgeElem) {
+    const sev = (data.severity || "CRITICAL").toUpperCase();
+    badgeElem.textContent = `${sev} INCIDENT`;
+    badgeElem.className = `severity-badge ${sev.toLowerCase()}`;
+  }
+
+  if (data.camId && window.RiversightCameraModule?.selectCamera) {
+    window.RiversightCameraModule.selectCamera(data.camId);
+  }
+}
+
+function renderIncidentData(id, data) {
+  const locationElem = document.getElementById("dataLocationNode");
+  const confidenceElem = document.getElementById("dataConfidenceScore");
+  const volumeElem = document.getElementById("dataWasteVolume");
+  const materialElem = document.getElementById("dataPrimaryMaterial");
+  const timestampElem = document.getElementById("dataTimestamp");
+
+  if (locationElem) locationElem.textContent = data.location || "PH-MNL-QC (North)";
+  if (confidenceElem) confidenceElem.textContent = data.confidence ? `${data.confidence}%` : "88.42%";
+  if (volumeElem) volumeElem.textContent = data.wasteVolume || "~12.5 kg (Massive)";
+  if (materialElem) materialElem.textContent = data.detectionType || "Camera Detection";
+  if (timestampElem) timestampElem.textContent = formatFullDate(data.createdAt);
+}
+
+function renderEmptyConsoleState() {
+  const titleElem = document.getElementById("activeDetectionIdText");
+  if (titleElem) titleElem.textContent = "No Active Incidents Detected";
+}
+
+function initProtocolActionButtons() {
+  bindActionButton("#dismiss-btn", "dismiss_false_positive");
+  bindActionButton("#flag-btn", "flag_for_review");
+  bindActionButton("#escalate-btn", "escalate_to_lgu");
+}
 
 function bindActionButton(selector, actionType) {
   const btn = document.querySelector(selector);
-  if (!btn) {
-    console.warn(`Button selector '${selector}' not found in DOM.`);
-    return;
-  }
+  if (!btn) return;
 
   btn.addEventListener("click", () => {
-    if (!activeDetectionData) {
-      console.error("Cannot perform action: Detection data has not loaded yet.");
+    if (!activeDetectionId || !activeDetectionData) {
+      showToast({ type: "error", title: "No Active Incident", desc: "No active alert to process." });
       return;
     }
     handleProtocolAction(activeDetectionId, activeDetectionData, actionType);
@@ -48,81 +121,143 @@ function bindActionButton(selector, actionType) {
 async function handleProtocolAction(detectionId, detectionData, action) {
   try {
     const batch = writeBatch(db);
-    const detectionRef = doc(db, "detections", detectionId);
+    const reportRef = doc(db, "reports", detectionId);
 
-    batch.update(detectionRef, {
+    const actionStatusMap = {
+      dismiss_false_positive: "Dismissed",
+      flag_for_review: "Flagged",
+      escalate_to_lgu: "Escalated"
+    };
+
+    batch.update(reportRef, {
       protocolAction: action,
-      reviewed: true
+      status: actionStatusMap[action] || "Flagged",
+      reviewed: true,
+      updatedAt: serverTimestamp()
     });
 
-    if (action !== "dismiss_false_positive") {
-      const incidentRef = doc(collection(db, "incidents"));
-      const keywords = typeof buildKeywords === "function"
-        ? buildKeywords(detectionData)
-        : [];
-
-      batch.set(incidentRef, {
-        detectionId: detectionId,
-        cameraId: detectionData.cameraId || "",
-        locationNode: detectionData.locationNode || "",
-        confidenceScore: detectionData.confidenceScore || 0,
-        wasteVolumeKg: detectionData.wasteVolumeKg || 0,
-        materialType: detectionData.materialType || "",
-        severity: (detectionData.wasteVolumeKg > 10) ? "critical" : "high",
-        status: (action === "escalate_to_lgu") ? "escalated" : "flagged",
-        protocolAction: action,
-        createdAt: serverTimestamp(),
-        searchKeywords: keywords
+    if (action === "escalate_to_lgu") {
+      const eventRef = doc(collection(reportRef, "events"));
+      batch.set(eventRef, {
+        recipient: "QC Waste Management",
+        status: "SENT",
+        description: `Emergency notification regarding incident ${detectionData.reportId || detectionId}. Response acknowledged.`,
+        timestamp: serverTimestamp()
       });
 
-      if (action === "escalate_to_lgu") {
-        const eventRef = doc(collection(incidentRef, "events"));
-        batch.set(eventRef, {
-          recipient: "QC Waste Management",
-          status: "sent",
-          timestamp: serverTimestamp()
-        });
-      }
+      const notificationRef = doc(collection(db, "notifications"));
+      batch.set(notificationRef, {
+        type: "cleanup_escalation",
+        title: "LGU Alert Dispatched",
+        message: `Incident ${detectionData.reportId || detectionId} at ${detectionData.location || "Sector 4"} escalated to QC Waste Management.`,
+        detectionId: detectionId,
+        recipient: "QC Waste Management",
+        status: "unread",
+        createdAt: serverTimestamp()
+      });
     }
 
     await batch.commit();
-    console.log(`Action '${action}' successfully executed for ${detectionId}`);
-
-    showToastForAction(action, detectionId);
+    showToastForAction(action, detectionData.reportId || detectionId);
 
   } catch (error) {
-    console.error("Error executing protocol action batch write:", error);
-    showToast({ type: 'error', title: 'Action failed', desc: error.message });
+    console.error("Error executing protocol action:", error);
+    showToast({ type: "error", title: "Action Failed", desc: error.message });
   }
 }
 
-function showToastForAction(action, detectionId) {
+function streamSubEvents(reportId) {
+  const eventsContainer = document.getElementById("incidentEventsList");
+  if (!eventsContainer) return;
+
+  const eventsQuery = query(collection(db, "reports", reportId, "events"), orderBy("timestamp", "desc"));
+
+  onSnapshot(eventsQuery, (snapshot) => {
+    eventsContainer.innerHTML = "";
+    snapshot.forEach((docSnap) => {
+      const ev = docSnap.data();
+      const div = document.createElement("div");
+      div.className = "alert-log-item";
+      div.innerHTML = `
+        <div class="alert-log-top">
+          <span class="alert-status-tag ${(ev.status || "sent").toLowerCase()}">${ev.status || "SENT"}</span>
+          <span class="alert-log-time">${formatTime(ev.timestamp)}</span>
+        </div>
+        <div class="alert-log-title">${ev.recipient || "Response Unit"}</div>
+        <div class="alert-log-desc">${ev.description || "Alert dispatched."}</div>
+      `;
+      eventsContainer.appendChild(div);
+    });
+  });
+}
+
+function renderEscalationWorkflow(data) {
+  const stepCaptured = document.getElementById("wfStepCaptured");
+  const stepReviewed = document.getElementById("wfStepReviewed");
+  const stepEscalated = document.getElementById("wfStepEscalated");
+  const stepResolved = document.getElementById("wfStepResolved");
+
+  if (stepCaptured) stepCaptured.className = "step done";
+  if (stepReviewed) stepReviewed.className = data.reviewed ? "step done" : "step";
+  if (stepEscalated) stepEscalated.className = data.status === "Escalated" ? "step done" : "step";
+  if (stepResolved) stepResolved.className = data.status === "Resolved" ? "step done" : "step";
+}
+
+function initIncidentEngine() {
+  const countElem = document.getElementById("engineUnresolvedCount");
+  const syncElem = document.getElementById("engineLastSync");
+
+  const q = query(collection(db, "reports"), where("status", "!=", "Resolved"));
+
+  onSnapshot(q, (snapshot) => {
+    if (countElem) countElem.textContent = `${snapshot.size} CRITICALS UNRESOLVED`;
+    if (syncElem) syncElem.textContent = "LAST SYNC: JUST NOW";
+  });
+}
+
+function initSidebarFilters() {
+  const critElem = document.getElementById("filterCountCritical");
+  const highElem = document.getElementById("filterCountHigh");
+
+  onSnapshot(collection(db, "reports"), (snapshot) => {
+    let crit = 0;
+    let high = 0;
+
+    snapshot.forEach((docSnap) => {
+      const sev = (docSnap.data().severity || "").toLowerCase();
+      if (sev === "critical" || sev === "severe") crit++;
+      if (sev === "high") high++;
+    });
+
+    if (critElem) critElem.textContent = crit;
+    if (highElem) highElem.textContent = high;
+  });
+}
+
+function formatTime(timestamp) {
+  if (!timestamp) return "--:--";
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
+
+function formatFullDate(timestamp) {
+  if (!timestamp) return "N/A";
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  return date.toISOString().replace("T", " ").substring(0, 19);
+}
+
+function showToastForAction(action, reportId) {
   const messages = {
-    dismiss_false_positive: {
-      type: 'success',
-      title: 'Marked as False Positive',
-      desc: `Detection ${detectionId} has been dismissed.`
-    },
-    flag_for_review: {
-      type: 'warning',
-      title: 'Flagged for Review',
-      desc: `Detection ${detectionId} sent to the manual review queue.`
-    },
-    escalate_to_lgu: {
-      type: 'error',
-      title: 'Escalated to LGU',
-      desc: `Alert dispatched to QC Waste Management for detection ${detectionId}.`
-    }
+    dismiss_false_positive: { type: "success", title: "Marked as False Positive", desc: `Detection ${reportId} has been dismissed.` },
+    flag_for_review: { type: "warning", title: "Flagged for Review", desc: `Detection ${reportId} sent to manual review queue.` },
+    escalate_to_lgu: { type: "error", title: "Escalated to LGU", desc: `Alert dispatched to QC Waste Management for ${reportId}.` }
   };
   showToast(messages[action]);
 }
 
-function showToast({ type = 'success', title, desc, duration = 4000 }) {
-  const container = document.getElementById('toast-container');
-  if (!container) {
-    console.warn('Toast container not found in DOM');
-    return;
-  }
+function showToast({ type = "success", title, desc, duration = 4000 }) {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
 
   const icons = {
     success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>',
@@ -130,24 +265,19 @@ function showToast({ type = 'success', title, desc, duration = 4000 }) {
     error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>'
   };
 
-  const toast = document.createElement('div');
+  const toast = document.createElement("div");
   toast.className = `toast ${type}`;
   toast.innerHTML = `
     <span class="toast-icon">${icons[type] || icons.success}</span>
     <div class="toast-body">
       <div class="toast-title">${title}</div>
-      ${desc ? `<div class="toast-desc">${desc}</div>` : ''}
+      ${desc ? `<div class="toast-desc">${desc}</div>` : ""}
     </div>
     <button class="toast-close">&times;</button>
   `;
 
   container.appendChild(toast);
-
-  const remove = () => {
-    toast.classList.add('closing');
-    setTimeout(() => toast.remove(), 200);
-  };
-
-  toast.querySelector('.toast-close').addEventListener('click', remove);
+  const remove = () => { toast.classList.add("closing"); setTimeout(() => toast.remove(), 200); };
+  toast.querySelector(".toast-close").addEventListener("click", remove);
   setTimeout(remove, duration);
 }
