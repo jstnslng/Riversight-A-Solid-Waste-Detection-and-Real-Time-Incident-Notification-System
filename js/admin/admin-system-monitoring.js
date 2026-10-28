@@ -8,9 +8,14 @@ import {
   serverTimestamp,
   getDoc,
   runTransaction,
+  deleteDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getRtspEmbedIssue, normalizeRtspEmbedUrl } from "../shared/camera-embed.js";
+
+let data = null;
+
+
 
 export const WASTE_CLASS_CANDIDATES = ['food_pack','non_pla','Composite_Rubber_Textile','Organic','Paper','Plastic'];
 export function verifiedWasteMapping(health, cameraId, now=Date.now()) {
@@ -136,7 +141,36 @@ export function serializeRoiPoints(points) {
     if (auth.currentUser?.uid !== user.uid) throw new Error('Denied');
     return user;
   }
-  onAuthStateChanged(auth, async () => {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = './Admin-Login.html';
+      return;
+    }
+
+    try {
+      const currentUserRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(currentUserRef);
+
+      if (!userSnap.exists()) {
+        alert("No account profile found in Firestore.");
+        await signOut(auth);
+        window.location.href = './Admin-Login.html';
+        return;
+      }
+
+      data = userSnap.data();
+
+      if (data.role !== "Administrator") {
+        alert("Unauthorized access.");
+        await signOut(auth);
+        window.location.href = './Admin-Login.html';
+        return;
+      }
+    } catch (error) {
+      console.error("Failed to load user profile:", error);
+      alert("Error loading profile data.");
+    }
+
     administrator = false;
     generation++;
     roiDialog?.close();
@@ -428,11 +462,12 @@ export function serializeRoiPoints(points) {
       <button type="button" data-action="view">View Camera</button>
       <button type="button" data-action="restart">Restart Camera</button>
       <button type="button" data-action="reconnect">Reconnect</button>
-      <button type="button" class="light" data-action="settings">Settings</button>`;
-    if (administrator) {
-      const button=document.createElement('button');button.type='button';button.dataset.action='roi';button.textContent='Configure Waterway ROI';actions.appendChild(button);
-      const classes=document.createElement('button');classes.type='button';classes.dataset.action='waste-classes';classes.textContent='Configure Waste Classes';actions.appendChild(classes);
-    }
+      <button type="button" class="light" data-action="settings">Edit Details</button>
+      <button type="button" class="danger" data-action="delete">Delete</button>`;
+    // if (administrator) {
+    //   const button=document.createElement('button');button.type='button';button.dataset.action='roi';button.textContent='Configure Waterway ROI';actions.appendChild(button);
+    //   const classes=document.createElement('button');classes.type='button';classes.dataset.action='waste-classes';classes.textContent='Configure Waste Classes';actions.appendChild(classes);
+    // }
     actions.querySelectorAll("[data-action]").forEach((button) => {
       button.addEventListener("click", () => handleCameraAction(camera, button.dataset.action));
     });
@@ -441,7 +476,7 @@ export function serializeRoiPoints(points) {
     return article;
   }
 
-  function handleCameraAction(camera, action) {
+  async function handleCameraAction(camera, action) {
     if (action === 'waste-classes') { openWasteClasses(camera); return; }
     if (action === 'roi') { openRoi(camera); return; }
     if (action === "view") {
@@ -452,8 +487,38 @@ export function serializeRoiPoints(points) {
       openEditModal(camera);
       return;
     }
+    if (action === "delete") {
+      await deleteCamera(camera);
+      return;
+    }
     showNotification(`Remote camera commands are unavailable for ${camera.camId}.`, "error");
   }
+
+  async function deleteCamera(camera) {
+  const confirmDelete = confirm(`Are you sure you want to delete camera "${camera.camId}" (${camera.title})? This action cannot be undone.`);
+  
+  if (!confirmDelete) return;
+
+  try {
+    await deleteDoc(doc(db, "camera_feeds", camera.id));
+
+    await addDoc(collection(db, "audit"), {
+      userId: auth.currentUser.uid || "N/A",
+      username: data.email_address || "N/A",
+      action: "Delete",
+      timestamp: serverTimestamp(),
+      target: "System Monitoring Camera",
+      details: `${data.email_address || "N/A"} deleted camera feed: ${camera.camId} (${camera.title}).`,
+      role: "Administrator",
+      status: "Success"
+    });
+
+    showNotification(`Camera ${camera.camId} deleted successfully.`, "success");
+  } catch (error) {
+    console.error("Error deleting camera:", error);
+    showNotification(`Failed to delete camera: ${error.message}`, "error");
+  }
+}
 
   function renderSystemMetrics() {
     const grid = document.getElementById("systemMetricsGrid");
@@ -563,6 +628,18 @@ export function serializeRoiPoints(points) {
       };
 
       await addDoc(collection(db, "camera_feeds"), cameraData);
+
+      await addDoc(collection(db, "audit"), {
+        userId: auth.currentUser.uid || "N/A",
+        username: data.email_address || "N/A",
+        action: "Add",
+        timestamp: serverTimestamp(),
+        target: "System Monitoring Camera",
+        details: `${data.email_address || "N/A"} added camera feed: ${cameraData.camId} (${cameraData.title}).`,
+        role: "Administrator",
+        status: "Success"
+      });
+
       showNotification("Camera added successfully!", "success");
       closeAddModal();
     } catch (error) {

@@ -162,6 +162,7 @@ body {
 }
 .camera-actions button:hover { background: #f2f2f2; }
 .camera-actions button.light { background: #fafafa; }
+.camera-actions button.danger { background:#d33c3c; }
 
 /* ============ Modal Styles ============ */
 .modal-overlay {
