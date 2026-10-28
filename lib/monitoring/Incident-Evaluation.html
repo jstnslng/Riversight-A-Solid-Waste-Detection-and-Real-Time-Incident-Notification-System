@@ -170,41 +170,44 @@
               </div>
             </div>
           </div>
+<div class="card">
+  <div class="workflow-title">ESCALATION WORKFLOW STATUS</div>
+  <div class="workflow-stepper">
+    <div class="step-track">
+      <div class="step-line" id="wfLine1"></div>
+      <div class="step-line" id="wfLine2"></div>
+      <div class="step-line" id="wfLine3"></div>
+    </div>
 
-          <div class="card">
-            <div class="workflow-title">ESCALATION WORKFLOW STATUS</div>
-            <div class="workflow-stepper">
-              <div class="step-track">
-                <div class="step-line done" id="wfLine1"></div>
-                <div class="step-line" id="wfLine2"></div>
-                <div class="step-line" id="wfLine3"></div>
+            <div class="step done" id="wfStepCaptured">
+              <div class="step-icon done" id="wfIconCaptured">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
               </div>
-              <div class="step done" id="wfStepCaptured">
-                <div class="step-icon done">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-                </div>
-                <div class="step-label done">Detection Captured</div>
+              <div class="step-label done" id="wfLabelCaptured">Detection Captured</div>
+            </div>
+
+            <div class="step" id="wfStepReviewed">
+              <div class="step-icon" id="wfIconReviewed">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
               </div>
-              <div class="step" id="wfStepReviewed">
-                <div class="step-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-                </div>
-                <div class="step-label">Reviewed</div>
+              <div class="step-label" id="wfLabelReviewed">Reviewed</div>
+            </div>
+
+            <div class="step" id="wfStepEscalated">
+              <div class="step-icon" id="wfIconEscalated">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
               </div>
-              <div class="step" id="wfStepEscalated">
-                <div class="step-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-                </div>
-                <div class="step-label">LGU Notification Sent</div>
+              <div class="step-label" id="wfLabelEscalated">LGU Notification Sent</div>
+            </div>
+
+            <div class="step" id="wfStepResolved">
+              <div class="step-icon" id="wfIconResolved">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
               </div>
-              <div class="step" id="wfStepResolved">
-                <div class="step-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
-                </div>
-                <div class="step-label">Resolution Confirmed</div>
-              </div>
+              <div class="step-label" id="wfLabelResolved">Resolution Confirmed</div>
             </div>
           </div>
+        </div>
 
           <div class="processor-status">
             <span class="proc-dot"></span>

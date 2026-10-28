@@ -192,15 +192,40 @@ function streamSubEvents(reportId) {
 }
 
 function renderEscalationWorkflow(data) {
-  const stepCaptured = document.getElementById("wfStepCaptured");
-  const stepReviewed = document.getElementById("wfStepReviewed");
-  const stepEscalated = document.getElementById("wfStepEscalated");
-  const stepResolved = document.getElementById("wfStepResolved");
+  const status = (data.status || "").toLowerCase();
+  
+  const isCaptured = true; // Always true for any generated report
+  const isReviewed = Boolean(data.reviewed || status === "flagged" || status === "escalated" || status === "resolved" || status === "dismissed");
+  const isEscalated = status === "escalated" || status === "resolved";
+  const isResolved = status === "resolved" || Boolean(data.resolvedAt);
 
-  if (stepCaptured) stepCaptured.className = "step done";
-  if (stepReviewed) stepReviewed.className = data.reviewed ? "step done" : "step";
-  if (stepEscalated) stepEscalated.className = data.status === "Escalated" ? "step done" : "step";
-  if (stepResolved) stepResolved.className = data.status === "Resolved" ? "step done" : "step";
+  const setStepState = (stepId, iconId, labelId, isDone) => {
+    const step = document.getElementById(stepId);
+    const icon = document.getElementById(iconId);
+    const label = document.getElementById(labelId);
+
+    if (step) step.className = isDone ? "step done" : "step";
+    if (icon) {
+      icon.className = isDone ? "step-icon done" : "step-icon";
+      if (isDone) {
+        icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>`;
+      }
+    }
+    if (label) label.className = isDone ? "step-label done" : "step-label";
+  };
+
+  setStepState("wfStepCaptured", "wfIconCaptured", "wfLabelCaptured", isCaptured);
+  setStepState("wfStepReviewed", "wfIconReviewed", "wfLabelReviewed", isReviewed);
+  setStepState("wfStepEscalated", "wfIconEscalated", "wfLabelEscalated", isEscalated);
+  setStepState("wfStepResolved", "wfIconResolved", "wfLabelResolved", isResolved);
+
+  const line1 = document.getElementById("wfLine1");
+  const line2 = document.getElementById("wfLine2");
+  const line3 = document.getElementById("wfLine3");
+
+  if (line1) line1.className = isReviewed ? "step-line done" : "step-line";
+  if (line2) line2.className = isEscalated ? "step-line done" : "step-line";
+  if (line3) line3.className = isResolved ? "step-line done" : "step-line";
 }
 
 function initIncidentEngine() {
