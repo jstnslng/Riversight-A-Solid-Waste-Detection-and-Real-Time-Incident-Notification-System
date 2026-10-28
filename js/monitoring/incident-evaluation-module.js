@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initProtocolActionButtons();
   initIncidentEngine();
   initSidebarFilters();
+  initAlertConfigurationStream();
 });
 
 function initActiveConsoleStream() {
@@ -168,6 +169,7 @@ async function handleProtocolAction(detectionId, detectionData, action) {
   }
 }
 
+// Stream Sub-Events & Log in Real-Time
 function streamSubEvents(reportId) {
   const eventsContainer = document.getElementById("incidentEventsList");
   if (!eventsContainer) return;
@@ -176,6 +178,16 @@ function streamSubEvents(reportId) {
 
   onSnapshot(eventsQuery, (snapshot) => {
     eventsContainer.innerHTML = "";
+    if (snapshot.empty) {
+      eventsContainer.innerHTML = `
+        <div class="alert-log-item">
+          <div class="alert-log-title">No Sub-Events Logged</div>
+          <div class="alert-log-desc">Sub-events will automatically record here upon protocol updates.</div>
+        </div>
+      `;
+      return;
+    }
+
     snapshot.forEach((docSnap) => {
       const ev = docSnap.data();
       const div = document.createElement("div");
@@ -190,6 +202,35 @@ function streamSubEvents(reportId) {
       `;
       eventsContainer.appendChild(div);
     });
+  }, (error) => {
+    console.error("Sub-events stream error:", error);
+  });
+}
+
+// Real-Time Listener for Alert Configuration
+function initAlertConfigurationStream() {
+  const cfgVol = document.getElementById("cfgDisplayVolume");
+  const cfgVolDesc = document.getElementById("cfgVolumeDesc");
+  const cfgConf = document.getElementById("cfgDisplayConfidence");
+  const cfgBar = document.getElementById("cfgConfidenceBar");
+  const thresholdLabel = document.getElementById("lblVolumeThreshold");
+
+  const settingsRef = doc(db, "system_settings", "alerts");
+
+  onSnapshot(settingsRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const volumeTrigger = data.volumeTrigger !== undefined ? data.volumeTrigger : 15;
+      const confidenceReq = data.confidenceRequired !== undefined ? data.confidenceRequired : 98;
+
+      if (cfgVol) cfgVol.textContent = `${volumeTrigger} Units`;
+      if (thresholdLabel) thresholdLabel.textContent = volumeTrigger;
+      if (cfgVolDesc) cfgVolDesc.textContent = `Trigger alert when more than ${volumeTrigger} items are detected in a 5-min window.`;
+      if (cfgConf) cfgConf.textContent = `${confidenceReq}%`;
+      if (cfgBar) cfgBar.style.width = `${confidenceReq}%`;
+    }
+  }, (error) => {
+    console.error("Alert config stream error, check Firestore Security Rules:", error);
   });
 }
 
