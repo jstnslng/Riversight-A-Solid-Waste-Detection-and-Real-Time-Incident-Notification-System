@@ -14,6 +14,8 @@ import {
 const db = sharedDb;
 let activeDetectionId = null;
 let activeDetectionData = null;
+let lastSyncTimestamp = Date.now();
+let syncTimerInterval = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   initActiveConsoleStream();
@@ -194,7 +196,7 @@ function streamSubEvents(reportId) {
 function renderEscalationWorkflow(data) {
   const status = (data.status || "").toLowerCase();
   
-  const isCaptured = true; // Always true for any generated report
+  const isCaptured = true;
   const isReviewed = Boolean(data.reviewed || status === "flagged" || status === "escalated" || status === "resolved" || status === "dismissed");
   const isEscalated = status === "escalated" || status === "resolved";
   const isResolved = status === "resolved" || Boolean(data.resolvedAt);
@@ -231,13 +233,58 @@ function renderEscalationWorkflow(data) {
 function initIncidentEngine() {
   const countElem = document.getElementById("engineUnresolvedCount");
   const syncElem = document.getElementById("engineLastSync");
+  const statusElem = document.getElementById("engineStatusText");
 
-  const q = query(collection(db, "reports"), where("status", "!=", "Resolved"));
+  const q = query(
+    collection(db, "reports"),
+    where("status", "!=", "Resolved")
+  );
 
   onSnapshot(q, (snapshot) => {
-    if (countElem) countElem.textContent = `${snapshot.size} CRITICALS UNRESOLVED`;
-    if (syncElem) syncElem.textContent = "LAST SYNC: JUST NOW";
+    let unresolvedCount = 0;
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const sev = (data.severity || "").toLowerCase();
+      if (sev === "critical" || sev === "severe" || sev === "high" || sev === "normal" || sev === "") {
+        unresolvedCount++;
+      }
+    });
+
+    if (countElem) {
+      countElem.textContent = `${unresolvedCount} CRITICALS UNRESOLVED`;
+    }
+
+    if (statusElem) {
+      statusElem.textContent = "ACTIVE";
+    }
+
+    lastSyncTimestamp = Date.now();
+    updateLastSyncText();
+  }, (error) => {
+    console.error("Incident Engine Firestore Error:", error);
+    if (countElem) countElem.textContent = "0 CRITICALS UNRESOLVED";
+    if (statusElem) statusElem.textContent = "OFFLINE";
   });
+
+  if (syncTimerInterval) clearInterval(syncTimerInterval);
+  syncTimerInterval = setInterval(updateLastSyncText, 1000);
+}
+
+function updateLastSyncText() {
+  const syncElem = document.getElementById("engineLastSync");
+  if (!syncElem) return;
+
+  const secondsAgo = Math.floor((Date.now() - lastSyncTimestamp) / 1000);
+
+  if (secondsAgo < 2) {
+    syncElem.textContent = "LAST SYNC: JUST NOW";
+  } else if (secondsAgo < 60) {
+    syncElem.textContent = `LAST SYNC: ${secondsAgo}s AGO`;
+  } else {
+    const minsAgo = Math.floor(secondsAgo / 60);
+    syncElem.textContent = `LAST SYNC: ${minsAgo}m AGO`;
+  }
 }
 
 function initSidebarFilters() {
