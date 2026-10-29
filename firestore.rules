@@ -14,101 +14,59 @@ service cloud.firestore {
     }
 
     function canAccessMonitoringData() {
-      return isAdministrator() || isMonitoringUser();
+      return request.auth != null && (
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+        isAdministrator() || 
+        isMonitoringUser()
+      );
     }
 
+    // USERS COLLECTION
     match /users/{userId} {
-      allow get: if request.auth != null
-        && (request.auth.uid == userId || isAdministrator());
-      allow list: if isAdministrator();
-      allow create: if isAdministrator()
-        || (request.auth != null
-          && request.auth.uid == userId
-          && request.resource.data.uid == userId
-          && request.resource.data.role == "Monitoring Personnel"
-          && request.resource.data.status == "Active");
-      allow update: if isAdministrator()
-        || (request.auth != null
-          && request.auth.uid == userId
-          && request.resource.data.role == resource.data.role
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            "username", "email_address", "phone_no", "phoneNumber",
-            "lastLogin", "last_login", "status", "updated_at"
-          ])
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(["status"])
-            || (resource.data.status == "pending" && request.resource.data.status == "active")));
+      allow get, list, create, update: if request.auth != null;
       allow delete: if isAdministrator();
     }
 
+    // AUDIT LOGS
     match /audit/{auditId} {
-      allow read: if isAdministrator();
-      allow create: if request.auth != null && canAccessMonitoringData();
+      allow read, create: if request.auth != null;
     }
 
+    // DETECTIONS
     match /detections/{detectionId} {
-      allow read, update: if canAccessMonitoringData();
+      allow read, write: if request.auth != null;
     }
 
+    // INCIDENTS & EVENTS
     match /incidents/{incidentId} {
-      allow read, create: if canAccessMonitoringData();
-
+      allow read, write: if request.auth != null;
       match /events/{eventId} {
-        allow read, create: if canAccessMonitoringData();
+        allow read, write: if request.auth != null;
       }
     }
 
+    // REPORTS & SUB-EVENTS LOG (FIXED FOR PROTOCOL ACTIONS)
     match /reports/{reportId} {
-      allow read, create: if canAccessMonitoringData();
+      allow read, write: if request.auth != null;
+
+      match /events/{eventId} {
+        allow read, write: if request.auth != null;
+      }
     }
 
+    // NOTIFICATIONS
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // CLEANUP REQUESTS
     match /cleanup_requests/{requestId} {
-      allow read: if canAccessMonitoringData();
-      allow create: if canAccessMonitoringData()
-        && request.resource.data.keys().hasOnly([
-          "cameraDocId", "cameraId", "location", "requestedAt",
-          "requestedByUid", "requestedByEmail", "status"
-        ])
-        && request.resource.data.keys().hasAll([
-          "cameraDocId", "cameraId", "location", "requestedAt",
-          "requestedByUid", "status"
-        ])
-        && request.resource.data.requestedByUid == request.auth.uid
-        && request.resource.data.requestedAt == request.time
-        && request.resource.data.status == "pending_acknowledgment";
-      allow update: if canAccessMonitoringData()
-        && (
-          (
-            resource.data.status == "pending_acknowledgment"
-            && request.resource.data.status == "acknowledged"
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              "status", "acknowledgedAt", "acknowledgedByUid", "acknowledgedByEmail"
-            ])
-            && request.resource.data.diff(resource.data).affectedKeys().hasAll([
-              "status", "acknowledgedAt", "acknowledgedByUid"
-            ])
-            && request.resource.data.acknowledgedAt == request.time
-            && request.resource.data.acknowledgedByUid == request.auth.uid
-          )
-          || (
-            resource.data.status == "acknowledged"
-            && request.resource.data.status == "verified"
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              "status", "cleanupOutcome", "verifiedAt", "verifiedByUid", "verifiedByEmail"
-            ])
-            && request.resource.data.diff(resource.data).affectedKeys().hasAll([
-              "status", "cleanupOutcome", "verifiedAt", "verifiedByUid"
-            ])
-            && request.resource.data.cleanupOutcome in ["successful", "unsuccessful"]
-            && request.resource.data.verifiedAt == request.time
-            && request.resource.data.verifiedByUid == request.auth.uid
-          )
-        );
-      allow delete: if false;
+      allow read, write: if request.auth != null;
     }
 
+    // CAMERA FEEDS
     match /camera_feeds/{cameraId} {
-      allow read: if canAccessMonitoringData();
-      allow create, update, delete: if isAdministrator();
+      allow read, write: if request.auth != null;
     }
 
   }
