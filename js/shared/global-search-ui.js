@@ -5,141 +5,146 @@ document.addEventListener("DOMContentLoaded", () => {
   initGlobalSearch();
 });
 
-// Detect folder depth automatically
+// Detect whether user is currently in the Admin Portal or Monitoring Portal
 const isAdminPath = window.location.pathname.includes("/admin/");
-const monitoringBase = isAdminPath ? "../monitoring/" : "";
-const adminBase = isAdminPath ? "" : "../admin/";
 
-// Expanded Cross-System Search Index
-const SYSTEM_NAVIGATION_INDEX = [
-  // --- MONITORING MODULES ---
-  {
-    title: "Live Monitoring Module",
-    category: "Monitoring Page",
-    description: "Live CCTV streams, active camera feeds, sector status",
-    url: `${monitoringBase}Live-Monitoring.html`,
-    keywords: ["live", "monitoring", "camera", "cctv", "stream", "video", "feed", "sector", "ph-mnl-qc", "live monitoring"]
-  },
-  {
-    title: "Waste Detection & Management",
-    category: "Monitoring Page",
-    description: "AI waste classification, volume metrics, detection summary, segmentation",
-    url: `${monitoringBase}Waste-Management.html`,
-    keywords: ["waste", "detection", "detection summary", "plastic", "organic", "volume", "ai", "segmentation", "waste management"]
-  },
-  {
-    title: "Incident Evaluation Console",
-    category: "Monitoring Page",
-    description: "Active incident analysis, protocol actions, incident data, LGU escalation stepper",
-    url: `${monitoringBase}Incident-Evaluation.html`,
-    keywords: ["incident", "evaluation", "incident data", "protocol", "escalation", "lgu", "alert", "console", "sub-events", "incident evaluation"]
-  },
-  {
-    title: "Incident Reports & Analytics",
-    category: "Monitoring Page",
-    description: "Performance metrics, detection trends, archive database, export PDF/CSV",
-    url: `${monitoringBase}Incident-Reports.html`,
-    keywords: ["reports", "analytics", "archive", "trends", "history", "stats", "export", "incident reports"]
-  },
-
-  // --- ADMIN PORTAL PAGES ---
+// STRICT ROLE ISOLATION: Admin index ONLY contains Admin pages; Monitoring ONLY contains Monitoring pages
+const ADMIN_NAVIGATION_INDEX = [
   {
     title: "Administrator Dashboard",
     category: "Admin Portal",
-    description: "GIS map preview, system metrics overview, recent AI detections",
-    url: `${adminBase}Admin-Dashboard.html`,
-    keywords: ["admin", "dashboard", "control", "overview", "gis", "map", "system health", "admin dashboard"]
+    description: "GIS map preview, active nodes, system health, recent AI detections",
+    url: "Admin-Dashboard.html",
+    keywords: ["admin", "dashboard", "control", "overview", "gis", "map", "system health"]
   },
   {
     title: "User Management",
     category: "Admin Portal",
     description: "Manage accounts, assigned sectors, roles, active users, invites",
-    url: `${adminBase}UserManagement.html`,
-    keywords: ["user", "management", "users", "accounts", "roles", "administrator", "monitoring", "add user", "sector", "user management"]
+    url: "UserManagement.html",
+    keywords: ["user", "management", "users", "accounts", "roles", "administrator", "monitoring", "add user", "sector"]
   },
   {
     title: "Admin Reports Center",
     category: "Admin Portal",
-    description: "Comprehensive system logs, monthly reports, export Excel/PDF",
-    url: `${adminBase}Admin-Reports.html`,
-    keywords: ["admin reports", "reports center", "export excel", "pdf", "csv", "summary", "monthly reports"]
+    description: "Comprehensive system logs, monthly reports, export Excel/PDF/CSV",
+    url: "Admin-Reports.html",
+    keywords: ["reports", "reports center", "export excel", "pdf", "csv", "summary", "monthly reports"]
   },
   {
-    title: "System Monitoring & Camera Management",
+    title: "System Monitoring & Cameras",
     category: "Admin Portal",
     description: "Manage connected cameras, add camera, RTSP embed URLs, system health",
-    url: `${adminBase}Admin-System-Monitoring.html`,
-    keywords: ["system monitoring", "camera management", "add camera", "camera health", "rtsp", "ip address", "status", "system health"]
+    url: "Admin-System-Monitoring.html",
+    keywords: ["system monitoring", "camera management", "add camera", "camera health", "rtsp", "ip address", "status"]
   },
   {
     title: "Audit Trail & Activity Logs",
     category: "Admin Portal",
     description: "System activity logs, login events, user actions, profile edits",
-    url: `${adminBase}Admin-Audit-Trail.html`,
+    url: "Admin-Audit-Trail.html",
     keywords: ["audit", "trail", "audit trail", "logs", "activity", "login events", "actions", "failed actions"]
   },
   {
     title: "Administrator Settings",
     category: "Admin Portal",
     description: "Theme preferences, font size, email & system alert toggles",
-    url: `${adminBase}Admin-Settings.html`,
+    url: "Admin-Settings.html",
     keywords: ["settings", "admin settings", "appearance", "theme", "dark mode", "notifications", "security"]
   },
   {
     title: "Administrator Profile",
     category: "Admin Portal",
     description: "Admin account details, username, email, change password",
-    url: `${adminBase}Admin-Profile.html`,
+    url: "Admin-Profile.html",
     keywords: ["profile", "admin profile", "password", "change password", "account", "user id"]
-  },
+  }
+];
 
-  // --- SPECIFIC FEEDS & KEYWORD SHORTCUTS ---
+const MONITORING_NAVIGATION_INDEX = [
+  {
+    title: "Live Monitoring Module",
+    category: "Monitoring Console",
+    description: "Live CCTV streams, active camera feeds, sector status",
+    url: "Live-Monitoring.html",
+    keywords: ["live", "monitoring", "camera", "cctv", "stream", "video", "feed", "sector", "ph-mnl-qc"]
+  },
+  {
+    title: "Waste Detection & Management",
+    category: "Monitoring Console",
+    description: "AI waste classification, volume metrics, detection summary, segmentation",
+    url: "Waste-Management.html",
+    keywords: ["waste", "detection", "detection summary", "plastic", "organic", "volume", "ai", "segmentation"]
+  },
+  {
+    title: "Incident Evaluation Console",
+    category: "Monitoring Console",
+    description: "Active incident analysis, protocol actions, incident data, LGU escalation stepper",
+    url: "Incident-Evaluation.html",
+    keywords: ["incident", "evaluation", "incident data", "protocol", "escalation", "lgu", "alert", "console", "sub-events"]
+  },
+  {
+    title: "Incident Reports & Analytics",
+    category: "Monitoring Console",
+    description: "Performance metrics, detection trends, archive database, export PDF/CSV",
+    url: "Incident-Reports.html",
+    keywords: ["reports", "analytics", "archive", "trends", "history", "stats", "export"]
+  },
   {
     title: "Camera Feed: CAM-001 (North Inlet)",
     category: "Camera Node",
     description: "Main Creek North camera stream • Active",
-    url: `${monitoringBase}Live-Monitoring.html?cam=cam-001`,
+    url: "Live-Monitoring.html?cam=cam-001",
     keywords: ["cam-001", "cam001", "camera 1", "north inlet", "buwaya creek north"]
   },
   {
     title: "Camera Feed: CAM-002 (South Dam)",
     category: "Camera Node",
     description: "South Waterway Dam stream • Active",
-    url: `${monitoringBase}Live-Monitoring.html?cam=cam-002`,
+    url: "Live-Monitoring.html?cam=cam-002",
     keywords: ["cam-002", "cam002", "camera 2", "south dam"]
   },
   {
     title: "Alert Configuration & Thresholds",
-    category: "System Settings",
+    category: "Console Settings",
     description: "Volume trigger threshold, required confidence, sensitivity settings",
-    url: `${monitoringBase}Incident-Evaluation.html#alert-config`,
+    url: "Incident-Evaluation.html#alert-config",
     keywords: ["alert configuration", "detection volume trigger", "confidence required", "sensitivity", "threshold"]
   }
 ];
 
 export function initGlobalSearch() {
-  const searchInput = document.getElementById("globalSearchInput");
-  const resultsContainer = document.getElementById("globalSearchResults");
+  let searchInput = document.getElementById("globalSearchInput") || document.querySelector(".search-wrap input");
+  if (!searchInput) return;
 
-  if (!searchInput || !resultsContainer) return;
+  if (!searchInput.id) searchInput.id = "globalSearchInput";
+
+  let resultsContainer = document.getElementById("globalSearchResults");
+  if (!resultsContainer) {
+    resultsContainer = document.createElement("div");
+    resultsContainer.id = "globalSearchResults";
+    resultsContainer.className = "global-search-results";
+    searchInput.parentNode.appendChild(resultsContainer);
+  }
+
+  // Active navigation index based purely on current role portal
+  const activeNavigationIndex = isAdminPath ? ADMIN_NAVIGATION_INDEX : MONITORING_NAVIGATION_INDEX;
 
   let reportsCache = [];
-  let debounceTimeout = null;
 
-  // Real-time Firestore Reports stream
-  const q = query(collection(db, "reports"), orderBy("createdAt", "desc"), limit(50));
-  
-  onSnapshot(q, (snapshot) => {
-    reportsCache = snapshot.docs.map(docSnap => ({
-      id: docSnap.id,
-      ...docSnap.data()
-    }));
-  }, (error) => {
-    console.error("Global search stream error:", error);
-  });
+  // Non-blocking Firestore listener for Incident Reports
+  try {
+    if (db) {
+      const q = query(collection(db, "reports"), orderBy("createdAt", "desc"), limit(50));
+      onSnapshot(q, (snapshot) => {
+        reportsCache = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+      }, () => {});
+    }
+  } catch (e) {
+    // Fail-safe suppress
+  }
 
   searchInput.addEventListener("input", (e) => {
-    clearTimeout(debounceTimeout);
     const searchTerm = e.target.value.trim().toLowerCase();
 
     if (!searchTerm) {
@@ -148,37 +153,26 @@ export function initGlobalSearch() {
       return;
     }
 
-    debounceTimeout = setTimeout(() => {
-      // 1. Filter System Pages, Keywords & Features
-      const matchedSystemItems = SYSTEM_NAVIGATION_INDEX.filter(item => {
-        const titleMatch = item.title.toLowerCase().includes(searchTerm);
-        const descMatch = item.description.toLowerCase().includes(searchTerm);
-        const categoryMatch = item.category.toLowerCase().includes(searchTerm);
-        const keywordMatch = item.keywords.some(kw => kw.includes(searchTerm));
+    // Filter ONLY the current portal's navigation index
+    const matchedSystemItems = activeNavigationIndex.filter(item => {
+      return item.title.toLowerCase().includes(searchTerm) ||
+             item.description.toLowerCase().includes(searchTerm) ||
+             item.category.toLowerCase().includes(searchTerm) ||
+             item.keywords.some(kw => kw.includes(searchTerm));
+    });
 
-        return titleMatch || descMatch || categoryMatch || keywordMatch;
-      });
+    // Filter Firestore Reports
+    const matchedReports = reportsCache.filter(item => {
+      const rId = (item.reportId || item.id || "").toLowerCase();
+      const loc = (item.location || "").toLowerCase();
+      const typ = (item.detectionType || "").toLowerCase();
+      const sev = (item.severity || "").toLowerCase();
+      return rId.includes(searchTerm) || loc.includes(searchTerm) || typ.includes(searchTerm) || sev.includes(searchTerm);
+    });
 
-      // 2. Filter Live Incident Reports from Firestore
-      const matchedReports = reportsCache.filter(item => {
-        const reportId = (item.reportId || item.id || "").toLowerCase();
-        const location = (item.location || "").toLowerCase();
-        const type = (item.detectionType || "").toLowerCase();
-        const severity = (item.severity || "").toLowerCase();
-        const camId = (item.camId || "").toLowerCase();
-
-        return reportId.includes(searchTerm) || 
-               location.includes(searchTerm) || 
-               type.includes(searchTerm) || 
-               severity.includes(searchTerm) ||
-               camId.includes(searchTerm);
-      });
-
-      renderSearchResults(matchedSystemItems, matchedReports, resultsContainer);
-    }, 150);
+    renderSearchResults(matchedSystemItems, matchedReports, resultsContainer);
   });
 
-  // Hide dropdown on click outside
   document.addEventListener("click", (e) => {
     if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
       resultsContainer.style.display = "none";
@@ -188,16 +182,16 @@ export function initGlobalSearch() {
 
 function renderSearchResults(systemItems, reports, container) {
   if (systemItems.length === 0 && reports.length === 0) {
-    container.innerHTML = `<div style="padding: 12px; font-size: 0.85rem; color: #6b7280; text-align: center;">No matching pages, cameras, or reports found.</div>`;
+    container.innerHTML = `<div style="padding: 12px; font-size: 0.85rem; color: #6b7280; text-align: center;">No matching system pages or records found.</div>`;
     container.style.display = "block";
     return;
   }
 
   let html = "";
 
-  // Render Modules, Pages, and Keywords Section
   if (systemItems.length > 0) {
-    html += `<div style="padding: 6px 12px; font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">System Navigation & Modules</div>`;
+    const sectionHeader = isAdminPath ? "Admin System Navigation" : "Monitoring Navigation & Modules";
+    html += `<div style="padding: 6px 12px; font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">${sectionHeader}</div>`;
     
     systemItems.forEach(item => {
       html += `
@@ -212,9 +206,8 @@ function renderSearchResults(systemItems, reports, container) {
     });
   }
 
-  // Render Firestore Reports Section
   if (reports.length > 0) {
-    const reportTargetUrl = `${monitoringBase}Incident-Evaluation.html`;
+    const reportTargetUrl = isAdminPath ? "Admin-Reports.html" : "Incident-Evaluation.html";
     html += `<div style="padding: 6px 12px; font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">Firestore Incident Records</div>`;
     
     reports.slice(0, 5).forEach(item => {
