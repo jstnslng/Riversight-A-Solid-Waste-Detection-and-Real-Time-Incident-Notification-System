@@ -111,5 +111,9 @@ service cloud.firestore {
       allow create, update, delete: if isAdministrator();
     }
 
+    match /snapshots/{snapshotId} {
+  allow read, create, update: if request.auth != null;
+}
+
   }
 }
