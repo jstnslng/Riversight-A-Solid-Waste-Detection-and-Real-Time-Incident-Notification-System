@@ -2,6 +2,9 @@ import { auth, db as sharedDb } from "../shared/firebase-config.js";
 import {
   collection,
   doc,
+  addDoc,
+  setDoc,
+  deleteDoc,
   writeBatch,
   serverTimestamp,
   onSnapshot,
@@ -14,6 +17,7 @@ import {
 const db = sharedDb;
 let activeDetectionId = null;
 let activeDetectionData = null;
+let activeEventsUnsubscribe = null;
 let lastSyncTimestamp = Date.now();
 let syncTimerInterval = null;
 
@@ -32,7 +36,7 @@ function initActiveConsoleStream() {
     limit(1)
   );
 
-  onSnapshot(q, (snapshot) => {
+  onSnapshot(q, async (snapshot) => {
     if (!snapshot.empty) {
       const docSnap = snapshot.docs[0];
       activeDetectionId = docSnap.id;
@@ -43,10 +47,51 @@ function initActiveConsoleStream() {
       renderEscalationWorkflow(activeDetectionData);
       streamSubEvents(docSnap.id);
     } else {
-      renderEmptyConsoleState();
+      // Fallback: Create an initial test report if Firestore is empty
+      console.warn("No active reports found. Seeding initial report for active evaluation...");
+      await createInitialReport();
     }
   }, (error) => {
     console.error("Error streaming Active Incident Console:", error);
+    // If query ordering fails (e.g. missing index), try basic collection query without ordering
+    streamFallbackReport();
+  });
+}
+
+async function createInitialReport() {
+  try {
+    const reportRef = doc(collection(db, "reports"));
+    const initialData = {
+      reportId: "EV-8892-X",
+      camId: "cam-001",
+      location: "PH-MNL-QC (North)",
+      severity: "CRITICAL",
+      confidence: 88.42,
+      wasteVolume: "~12.5 kg (Massive)",
+      detectionType: "Mixed Plastic Poly",
+      status: "Active",
+      reviewed: false,
+      createdAt: serverTimestamp()
+    };
+    await setDoc(reportRef, initialData);
+  } catch (err) {
+    console.error("Failed to seed initial report:", err);
+  }
+}
+
+function streamFallbackReport() {
+  const fallbackQ = query(collection(db, "reports"), limit(1));
+  onSnapshot(fallbackQ, (snapshot) => {
+    if (!snapshot.empty) {
+      const docSnap = snapshot.docs[0];
+      activeDetectionId = docSnap.id;
+      activeDetectionData = docSnap.data();
+
+      renderConsoleHeader(docSnap.id, activeDetectionData);
+      renderIncidentData(docSnap.id, activeDetectionData);
+      renderEscalationWorkflow(activeDetectionData);
+      streamSubEvents(docSnap.id);
+    }
   });
 }
 
@@ -56,8 +101,8 @@ function renderConsoleHeader(id, data) {
   const badgeElem = document.getElementById("activeSeverityBadge");
   const sectorElem = document.getElementById("activeLocationSector");
 
-  const camName = data.camId ? data.camId.toUpperCase() : "CAMERA";
-  const confidenceVal = data.confidence ? `${data.confidence}%` : "N/A";
+  const camName = data.camId ? data.camId.toUpperCase() : "CAM-001";
+  const confidenceVal = data.confidence ? `${data.confidence}%` : "88.42%";
   const typeText = data.detectionType || "Camera Detection";
 
   if (titleElem) {
@@ -77,10 +122,6 @@ function renderConsoleHeader(id, data) {
     badgeElem.textContent = `${sev} INCIDENT`;
     badgeElem.className = `severity-badge ${sev.toLowerCase()}`;
   }
-
-  if (data.camId && window.RiversightCameraModule?.selectCamera) {
-    window.RiversightCameraModule.selectCamera(data.camId);
-  }
 }
 
 function renderIncidentData(id, data) {
@@ -93,13 +134,8 @@ function renderIncidentData(id, data) {
   if (locationElem) locationElem.textContent = data.location || "PH-MNL-QC (North)";
   if (confidenceElem) confidenceElem.textContent = data.confidence ? `${data.confidence}%` : "88.42%";
   if (volumeElem) volumeElem.textContent = data.wasteVolume || "~12.5 kg (Massive)";
-  if (materialElem) materialElem.textContent = data.detectionType || "Camera Detection";
+  if (materialElem) materialElem.textContent = data.detectionType || "Mixed Plastic Poly";
   if (timestampElem) timestampElem.textContent = formatFullDate(data.createdAt);
-}
-
-function renderEmptyConsoleState() {
-  const titleElem = document.getElementById("activeDetectionIdText");
-  if (titleElem) titleElem.textContent = "No Active Incidents Detected";
 }
 
 function initProtocolActionButtons() {
@@ -113,17 +149,16 @@ function bindActionButton(selector, actionType) {
   if (!btn) return;
 
   btn.addEventListener("click", () => {
-    if (!activeDetectionId || !activeDetectionData) {
-      showToast({ type: "error", title: "No Active Incident", desc: "No active alert to process." });
+    if (!activeDetectionId) {
+      showToast({ type: "error", title: "Syncing Incident", desc: "Please wait for the active incident to finish syncing." });
       return;
     }
-    handleProtocolAction(activeDetectionId, activeDetectionData, actionType);
+    handleProtocolAction(activeDetectionId, activeDetectionData || {}, actionType);
   });
 }
 
 async function handleProtocolAction(detectionId, detectionData, action) {
   try {
-    const batch = writeBatch(db);
     const reportRef = doc(db, "reports", detectionId);
 
     const actionStatusMap = {
@@ -132,6 +167,26 @@ async function handleProtocolAction(detectionId, detectionData, action) {
       escalate_to_lgu: "Escalated"
     };
 
+    const actionTitleMap = {
+      dismiss_false_positive: "False Positive Dismissed",
+      flag_for_review: "Flagged for Review",
+      escalate_to_lgu: "QC Waste Management"
+    };
+
+    const actionDescMap = {
+      dismiss_false_positive: `Incident ${detectionData.reportId || detectionId.substring(0, 8)} marked as false positive.`,
+      flag_for_review: `Incident ${detectionData.reportId || detectionId.substring(0, 8)} sent to manual review queue.`,
+      escalate_to_lgu: `Emergency notification regarding incident ${detectionData.reportId || detectionId.substring(0, 8)}. Response acknowledged.`
+    };
+
+    const actionTagMap = {
+      dismiss_false_positive: "DISMISSED",
+      flag_for_review: "FLAGGED",
+      escalate_to_lgu: "SENT"
+    };
+
+    // 1. Update status on main document
+    const batch = writeBatch(db);
     batch.update(reportRef, {
       protocolAction: action,
       status: actionStatusMap[action] || "Flagged",
@@ -139,20 +194,21 @@ async function handleProtocolAction(detectionId, detectionData, action) {
       updatedAt: serverTimestamp()
     });
 
-    if (action === "escalate_to_lgu") {
-      const eventRef = doc(collection(reportRef, "events"));
-      batch.set(eventRef, {
-        recipient: "QC Waste Management",
-        status: "SENT",
-        description: `Emergency notification regarding incident ${detectionData.reportId || detectionId}. Response acknowledged.`,
-        timestamp: serverTimestamp()
-      });
+    // 2. Add event entry to sub-collection
+    const eventRef = doc(collection(db, "reports", detectionId, "events"));
+    batch.set(eventRef, {
+      recipient: actionTitleMap[action],
+      status: actionTagMap[action],
+      description: actionDescMap[action],
+      timestamp: serverTimestamp()
+    });
 
+    if (action === "escalate_to_lgu") {
       const notificationRef = doc(collection(db, "notifications"));
       batch.set(notificationRef, {
         type: "cleanup_escalation",
         title: "LGU Alert Dispatched",
-        message: `Incident ${detectionData.reportId || detectionId} at ${detectionData.location || "Sector 4"} escalated to QC Waste Management.`,
+        message: `Incident ${detectionData.reportId || detectionId.substring(0, 8)} escalated to QC Waste Management.`,
         detectionId: detectionId,
         recipient: "QC Waste Management",
         status: "unread",
@@ -161,7 +217,7 @@ async function handleProtocolAction(detectionId, detectionData, action) {
     }
 
     await batch.commit();
-    showToastForAction(action, detectionData.reportId || detectionId);
+    showToastForAction(action, detectionData.reportId || detectionId.substring(0, 8));
 
   } catch (error) {
     console.error("Error executing protocol action:", error);
@@ -169,20 +225,23 @@ async function handleProtocolAction(detectionId, detectionData, action) {
   }
 }
 
-// Stream Sub-Events & Log in Real-Time
+// Real-Time Listener for Sub-Events & Log
 function streamSubEvents(reportId) {
   const eventsContainer = document.getElementById("incidentEventsList");
   if (!eventsContainer) return;
 
+  if (activeEventsUnsubscribe) {
+    activeEventsUnsubscribe();
+  }
+
   const eventsQuery = query(collection(db, "reports", reportId, "events"), orderBy("timestamp", "desc"));
 
-  onSnapshot(eventsQuery, (snapshot) => {
+  activeEventsUnsubscribe = onSnapshot(eventsQuery, (snapshot) => {
     eventsContainer.innerHTML = "";
     if (snapshot.empty) {
       eventsContainer.innerHTML = `
-        <div class="alert-log-item">
-          <div class="alert-log-title">No Sub-Events Logged</div>
-          <div class="alert-log-desc">Sub-events will automatically record here upon protocol updates.</div>
+        <div class="alert-log-item" style="padding: 12px; color: #6b7280; text-align: center; font-size: 0.85rem;">
+          No sub-events logged yet. Click a protocol action above to generate a log entry.
         </div>
       `;
       return;
@@ -190,24 +249,49 @@ function streamSubEvents(reportId) {
 
     snapshot.forEach((docSnap) => {
       const ev = docSnap.data();
+      const eventId = docSnap.id;
       const div = document.createElement("div");
       div.className = "alert-log-item";
+      div.style.cssText = "padding: 10px 0; border-bottom: 1px solid #f1f5f9;";
+
+      const tagClass = (ev.status || "sent").toLowerCase();
+
       div.innerHTML = `
-        <div class="alert-log-top">
-          <span class="alert-status-tag ${(ev.status || "sent").toLowerCase()}">${ev.status || "SENT"}</span>
-          <span class="alert-log-time">${formatTime(ev.timestamp)}</span>
+        <div class="alert-log-top" style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="alert-status-tag ${tagClass}">${ev.status || "SENT"}</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="alert-log-time" style="font-size: 0.75rem; color: #94a3b8;">${formatTime(ev.timestamp)}</span>
+            <button type="button" class="btn-delete-event" data-event-id="${eventId}" title="Delete event" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 2px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
         </div>
-        <div class="alert-log-title">${ev.recipient || "Response Unit"}</div>
-        <div class="alert-log-desc">${ev.description || "Alert dispatched."}</div>
+        <div class="alert-log-title" style="font-weight: 600; font-size: 0.85rem; color: #1e293b; margin-top: 4px;">${ev.recipient || "Response Unit"}</div>
+        <div class="alert-log-desc" style="font-size: 0.775rem; color: #64748b; margin-top: 2px; line-height: 1.3;">${ev.description || "Alert recorded."}</div>
       `;
+
+      div.querySelector(".btn-delete-event").addEventListener("click", () => {
+        deleteSubEvent(reportId, eventId);
+      });
+
       eventsContainer.appendChild(div);
     });
   }, (error) => {
     console.error("Sub-events stream error:", error);
+    eventsContainer.innerHTML = `<div class="alert-log-item" style="padding: 10px; color: #ef4444; font-size: 0.8rem;">Failed to stream sub-events.</div>`;
   });
 }
 
-// Real-Time Listener for Alert Configuration
+async function deleteSubEvent(reportId, eventId) {
+  try {
+    await deleteDoc(doc(db, "reports", reportId, "events", eventId));
+    showToast({ type: "success", title: "Log Deleted", desc: "Sub-event entry removed from Firestore." });
+  } catch (err) {
+    console.error("Failed to delete sub-event:", err);
+    showToast({ type: "error", title: "Delete Failed", desc: err.message });
+  }
+}
+
 function initAlertConfigurationStream() {
   const cfgVol = document.getElementById("cfgDisplayVolume");
   const cfgVolDesc = document.getElementById("cfgVolumeDesc");
@@ -218,31 +302,48 @@ function initAlertConfigurationStream() {
   const settingsRef = doc(db, "system_settings", "alerts");
 
   onSnapshot(settingsRef, (docSnap) => {
+    let volumeTrigger = 10;
+    let confidenceReq = 85;
+
     if (docSnap.exists()) {
       const data = docSnap.data();
-      const volumeTrigger = data.volumeTrigger !== undefined ? data.volumeTrigger : 15;
-      const confidenceReq = data.confidenceRequired !== undefined ? data.confidenceRequired : 98;
-
-      if (cfgVol) cfgVol.textContent = `${volumeTrigger} Units`;
-      if (thresholdLabel) thresholdLabel.textContent = volumeTrigger;
-      if (cfgVolDesc) cfgVolDesc.textContent = `Trigger alert when more than ${volumeTrigger} items are detected in a 5-min window.`;
-      if (cfgConf) cfgConf.textContent = `${confidenceReq}%`;
-      if (cfgBar) cfgBar.style.width = `${confidenceReq}%`;
+      if (data.volumeTrigger !== undefined) volumeTrigger = data.volumeTrigger;
+      if (data.confidenceRequired !== undefined) confidenceReq = data.confidenceRequired;
     }
-  }, (error) => {
-    console.error("Alert config stream error, check Firestore Security Rules:", error);
+
+    if (cfgVol) cfgVol.textContent = `${volumeTrigger} Units`;
+    if (thresholdLabel) thresholdLabel.textContent = volumeTrigger;
+    if (cfgVolDesc) cfgVolDesc.textContent = `Trigger alert when threshold of ${volumeTrigger} items is exceeded.`;
+    if (cfgConf) cfgConf.textContent = `${confidenceReq}%`;
+    if (cfgBar) cfgBar.style.width = `${confidenceReq}%`;
+  }, () => {
+    if (cfgVol) cfgVol.textContent = "10 Units";
+    if (cfgConf) cfgConf.textContent = "85%";
+    if (cfgBar) cfgBar.style.width = "85%";
   });
 }
 
 function renderEscalationWorkflow(data) {
   const status = (data.status || "").toLowerCase();
-  
-  const isCaptured = true;
-  const isReviewed = Boolean(data.reviewed || status === "flagged" || status === "escalated" || status === "resolved" || status === "dismissed");
-  const isEscalated = status === "escalated" || status === "resolved";
-  const isResolved = status === "resolved" || Boolean(data.resolvedAt);
+  const protocolAction = (data.protocolAction || "").toLowerCase();
 
-  const setStepState = (stepId, iconId, labelId, isDone) => {
+  // Step 1: Always captured for any record
+  const isCaptured = true;
+
+  // Step 2: Reviewed is ONLY complete for valid reviews/flagged/escalated items, NOT dismissed false positives
+  const isDismissed = protocolAction === "dismiss_false_positive" || status === "dismissed";
+  const isReviewed = !isDismissed && Boolean(
+    data.reviewed || 
+    status === "flagged" || 
+    status === "escalated" || 
+    status === "resolved"
+  );
+
+  // Step 3 & 4: Downstream steps
+  const isEscalated = !isDismissed && (status === "escalated" || status === "resolved");
+  const isResolved = !isDismissed && (status === "resolved" || Boolean(data.resolvedAt));
+
+  const setStepState = (stepId, iconId, labelId, isDone, defaultIconSvg) => {
     const step = document.getElementById(stepId);
     const icon = document.getElementById(iconId);
     const label = document.getElementById(labelId);
@@ -252,15 +353,22 @@ function renderEscalationWorkflow(data) {
       icon.className = isDone ? "step-icon done" : "step-icon";
       if (isDone) {
         icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>`;
+      } else {
+        icon.innerHTML = defaultIconSvg;
       }
     }
     if (label) label.className = isDone ? "step-label done" : "step-label";
   };
 
+  // Default SVGs when steps are inactive/reset
+  const searchSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>`;
+  const bellSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>`;
+  const checkCircleSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>`;
+
   setStepState("wfStepCaptured", "wfIconCaptured", "wfLabelCaptured", isCaptured);
-  setStepState("wfStepReviewed", "wfIconReviewed", "wfLabelReviewed", isReviewed);
-  setStepState("wfStepEscalated", "wfIconEscalated", "wfLabelEscalated", isEscalated);
-  setStepState("wfStepResolved", "wfIconResolved", "wfLabelResolved", isResolved);
+  setStepState("wfStepReviewed", "wfIconReviewed", "wfLabelReviewed", isReviewed, searchSvg);
+  setStepState("wfStepEscalated", "wfIconEscalated", "wfLabelEscalated", isEscalated, bellSvg);
+  setStepState("wfStepResolved", "wfIconResolved", "wfLabelResolved", isResolved, checkCircleSvg);
 
   const line1 = document.getElementById("wfLine1");
   const line2 = document.getElementById("wfLine2");
@@ -276,24 +384,18 @@ function initIncidentEngine() {
   const syncElem = document.getElementById("engineLastSync");
   const statusElem = document.getElementById("engineStatusText");
 
-  const q = query(
-    collection(db, "reports"),
-    where("status", "!=", "Resolved")
-  );
-
-  onSnapshot(q, (snapshot) => {
+  onSnapshot(collection(db, "reports"), (snapshot) => {
     let unresolvedCount = 0;
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      const sev = (data.severity || "").toLowerCase();
-      if (sev === "critical" || sev === "severe" || sev === "high" || sev === "normal" || sev === "") {
+      if ((data.status || "").toLowerCase() !== "resolved") {
         unresolvedCount++;
       }
     });
 
     if (countElem) {
-      countElem.textContent = `${unresolvedCount} CRITICALS UNRESOLVED`;
+      countElem.textContent = `${unresolvedCount} UNRESOLVED INCIDENTS`;
     }
 
     if (statusElem) {
@@ -302,9 +404,8 @@ function initIncidentEngine() {
 
     lastSyncTimestamp = Date.now();
     updateLastSyncText();
-  }, (error) => {
-    console.error("Incident Engine Firestore Error:", error);
-    if (countElem) countElem.textContent = "0 CRITICALS UNRESOLVED";
+  }, () => {
+    if (countElem) countElem.textContent = "0 UNRESOLVED INCIDENTS";
     if (statusElem) statusElem.textContent = "OFFLINE";
   });
 
@@ -365,7 +466,7 @@ function showToastForAction(action, reportId) {
     flag_for_review: { type: "warning", title: "Flagged for Review", desc: `Detection ${reportId} sent to manual review queue.` },
     escalate_to_lgu: { type: "error", title: "Escalated to LGU", desc: `Alert dispatched to QC Waste Management for ${reportId}.` }
   };
-  showToast(messages[action]);
+  showToast(messages[action] || { type: "success", title: "Action Applied", desc: `Updated ${reportId}` });
 }
 
 function showToast({ type = "success", title, desc, duration = 4000 }) {

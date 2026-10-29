@@ -515,3 +515,32 @@
   color: #999;
   text-align: center;
 }
+
+#incidentEventsList {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+#incidentEventsList::-webkit-scrollbar {
+  width: 5px;
+}
+
+#incidentEventsList::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.alert-status-tag.dismissed {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.alert-status-tag.flagged {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.btn-delete-event:hover {
+  opacity: 0.7;
+}
