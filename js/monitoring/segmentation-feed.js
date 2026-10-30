@@ -64,8 +64,14 @@
     streamId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     let url = `${base}/segmentation-stream.mjpg?cameraDocId=${encodeURIComponent(cameraId)}&streamId=${streamId}`;
     if (secure) {
-      const response = await fetch(`${base}/stream-ticket?cameraDocId=${encodeURIComponent(cameraId)}`,
-        {...options, method: 'POST'});
+      const ticketUrl = `${base}/stream-ticket?cameraDocId=${encodeURIComponent(cameraId)}`;
+      let response = await fetch(ticketUrl, {...options, method: 'POST'});
+      if (!response.ok && (response.status === 401 || response.status === 403)
+          && stillCurrent()) {
+        const token = await window.riversightAIIdToken(true);
+        options.headers = {Authorization: `Bearer ${token}`};
+        response = await fetch(ticketUrl, {...options, method: 'POST'});
+      }
       if (!response.ok) throw new Error('Unavailable');
       const result = await response.json();
       if (!stillCurrent()) return;
@@ -120,7 +126,14 @@
         options.headers = {Authorization: `Bearer ${token}`};
       }
       const identity = secure ? `&cameraDocId=${encodeURIComponent(cameraId)}` : '';
-      const healthResponse = await fetch(`${base}/${secure ? 'feed-health' : 'health'}?t=${Date.now()}${identity}${streamId ? `&streamId=${streamId}` : ''}`, options);
+      const healthUrl = `${base}/${secure ? 'feed-health' : 'health'}?t=${Date.now()}${identity}${streamId ? `&streamId=${streamId}` : ''}`;
+      let healthResponse = await fetch(healthUrl, options);
+      if (secure && (healthResponse.status === 401 || healthResponse.status === 403)
+          && stillCurrent()) {
+        const token = await window.riversightAIIdToken(true);
+        options.headers = {Authorization: `Bearer ${token}`};
+        healthResponse = await fetch(healthUrl, options);
+      }
       if (!healthResponse.ok) throw new Error('Unavailable');
       const health = await healthResponse.json();
       if (!stillCurrent()) return;
