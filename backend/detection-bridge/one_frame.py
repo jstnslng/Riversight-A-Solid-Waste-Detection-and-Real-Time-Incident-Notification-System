@@ -4,6 +4,7 @@ import argparse
 import base64
 from datetime import datetime
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -239,6 +240,17 @@ def compact_predictions(predictions):
     return output
 
 
+def confidence_threshold():
+    raw = os.environ.get("SEGMENTATION_CONFIDENCE_THRESHOLD", "0.25").strip()
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        raise BridgeError("SEGMENTATION_CONFIDENCE_THRESHOLD must be a finite number from 0.01 to 1.0.") from None
+    if not math.isfinite(value) or not 0.01 <= value <= 1.0:
+        raise BridgeError("SEGMENTATION_CONFIDENCE_THRESHOLD must be a finite number from 0.01 to 1.0.")
+    return raw
+
+
 def predict(endpoint, key, jpeg, requests):
     try:
         # Disable ambient proxies/.netrc and redirects so the configured bearer
@@ -248,7 +260,7 @@ def predict(endpoint, key, jpeg, requests):
             with session.post(
                 endpoint, headers={"Authorization": "Bearer " + key},
                 files={"file": ("frame.jpg", jpeg, "image/jpeg")},
-                data={"conf": "0.25", "iou": "0.70", "imgsz": "640"},
+                data={"conf": confidence_threshold(), "iou": "0.70", "imgsz": "640"},
                 timeout=(10, 60), allow_redirects=False,
             ) as response:
                 print(f"HTTP status: {response.status_code}")

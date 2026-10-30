@@ -97,6 +97,28 @@ class MonitorTests(unittest.TestCase):
                     monitor.detection_interval()
                 self.assertNotIn(raw, str(error.exception)) if raw == "PRIVATE_SECRET" else None
 
+    def test_confidence_threshold_defaults_and_accepts_configured_value(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(one_frame.confidence_threshold(), "0.25")
+        with patch.dict(os.environ, {"SEGMENTATION_CONFIDENCE_THRESHOLD": "0.20"}):
+            self.assertEqual(one_frame.confidence_threshold(), "0.20")
+
+    def test_confidence_threshold_rejects_invalid_values(self):
+        for raw in ("", "0", "0.009", "1.01", "-1", "nan", "inf", "PRIVATE_SECRET"):
+            with self.subTest(raw=raw), patch.dict(
+                    os.environ, {"SEGMENTATION_CONFIDENCE_THRESHOLD": raw}, clear=True):
+                with self.assertRaises(one_frame.BridgeError) as error:
+                    one_frame.confidence_threshold()
+                if raw == "PRIVATE_SECRET":
+                    self.assertNotIn(raw, str(error.exception))
+
+    def test_configured_confidence_threshold_is_sent_to_cloud(self):
+        row = {"class": 0, "name": "bottle", "confidence": 0.9,
+               "box": {"x1": 1, "y1": 2, "x2": 30, "y2": 40}}
+        with patch.dict(os.environ, {"SEGMENTATION_CONFIDENCE_THRESHOLD": "0.20"}):
+            _, post, _ = self.run_monitor([Response(rows=[row])])
+        self.assertEqual(post.call_args.kwargs["data"]["conf"], "0.20")
+
     def test_success_zero_and_multiple_predictions(self):
         row = {"class": 0, "name": "bottle", "confidence": 0.9,
                "box": {"x1": 1, "y1": 2, "x2": 30, "y2": 40}}

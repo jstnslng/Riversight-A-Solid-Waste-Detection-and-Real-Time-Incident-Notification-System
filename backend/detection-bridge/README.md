@@ -646,6 +646,7 @@ Edit `backend/detection-bridge/.env` locally, outside terminal history:
 CAMERA_RTSP_URL=
 ULTRALYTICS_ENDPOINT=
 ULTRALYTICS_API_KEY=
+SEGMENTATION_CONFIDENCE_THRESHOLD=0.25
 DETECTION_INTERVAL_SECONDS=5
 ```
 
@@ -677,8 +678,10 @@ limit. HTTPS connect/read timeouts are 10/60 seconds (read timeout is socket
 inactivity, not a total wall-clock deadline). Redirects, automatic retries and
 ambient proxy/.netrc settings are disabled; HTTPS certificate checks remain on.
 
-The multipart request sends `file=frame.jpg`, `conf=0.25`, `iou=0.70`, `imgsz=640`
-and the configured bearer token. No local Ultralytics/PyTorch packages are used.
+The multipart request sends `file=frame.jpg`, the configured
+`SEGMENTATION_CONFIDENCE_THRESHOLD` (`0.25` by default), `iou=0.70`,
+`imgsz=640` and the configured bearer token. The threshold must be a finite
+number from `0.01` to `1.0`. No local Ultralytics/PyTorch packages are used.
 
 Expected response: `images` containing exactly one image with `shape: [height,
 width]`, `results: [{class, name, confidence, box: {x1,y1,x2,y2}}]` and optional
