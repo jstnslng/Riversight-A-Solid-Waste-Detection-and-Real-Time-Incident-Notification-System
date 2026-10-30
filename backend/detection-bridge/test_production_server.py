@@ -30,6 +30,14 @@ class ProductionTests(unittest.TestCase):
         body = self.app(environ, lambda status, headers: result.append((status, dict(headers))))
         return result[0], body
 
+    def test_detection_recording_requires_explicit_true(self):
+        for value in (None, "", "false", "yes", "TRUE ", " true "):
+            environment = {} if value is None else {
+                "SEGMENTATION_DETECTION_RECORDING_ENABLED": value
+            }
+            with self.subTest(value=value), patch.dict(os.environ, environment, clear=True):
+                self.assertEqual(production.detection_recording_enabled(), value in ("TRUE ", " true "))
+
     def test_shared_health_evidence_and_host_origin_policy(self):
         (status, headers), body = self.request()
         self.assertEqual(status, "200 OK")

@@ -248,6 +248,17 @@ class FeedTests(unittest.TestCase):
         self.assertIs(result, self.jpeg)
         self.assertEqual(count, 0)
 
+    def test_disabled_recording_does_not_write_detections(self):
+        writer = Mock()
+        self.assertIsNone(self.state.detection_recorder)
+        with patch.object(feed, "capture_one_frame", return_value=(self.jpeg, 200, 100)), \
+                patch.object(feed, "predict", return_value=([
+                    {"class": 0, "name": "Plastic", "confidence": 0.8,
+                     "box": {"x1": 30, "y1": 30, "x2": 80, "y2": 90}}
+                ], 1)):
+            feed.sample_cycle(self.state, "unused", "unused", "unused", Mock())
+        writer.assert_not_called()
+
     def test_segmented_publication_reuses_renderer(self):
         row = {"class": 0, "name": "Plastic", "confidence": 0.8,
                "box": {"x1": 30, "y1": 30, "x2": 80, "y2": 90},

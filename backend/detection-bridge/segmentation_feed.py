@@ -18,6 +18,7 @@ import numpy as np
 import copy
 
 from one_frame import configuration, capture_one_frame, predict
+from detection_recorder import DetectionRecorder
 from evidence_renderer import render_predictions
 from live_capture import LiveCapture
 from visual_tracking import MAX_TRACKS, TrackingWorker
@@ -59,7 +60,8 @@ class CameraConfigurationCache:
         expires = time.monotonic() + self.TTL_SECONDS
         try:
             value = self.read(f"camera_feeds/{self.camera_id}")
-            document = {key: copy.deepcopy(value.get(key)) for key in ("waterwayRoi", "wasteCoverageClasses")} if isinstance(value, dict) else None
+            document = {key: copy.deepcopy(value.get(key)) for key in (
+                "camId", "waterwayRoi", "wasteCoverageClasses")} if isinstance(value, dict) else None
         except Exception:
             document = None  # Fixed unavailable state; never log SDK errors.
         with self.lock:
@@ -195,6 +197,7 @@ class LatestFrame:
         self.coverage_cache = None
         self.coverage_config_expires = None
         self.coverage = unavailable_coverage("unconfigured")
+        self.detection_recorder = None
         self.coverage_mono = 0
         self.model_classes = None
         self.latencies = deque(maxlen=60)
@@ -387,6 +390,12 @@ def sample_cycle(state, rtsp, endpoint, key, requests):
         captured_at, captured_mono = datetime.now(timezone.utc).isoformat(), time.monotonic()
     started_at, started = datetime.now(timezone.utc).isoformat(), time.monotonic()
     predictions, _ = predict(endpoint, key, jpeg, requests)
+    if state.detection_recorder is not None:
+        camera_id = None
+        if state.coverage_cache is not None:
+            document, _ = state.coverage_cache.snapshot(state.camera_doc_id)
+            camera_id = document.get("camId") if isinstance(document, dict) else None
+        state.detection_recorder.observe(predictions, camera_id)
     ended_at, ended = datetime.now(timezone.utc).isoformat(), time.monotonic()
     state.record_timing(captured_at, captured_mono, started_at, started, ended_at, ended)
     processed, count = processed_jpeg(jpeg, predictions)

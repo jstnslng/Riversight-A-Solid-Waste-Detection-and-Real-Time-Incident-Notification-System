@@ -647,6 +647,7 @@ CAMERA_RTSP_URL=
 ULTRALYTICS_ENDPOINT=
 ULTRALYTICS_API_KEY=
 SEGMENTATION_CONFIDENCE_THRESHOLD=0.25
+SEGMENTATION_DETECTION_RECORDING_ENABLED=false
 DETECTION_INTERVAL_SECONDS=5
 ```
 
@@ -682,6 +683,17 @@ The multipart request sends `file=frame.jpg`, the configured
 `SEGMENTATION_CONFIDENCE_THRESHOLD` (`0.25` by default), `iou=0.70`,
 `imgsz=640` and the configured bearer token. The threshold must be a finite
 number from `0.01` to `1.0`. No local Ultralytics/PyTorch packages are used.
+
+Validated waste detections are recorded asynchronously in Firestore by the
+production bridge when `SEGMENTATION_DETECTION_RECORDING_ENABLED=true`;
+recording is disabled by default. One `detections` document is maintained per
+session-scoped object lifecycle; repeated observations update `lastSeenAt`
+at a bounded interval, and objects absent for
+`SEGMENTATION_DETECTION_LIFETIME_SECONDS` (default `5`) are marked `resolved`.
+`SEGMENTATION_DETECTION_WRITE_INTERVAL_SECONDS` defaults to `2`. Firestore
+write failures are isolated from the inference and streaming loop. Firestore
+writes have a five-second per-operation timeout, and recorder shutdown has a
+two-second wait limit.
 
 Expected response: `images` containing exactly one image with `shape: [height,
 width]`, `results: [{class, name, confidence, box: {x1,y1,x2,y2}}]` and optional

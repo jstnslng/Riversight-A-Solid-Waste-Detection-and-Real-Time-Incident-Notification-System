@@ -10,13 +10,18 @@ import time
 from urllib.parse import parse_qs
 
 
+FIRESTORE_WRITE_TIMEOUT_SECONDS = 5
+
+
 class AccessDenied(Exception):
     pass
 
 
 class FirebaseAccess:
-    def __init__(self, verify, read):
+    def __init__(self, verify, read, write=None, resolve_active=None, server_timestamp=None):
         self.verify, self.read = verify, read
+        self.write_detection, self.resolve_active_detections = write, resolve_active
+        self.server_timestamp = server_timestamp or (lambda: None)
 
     @classmethod
     def from_environment(cls):
@@ -30,7 +35,20 @@ class FirebaseAccess:
         app = firebase_admin.initialize_app(credential, {"projectId": project, "httpTimeout": 5}, name="segmentation-bridge")
         database = firestore.client(app=app)
         return cls(lambda token: auth.verify_id_token(token, app=app, check_revoked=True),
-                   lambda path: database.document(path).get(timeout=5, retry=None).to_dict())
+                   lambda path: database.document(path).get(timeout=5, retry=None).to_dict(),
+                   lambda detection_id, data: database.collection("detections").document(detection_id).set(
+                       data, merge=True, timeout=FIRESTORE_WRITE_TIMEOUT_SECONDS),
+                   lambda camera: [
+                       document.reference.set(
+                           {"status": "resolved", "resolvedAt": firestore.SERVER_TIMESTAMP},
+                           merge=True,
+                       )
+                       for document in database.collection("detections")
+                       .where("cameraDocId", "==", camera)
+                       .where("status", "==", "active")
+                       .stream()
+                   ],
+                   lambda: firestore.SERVER_TIMESTAMP)
 
     def authorize(self, token, camera):
         try:

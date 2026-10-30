@@ -127,9 +127,12 @@ class AccessTests(unittest.TestCase):
             access = FirebaseAccess.from_environment()
             access.verify("test-id-token")
             access.read("users/user-1")
+            access.write_detection("detection-1", {"status": "active"})
             verify.assert_called_once_with("test-id-token", app=app, check_revoked=True)
             self.assertEqual(initialize.call_args.args[1]["projectId"], "expected-project")
             database.document.return_value.get.assert_called_once_with(timeout=5, retry=None)
+            database.collection.return_value.document.return_value.set.assert_called_once_with(
+                {"status": "active"}, merge=True, timeout=5)
         for key in ("FIREBASE_AUTH_EMULATOR_HOST", "FIRESTORE_EMULATOR_HOST"):
             with patch.dict(os.environ, {"FIREBASE_PROJECT_ID": "expected-project", key: "localhost"}, clear=True):
                 with self.assertRaises(ValueError):

@@ -80,6 +80,9 @@ Optional configuration:
 | `PORT` | Platform-injected production port fallback; ignored by development entry point |
 | `SEGMENTATION_INTERVAL_SECONDS` | `2`; finite 1–86400 seconds |
 | `SEGMENTATION_CONFIDENCE_THRESHOLD` | `0.25`; finite 0.01–1.0 |
+| `SEGMENTATION_DETECTION_RECORDING_ENABLED` | `false`; only explicit `true` enables Firestore detection recording |
+| `SEGMENTATION_DETECTION_LIFETIME_SECONDS` | `5`; finite 1–120 seconds |
+| `SEGMENTATION_DETECTION_WRITE_INTERVAL_SECONDS` | `2`; finite 1–60 seconds |
 | `SEGMENTATION_STREAM_FPS` | `10`; 1–15, or `0` for snapshot-only mode |
 | `SEGMENTATION_TRACKING_ENABLED` | `true`; `true`/`false` |
 | `SEGMENTATION_TRACK_MAX_AGE_SECONDS` | `3`; finite 0.5–10 seconds |

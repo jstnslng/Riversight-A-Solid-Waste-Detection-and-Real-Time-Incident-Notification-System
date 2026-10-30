@@ -13,6 +13,10 @@ import segmentation_feed as feed
 from firebase_access import FirebaseAccess, secure_application
 
 
+def detection_recording_enabled():
+    return os.environ.get("SEGMENTATION_DETECTION_RECORDING_ENABLED", "").strip().lower() == "true"
+
+
 def application_for(state, origins, host, port, allowed_hosts):
     base = feed.handler_for(state, origins, host, port, allowed_hosts)
 
@@ -151,6 +155,17 @@ class ProductionServer:
             channel_request_lookahead=1, log_socket_errors=False, expose_tracebacks=False,
             clear_untrusted_proxy_headers=True,
         )
+        self.detection_recorder = None
+        if (detection_recording_enabled()
+                and access.write_detection is not None
+                and access.resolve_active_detections is not None):
+            self.detection_recorder = feed.DetectionRecorder(
+                state.camera_doc_id,
+                access.write_detection,
+                access.server_timestamp,
+                access.resolve_active_detections,
+            )
+            state.detection_recorder = self.detection_recorder
 
     def serve_forever(self):
         from waitress import wasyncore
@@ -171,6 +186,8 @@ class ProductionServer:
 
     def server_close(self):
         self.configuration_cache.close()
+        if self.detection_recorder is not None:
+            self.detection_recorder.close()
         for channel in list(self.socket_map.values()):
             channel.close()
         self.server.task_dispatcher.shutdown(timeout=5)
