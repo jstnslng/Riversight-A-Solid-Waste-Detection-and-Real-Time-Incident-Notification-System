@@ -518,7 +518,7 @@ function createPassword() {
 
 function createEmail(firstName, lastName, domain = "gmail.com") {
   const cleanFirst = firstName.trim().toLowerCase();
-  const cleanLast = lastName.trim().toLowerCase();
+  const cleanLast = lastName.trim().toLowerCase().replace(/\s+/g, '');
   
   const firstNamesArray = cleanFirst.split(/\s+/);
   
@@ -531,7 +531,7 @@ function createEmail(firstName, lastName, domain = "gmail.com") {
 
 function createUsername(firstName, lastName, role) {
     const cleanFirst = firstName.trim().toLowerCase();
-    const cleanLast = lastName.trim().toLowerCase();
+    const cleanLast = lastName.trim().toLowerCase().replace(/\s+/g, '');
 
     const firstNamesArray = cleanFirst.split(/\s+/);
 
