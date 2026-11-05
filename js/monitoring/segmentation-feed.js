@@ -26,6 +26,7 @@
   let busy = false, stopped = false, generation = 0;
   let timer, expiryTimer, controller, currentUrl, streamUrl, streamTimer, streamId;
   let streamLoaded = false;
+  let authorizationLease = null;
   let streamExpires = 0;
   let retryDelay = 1500;
 
@@ -79,6 +80,8 @@
         throw error;
       }
       const result = await response.json();
+      authorizationLease = response.headers?.get?.('X-RiverSight-Authorization-Lease')
+        || authorizationLease;
       if (!stillCurrent()) return;
       if (!fresh(timestamp)) throw new Error('Stale');
       if (!/^[A-Za-z0-9_-]{40,64}$/.test(result.ticket)) throw new Error('Unavailable');
@@ -129,6 +132,9 @@
         const token = await window.riversightAIIdToken();
         if (!stillCurrent()) return;
         options.headers = {Authorization: `Bearer ${token}`};
+      }
+      if (authorizationLease) {
+        options.headers = {...options.headers, 'X-RiverSight-Authorization-Lease': authorizationLease};
       }
       const identity = secure ? `&cameraDocId=${encodeURIComponent(cameraId)}` : '';
       const healthUrl = `${base}/${secure ? 'feed-health' : 'health'}?t=${Date.now()}${identity}${streamId ? `&streamId=${streamId}` : ''}`;

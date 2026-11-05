@@ -1,5 +1,7 @@
 """Production Firebase authentication and explicit, server-owned camera grants."""
 import hashlib
+import hmac
+import base64
 import json
 import math
 import os
@@ -11,6 +13,8 @@ from urllib.parse import parse_qs
 
 
 FIRESTORE_WRITE_TIMEOUT_SECONDS = 5
+AUTHORIZATION_LEASE_MAX_SECONDS = 60
+AUTHORIZATION_LEASE_MIN_SECRET_BYTES = 32
 
 
 def _log(event, **fields):
@@ -43,16 +47,24 @@ class UnavailableFirebaseAccess:
     def read(self, path):
         raise AccessDependencyError()
 
+    def issue_lease(self, token, camera, expiry):
+        raise AccessDependencyError()
+
+    def validate_lease(self, lease, camera, expected_uid=None):
+        raise AccessDependencyError()
+
 
 class FirebaseAccess:
     def __init__(self, verify, read, write=None, resolve_active=None, server_timestamp=None,
-                 authorization_cache_seconds=0):
+                 authorization_cache_seconds=0, lease_secret=None, lease_seconds=30):
         self.verify, self.read = verify, read
         self.write_detection, self.resolve_active_detections = write, resolve_active
         self.server_timestamp = server_timestamp or (lambda: None)
         self.authorization_cache_seconds = max(0, float(authorization_cache_seconds))
         self._authorization_cache = {}
         self._authorization_cache_lock = threading.Lock()
+        self.lease_secret = lease_secret
+        self.lease_seconds = min(AUTHORIZATION_LEASE_MAX_SECONDS, max(0, float(lease_seconds)))
 
     @classmethod
     def from_environment(cls):
@@ -96,8 +108,24 @@ class FirebaseAccess:
             raise ValueError("SEGMENTATION_AUTHORIZATION_CACHE_SECONDS must be numeric.") from None
         if not math.isfinite(cache_seconds) or not 0 <= cache_seconds <= 60:
             raise ValueError("SEGMENTATION_AUTHORIZATION_CACHE_SECONDS must be between 0 and 60.")
+        lease_secret = os.environ.get("SEGMENTATION_AUTHORIZATION_LEASE_SECRET", "").strip()
+        if lease_secret and len(lease_secret.encode("utf-8")) < AUTHORIZATION_LEASE_MIN_SECRET_BYTES:
+            raise ValueError(
+                "SEGMENTATION_AUTHORIZATION_LEASE_SECRET must contain at least "
+                f"{AUTHORIZATION_LEASE_MIN_SECRET_BYTES} UTF-8 bytes."
+            )
+        lease_seconds = os.environ.get("SEGMENTATION_AUTHORIZATION_LEASE_SECONDS", "30")
+        try:
+            lease_seconds = float(lease_seconds)
+        except ValueError:
+            raise ValueError("SEGMENTATION_AUTHORIZATION_LEASE_SECONDS must be numeric.") from None
+        if not math.isfinite(lease_seconds) or not 0 < lease_seconds <= AUTHORIZATION_LEASE_MAX_SECONDS:
+            raise ValueError("SEGMENTATION_AUTHORIZATION_LEASE_SECONDS must be between 0 and 60.") from None
+        if not lease_secret:
+            _log("authorization_lease_disabled", reason="missing_secret")
         return cls(verify, read, write_detection, resolve_active,
-                   lambda: firestore.SERVER_TIMESTAMP, cache_seconds)
+                   lambda: firestore.SERVER_TIMESTAMP, cache_seconds,
+                   lease_secret.encode("utf-8") if lease_secret else None, lease_seconds)
 
     def authorize(self, token, camera):
         cache_key = (hashlib.sha256(token.encode()).digest(), camera)
@@ -142,10 +170,42 @@ class FirebaseAccess:
                 self._authorization_cache[cache_key] = (expiry_at, expiry)
         return expiry
 
+    def issue_lease(self, token, camera, expiry):
+        if not self.lease_secret:
+            raise AccessDependencyError()
+        claims = self.verify(token)
+        uid = claims.get("uid")
+        now = int(time.time())
+        lease_expiry = min(now + int(self.lease_seconds), int(expiry))
+        payload = f"{uid}.{camera}.{now}.{lease_expiry}".encode()
+        signature = hmac.new(self.lease_secret, payload, hashlib.sha256).digest()
+        encoded = base64.urlsafe_b64encode(payload + b"." + signature).decode().rstrip("=")
+        return encoded
+
+    def validate_lease(self, lease, camera, expected_uid=None):
+        if not self.lease_secret or not isinstance(lease, str):
+            raise AccessDependencyError()
+        try:
+            raw = base64.urlsafe_b64decode(lease + "=" * (-len(lease) % 4))
+            uid, lease_camera, issued, expiry, signature = raw.split(b".", 4)
+            payload = b".".join((uid, lease_camera, issued, expiry))
+            expected = hmac.new(self.lease_secret, payload, hashlib.sha256).digest()
+            if not secrets.compare_digest(signature, expected):
+                raise AccessDenied()
+            now = int(time.time())
+            if lease_camera.decode() != camera or int(issued) > now or int(expiry) <= now:
+                raise AccessDenied()
+            if expected_uid is not None and uid.decode() != expected_uid:
+                raise AccessDenied()
+            return int(expiry)
+        except (ValueError, TypeError, UnicodeDecodeError, base64.binascii.Error):
+            raise AccessDenied() from None
+
 
 class GuardedStream:
-    def __init__(self, source, access, token, camera, expiry):
+    def __init__(self, source, access, token, camera, expiry, lease=False):
         self.source, self.access, self.token, self.camera = source, access, token, camera
+        self.lease = lease
         self.deadline = min(time.monotonic() + 60, time.monotonic() + expiry - time.time())
         self.check_at = 0
 
@@ -159,7 +219,10 @@ class GuardedStream:
             raise StopIteration
         if now >= self.check_at:
             try:
-                self.access.authorize(self.token, self.camera)
+                if self.lease:
+                    self.access.validate_lease(self.token, self.camera)
+                else:
+                    self.access.authorize(self.token, self.camera)
             except (AccessDenied, AuthenticationFailed, AccessDependencyError):
                 self.close()
                 raise StopIteration from None
@@ -187,16 +250,20 @@ class GuardedStream:
 def secure_application(application, access, camera, origins, hosts):
     tickets, lock = {}, threading.Lock()
 
-    def respond(start, status, payload, origin=None, preflight=False):
+    def respond(start, status, payload, origin=None, preflight=False, lease=None):
         body = json.dumps(payload).encode()
         headers = [("Content-Type", "application/json"), ("Content-Length", str(len(body))),
                    ("Cache-Control", "no-store"), ("X-Content-Type-Options", "nosniff"),
                    ("Referrer-Policy", "no-referrer"), ("Vary", "Origin")]
         if origin in origins:
             headers.append(("Access-Control-Allow-Origin", origin))
+            if lease:
+                headers.append(("X-RiverSight-Authorization-Lease", lease))
+                headers.append(("Access-Control-Expose-Headers", "X-RiverSight-Authorization-Lease"))
             if preflight:
                 headers.extend([("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
-                                ("Access-Control-Allow-Headers", "Authorization")])
+                                ("Access-Control-Allow-Headers",
+                                 "Authorization, X-RiverSight-Authorization-Lease")])
         start(status, headers)
         return [body]
 
@@ -219,32 +286,69 @@ def secure_application(application, access, camera, origins, hosts):
         if query.get("cameraDocId") != [camera]:
             return respond(start, "403 Forbidden", {"status": "forbidden"}, origin)
         token = None
+        lease = None
+        lease_mode = False
         if path == "/segmentation-stream.mjpg":
             key = query.get("ticket", [""])
             if len(key) == 1 and re.fullmatch(r"[A-Za-z0-9_-]{40,64}", key[0]):
                 with lock:
                     row = tickets.pop(hashlib.sha256(key[0].encode()).digest(), None)
                 if row and row[1] == origin and row[2] > time.monotonic():
-                    token = row[0]
+                    token, lease_mode = row[0], row[3]
         else:
             header = environ.get("HTTP_AUTHORIZATION", "")
             if header.startswith("Bearer ") and 0 < len(header) <= 8192:
                 token = header[7:]
+            lease = environ.get("HTTP_X_RIVERSIGHT_AUTHORIZATION_LEASE")
+            if lease and len(lease) > 1024:
+                lease = None
+            if not token and lease:
+                token, lease_mode = lease, True
         if not token:
             return respond(start, "401 Unauthorized", {"status": "unauthorized"}, origin)
         try:
-            expiry = access.authorize(token, camera)
+            if lease_mode:
+                expiry = access.validate_lease(token, camera)
+            else:
+                expiry = access.authorize(token, camera)
         except AuthenticationFailed:
             return respond(start, "401 Unauthorized", {"status": "unauthorized"}, origin)
         except AccessDependencyError:
-            return respond(start, "503 Service Unavailable",
-                           {"status": "dependency_unavailable"}, origin)
+            if lease_mode:
+                return respond(start, "503 Service Unavailable",
+                               {"status": "dependency_unavailable"}, origin)
+            try:
+                lease = environ.get("HTTP_X_RIVERSIGHT_AUTHORIZATION_LEASE")
+                try:
+                    claims = access.verify(token)
+                except Exception:
+                    return respond(start, "401 Unauthorized",
+                                   {"status": "unauthorized"}, origin)
+                uid = claims.get("uid") if isinstance(claims, dict) else None
+                if not isinstance(uid, str):
+                    return respond(start, "401 Unauthorized",
+                                   {"status": "unauthorized"}, origin)
+                expiry = access.validate_lease(lease, camera, expected_uid=uid)
+                token, lease_mode = lease, True
+            except AccessDenied:
+                return respond(start, "403 Forbidden", {"status": "forbidden"}, origin)
+            except AccessDependencyError:
+                return respond(start, "503 Service Unavailable",
+                               {"status": "dependency_unavailable"}, origin)
         except AccessDenied:
             return respond(start, "403 Forbidden", {"status": "forbidden"}, origin)
         if path == "/stream-ticket":
             if origin not in origins:
                 return respond(start, "403 Forbidden", {"status": "forbidden"})
             ticket = secrets.token_urlsafe(32)
+            lease_header = None
+            if not lease_mode:
+                try:
+                    lease_header = access.issue_lease(token, camera, expiry)
+                except AccessDependencyError:
+                    pass
+            ticket_credential = lease_header if lease_header else token
+            ticket_lease_mode = bool(lease_header) or lease_mode
             with lock:
                 now = time.monotonic()
                 for key in list(tickets):
@@ -252,8 +356,11 @@ def secure_application(application, access, camera, origins, hosts):
                         del tickets[key]
                 if len(tickets) >= 256:
                     return respond(start, "503 Service Unavailable", {"status": "busy"}, origin)
-                tickets[hashlib.sha256(ticket.encode()).digest()] = (token, origin, min(now + 30, now + expiry - time.time()))
-            return respond(start, "200 OK", {"ticket": ticket, "expiresIn": 30, "streamMaxSeconds": 60}, origin)
+                tickets[hashlib.sha256(ticket.encode()).digest()] = (
+                    ticket_credential, origin, min(now + 30, now + expiry - time.time()),
+                    ticket_lease_mode)
+            return respond(start, "200 OK", {"ticket": ticket, "expiresIn": 30,
+                                              "streamMaxSeconds": 60}, origin, lease=lease_header)
         forwarded = dict(environ)
         forwarded.pop("HTTP_AUTHORIZATION", None)
         if path == "/feed-health":
@@ -266,6 +373,6 @@ def secure_application(application, access, camera, origins, hosts):
                 forwarded["QUERY_STRING"] += "&streamId=" + session[0]
         result = application(forwarded, start)
         if path == "/segmentation-stream.mjpg" and hasattr(result, "close"):
-            return GuardedStream(result, access, token, camera, expiry)
+            return GuardedStream(result, access, token, camera, expiry, lease=lease_mode)
         return result
     return secured

@@ -89,6 +89,8 @@ Optional configuration:
 | `SEGMENTATION_TRACK_MAX_AGE_SECONDS` | `3`; finite 0.5–10 seconds |
 | `DETECTION_INTERVAL_SECONDS` | `5`; used only by the separate continuous_detection.py diagnostic |
 | `SEGMENTATION_AUTHORIZATION_CACHE_SECONDS` | `10`; short-lived user/grant authorization cache, finite 0–60 seconds |
+| `SEGMENTATION_AUTHORIZATION_LEASE_SECRET` | Required for restart-safe outage continuity; random protected secret of at least 32 UTF-8 bytes, shared by bridge instances |
+| `SEGMENTATION_AUTHORIZATION_LEASE_SECONDS` | `30`; signed lease lifetime, finite 1–60 seconds and capped at 60 |
 
 For the Railway production recording configuration requested by the dashboard, set
 these variables manually in the Railway service (they are not supplied by the
