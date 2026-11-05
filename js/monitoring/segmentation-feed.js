@@ -27,6 +27,7 @@
   let timer, expiryTimer, controller, currentUrl, streamUrl, streamTimer, streamId;
   let streamLoaded = false;
   let streamExpires = 0;
+  let retryDelay = 1500;
 
   function fallback(message) {
     clearTimeout(expiryTimer);
@@ -72,7 +73,11 @@
         options.headers = {Authorization: `Bearer ${token}`};
         response = await fetch(ticketUrl, {...options, method: 'POST'});
       }
-      if (!response.ok) throw new Error('Unavailable');
+      if (!response.ok) {
+        const error = new Error('Unavailable');
+        error.status = response.status;
+        throw error;
+      }
       const result = await response.json();
       if (!stillCurrent()) return;
       if (!fresh(timestamp)) throw new Error('Stale');
@@ -134,9 +139,14 @@
         options.headers = {Authorization: `Bearer ${token}`};
         healthResponse = await fetch(healthUrl, options);
       }
-      if (!healthResponse.ok) throw new Error('Unavailable');
+      if (!healthResponse.ok) {
+        const error = new Error('Unavailable');
+        error.status = healthResponse.status;
+        throw error;
+      }
       const health = await healthResponse.json();
       if (!stillCurrent()) return;
+      retryDelay = 1500;
       if (!health.cameraDocId || health.cameraDocId !== cameraId) {
         fallback('AI processing is not active for this camera');
         return;
@@ -188,14 +198,27 @@
       if (source) source.textContent = 'AI PROCESSED FRAME';
       clearTimeout(expiryTimer);
       expiryTimer = setTimeout(() => fallback(unavailable), Math.max(0, staleMs - (Date.now() - Date.parse(timestamp))));
-    } catch {
-      if (!stopped && !document.hidden && version === generation) fallback(unavailable);
+    } catch (error) {
+      if (!stopped && !document.hidden && version === generation) {
+        if (error.status === 503) {
+          fallback('AI backend dependency temporarily unavailable — retrying');
+          retryDelay = Math.min(30000, Math.max(3000, retryDelay * 2));
+        } else if (error.status === 401) {
+          fallback('Authentication required — AI detection unavailable');
+          retryDelay = 1500;
+        } else if (error.status === 403) {
+          fallback('Camera access denied — AI detection unavailable');
+          retryDelay = 1500;
+        } else {
+          fallback(unavailable);
+        }
+      }
     } finally {
       if (nextUrl) URL.revokeObjectURL(nextUrl);
       clearTimeout(timeout);
       controller = null;
       busy = false;
-      if (!stopped && !document.hidden) timer = setTimeout(poll, 1500);
+      if (!stopped && !document.hidden) timer = setTimeout(poll, retryDelay);
     }
   }
   function reset() {

@@ -37,6 +37,8 @@ class DetectionRecorder:
     """Track validated YOLO observations and write bounded, idempotent updates."""
 
     SHUTDOWN_TIMEOUT_SECONDS = 2
+    MAX_WRITE_RETRIES = 3
+    RETRY_BACKOFF_BASE_SECONDS = 0.25
 
     def __init__(self, camera_doc_id, write, server_timestamp, resolve_active=None,
                  timeout=None, write_interval=None, session_id=None):
@@ -57,13 +59,18 @@ class DetectionRecorder:
         self.lock = threading.Lock()
         self.work = queue.Queue(maxsize=256)
         self.failures = deque(maxlen=20)
+        self.recording_status = "starting"
+        self.last_error = None
+        self.retry_backoff_base = self._setting(
+            None, "SEGMENTATION_DETECTION_RETRY_BASE_SECONDS",
+            self.RETRY_BACKOFF_BASE_SECONDS, 0.05, 10)
         self.stop = threading.Event()
         self.worker = threading.Thread(target=self._run, name="detection-firestore-writer", daemon=True)
         self.worker.start()
         _log("enabled", camera_doc_id=self.camera_doc_id, session_id=self.session_id,
              lifetime_seconds=self.timeout, write_interval_seconds=self.write_interval)
         if self.resolve_active is not None:
-            self._enqueue(("restart", None, None))
+            self._enqueue(("restart", None, None, 0))
 
     @staticmethod
     def _setting(value, name, environment, minimum, maximum):
@@ -89,17 +96,29 @@ class DetectionRecorder:
             except queue.Empty:
                 continue
             try:
-                kind, detection_id, payload = action
+                kind, detection_id, payload, attempt = action
                 if kind == "restart":
                     self.resolve_active(self.camera_doc_id)
                     _log("active_lifecycles_resolved", camera_doc_id=self.camera_doc_id)
                 else:
                     self.write(detection_id, payload)
+                    self.recording_status = "healthy"
+                    self.last_error = None
                     _log("firestore_write_succeeded", detection_id=detection_id,
                          status=payload.get("status", "unknown"))
             except Exception as error:
                 self.failures.append("firestore_write_failed")
+                self.recording_status = "degraded"
+                self.last_error = type(error).__name__
                 _log("firestore_write_failed", error_type=type(error).__name__)
+                if attempt < self.MAX_WRITE_RETRIES and not self.stop.is_set():
+                    delay = self.retry_backoff_base * (2 ** attempt)
+                    _log("firestore_write_retry", attempt=attempt + 1,
+                         delay_seconds=delay)
+                    if not self.stop.wait(delay):
+                        self._enqueue((kind, detection_id, payload, attempt + 1))
+                else:
+                    _log("firestore_write_dropped", detection_id=detection_id)
             finally:
                 self.work.task_done()
         while True:
@@ -161,14 +180,14 @@ class DetectionRecorder:
                         "classId": row["class"], "box": dict(row["box"]),
                         "last_seen": now, "last_write": now,
                     }
-                    self._enqueue(("write", track_id, self._payload(row, valid_camera, track_id, True)))
+                    self._enqueue(("write", track_id, self._payload(row, valid_camera, track_id, True), 0))
                     _log("lifecycle_started", tracking_id=track_id, waste_class=row["name"])
                 else:
                     track = self.tracks[track_id]
                     track.update(classId=row["class"], box=dict(row["box"]), last_seen=now)
                     if now - track["last_write"] >= self.write_interval:
                         track["last_write"] = now
-                        self._enqueue(("write", track_id, self._payload(row, valid_camera, track_id)))
+                        self._enqueue(("write", track_id, self._payload(row, valid_camera, track_id), 0))
                 seen.add(track_id)
             for track_id, track in list(self.tracks.items()):
                 if track_id in seen or now - track["last_seen"] < self.timeout:
@@ -179,12 +198,20 @@ class DetectionRecorder:
                     "status": "resolved",
                     "lastSeenAt": self.server_timestamp(),
                     "resolvedAt": self.server_timestamp(),
-                }))
+                }, 0))
                 _log("lifecycle_resolved", tracking_id=track_id)
                 del self.tracks[track_id]
 
     def flush(self):
         self.work.join()
+
+    def health(self):
+        return {
+            "enabled": True,
+            "status": self.recording_status,
+            "lastError": self.last_error,
+            "queued": self.work.qsize(),
+        }
 
     def close(self):
         self.stop.set()

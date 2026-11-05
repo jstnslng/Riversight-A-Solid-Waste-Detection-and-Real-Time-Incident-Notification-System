@@ -83,6 +83,7 @@ Optional configuration:
 | `SEGMENTATION_DETECTION_RECORDING_ENABLED` | `false`; only explicit `true` enables Firestore detection recording |
 | `SEGMENTATION_DETECTION_LIFETIME_SECONDS` | `5`; finite 1–120 seconds |
 | `SEGMENTATION_DETECTION_WRITE_INTERVAL_SECONDS` | `2`; finite 1–60 seconds |
+| `SEGMENTATION_DETECTION_RETRY_BASE_SECONDS` | `0.25`; bounded asynchronous write retry backoff, finite 0.05–10 seconds |
 | `SEGMENTATION_STREAM_FPS` | `10`; 1–15, or `0` for snapshot-only mode |
 | `SEGMENTATION_TRACKING_ENABLED` | `true`; `true`/`false` |
 | `SEGMENTATION_TRACK_MAX_AGE_SECONDS` | `3`; finite 0.5–10 seconds |
@@ -103,6 +104,18 @@ SEGMENTATION_TRACK_MAX_AGE_SECONDS=6
 
 Recording also requires `FIREBASE_PROJECT_ID` and either
 `FIREBASE_SERVICE_ACCOUNT_JSON` or Google Application Default Credentials. The
+YOLO capture, inference, and tracking workers continue when Firebase is
+temporarily unavailable; protected feed health and stream-ticket requests fail
+closed with `503`, and recording is reported as degraded. Camera configuration
+refreshes use bounded backoff during outages rather than polling every two
+seconds indefinitely.
+
+Authorization caching is separate from inference and recording. A previously
+validated token/camera grant may be reused only for
+`SEGMENTATION_AUTHORIZATION_CACHE_SECONDS` (10 seconds by default, maximum 60),
+and never beyond the Firebase token expiration. If no cached authorization is
+available, protected health, ticket, and stream requests fail closed with
+`503` while Firebase is unavailable.
 service account must be able to write the `detections` collection. Dashboard
 users need Firebase Authentication sessions; the current Firestore rules allow
 authenticated users to read that collection.

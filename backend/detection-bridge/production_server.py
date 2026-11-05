@@ -10,7 +10,7 @@ import time
 from urllib.parse import parse_qs, urlsplit
 
 import segmentation_feed as feed
-from firebase_access import FirebaseAccess, secure_application
+from firebase_access import FirebaseAccess, UnavailableFirebaseAccess, secure_application
 
 
 def detection_recording_enabled():
@@ -146,7 +146,11 @@ class ProductionServer:
             raise feed.StartupError("https_origins_required")
         self.socket_map = {}
         self.ended = threading.Event()
-        access = FirebaseAccess.from_environment()
+        try:
+            access = FirebaseAccess.from_environment()
+        except Exception as error:
+            access = UnavailableFirebaseAccess()
+            _log("firebase_dependency_unavailable", error_type=type(error).__name__)
         self.configuration_cache = feed.CameraConfigurationCache(state.camera_doc_id, access.read)
         state.coverage_cache = self.configuration_cache
         self.server = create_server(
@@ -162,11 +166,13 @@ class ProductionServer:
         )
         self.detection_recorder = None
         recording_enabled = detection_recording_enabled()
+        state.recording_enabled = recording_enabled
         _log("detection_recording_configuration", enabled=recording_enabled)
         if recording_enabled and (access.write_detection is None
                                   or access.resolve_active_detections is None):
-            raise feed.StartupError("detection_recording_firestore_unavailable")
-        if recording_enabled:
+            state.recording_status = "degraded"
+            _log("detection_recording_degraded", reason="firebase_dependency_unavailable")
+        elif recording_enabled:
             self.detection_recorder = feed.DetectionRecorder(
                 state.camera_doc_id,
                 access.write_detection,
@@ -174,6 +180,7 @@ class ProductionServer:
                 access.resolve_active_detections,
             )
             state.detection_recorder = self.detection_recorder
+            state.recording_status = "starting"
         else:
             _log("detection_recording_disabled")
 

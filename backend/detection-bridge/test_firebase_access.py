@@ -13,6 +13,7 @@ from firebase_access import (
     AuthenticationFailed,
     FirebaseAccess,
     GuardedStream,
+    UnavailableFirebaseAccess,
     secure_application,
 )
 from production_server import application_for
@@ -82,6 +83,27 @@ class AccessTests(unittest.TestCase):
         self.user = {"role": "User", "status": "Active"}
         with self.assertRaises(AccessDenied):
             self.access.authorize("token", "camera-1")
+
+    def test_authorization_cache_expires_and_never_grants_without_prior_validation(self):
+        clock = [100.0]
+        verify = Mock(return_value={"uid": "user-1", "exp": 200.0})
+        reads = Mock(side_effect=lambda path: self.user if path.startswith("users/") else self.grant)
+        access = FirebaseAccess(verify, reads, authorization_cache_seconds=10)
+        with patch("firebase_access.time.time", side_effect=lambda: clock[0]), \
+                patch("firebase_access.time.monotonic", side_effect=lambda: clock[0]):
+            self.assertEqual(access.authorize("token", "camera-1"), 200.0)
+            verify.assert_called_once()
+            reads.reset_mock()
+            clock[0] = 105.0
+            access.authorize("token", "camera-1")
+            reads.assert_not_called()
+            clock[0] = 111.0
+            access.authorize("token", "camera-1")
+            self.assertEqual(reads.call_count, 2)
+
+        unavailable = UnavailableFirebaseAccess()
+        with self.assertRaises(AccessDependencyError):
+            unavailable.authorize("previously-unknown-token", "camera-1")
 
     def test_roles_status_and_explicit_grants_including_admin(self):
         for role in ("Monitoring", "Monitoring Personnel", "Administrator"):

@@ -127,7 +127,7 @@ class FeedTests(unittest.TestCase):
         self.assertEqual(health["lastPredictionCount"], 2)
         self.assertEqual(set(health), {"status", "model", "latestFrameAvailable", "lastInferenceAt", "lastPredictionCount", "cameraDocId",
             "lastInferenceCapturedAt", "lastCloudRequestAt", "lastCloudResponseAt", "latestInferenceLatencyMs",
-            "averageInferenceLatencyMs", "inferenceFrameAgeMs", "waterwayCoverage"})
+            "averageInferenceLatencyMs", "inferenceFrameAgeMs", "waterwayCoverage", "recording"})
 
     def test_coverage_union_intersection_and_dimensions(self):
         document = dict(waterwayRoi=dict(state="approved", version=2, coordinateSpace="normalized",

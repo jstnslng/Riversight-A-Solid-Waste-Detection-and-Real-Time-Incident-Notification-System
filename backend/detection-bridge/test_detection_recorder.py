@@ -98,6 +98,20 @@ class DetectionRecorderTests(unittest.TestCase):
         self.recorder_instance.flush()
         self.assertEqual(self.recorder_instance.failures[-1], "firestore_write_failed")
 
+    def test_write_failures_use_bounded_retries_without_blocking_observe(self):
+        attempts = []
+        writer = Mock(side_effect=lambda *_: attempts.append(time.monotonic()) or
+                      (_ for _ in ()).throw(RuntimeError("quota")))
+        self.recorder_instance = self.recorder()
+        self.recorder_instance.write = writer
+        self.recorder_instance.observe([row()], now=10)
+        started = time.monotonic()
+        self.recorder_instance.observe([row()], now=10)
+        self.assertLess(time.monotonic() - started, 0.1)
+        self.recorder_instance.flush()
+        self.assertEqual(len(attempts), self.recorder_instance.MAX_WRITE_RETRIES + 1)
+        self.assertEqual(self.recorder_instance.health()["status"], "degraded")
+
     def test_restart_sessions_never_reuse_ids(self):
         first = self.recorder("session" + "c" * 15)
         second = self.recorder("session" + "d" * 15)

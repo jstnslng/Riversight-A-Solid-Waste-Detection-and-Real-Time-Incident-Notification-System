@@ -33,7 +33,10 @@ async function checkHealth() {
     const age = last ? Date.now() - last.getTime() : Infinity;
     if (health.status === "ok" && health.cameraDocId === cameraDocId
       && health.latestFrameAvailable && age < 15000) {
-      render("ONLINE", "Nodes synchronized", last.toLocaleTimeString());
+      const recordingDegraded = health.recording?.status === "degraded";
+      render("ONLINE", recordingDegraded
+        ? "Inference online; Firestore recording degraded"
+        : "Nodes synchronized", last.toLocaleTimeString());
     } else {
       render("DEGRADED", health.status === "ok" ? "Inference data is stale or mismatched"
         : "Inference unavailable",

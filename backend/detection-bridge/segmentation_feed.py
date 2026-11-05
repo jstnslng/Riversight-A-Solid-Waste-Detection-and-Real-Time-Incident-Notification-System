@@ -68,11 +68,16 @@ class CameraConfigurationCache:
             if self.stop.is_set() or time.monotonic() >= expires:
                 document = None
             self.document, self.expires = document, expires if document is not None else 0
+        return document is not None
 
     def _run(self):
+        delay = self.REFRESH_SECONDS
         while not self.stop.is_set():
-            self._refresh()
-            self.stop.wait(self.REFRESH_SECONDS)
+            if self._refresh():
+                delay = self.REFRESH_SECONDS
+            else:
+                delay = min(60, max(self.REFRESH_SECONDS, delay * 2))
+            self.stop.wait(delay)
 
 
 def waterway_coverage(document, predictions, width, height):
@@ -198,6 +203,8 @@ class LatestFrame:
         self.coverage_config_expires = None
         self.coverage = unavailable_coverage("unconfigured")
         self.detection_recorder = None
+        self.recording_enabled = False
+        self.recording_status = "disabled"
         self.coverage_mono = 0
         self.model_classes = None
         self.latencies = deque(maxlen=60)
@@ -245,10 +252,18 @@ class LatestFrame:
                 coverage = unavailable_coverage("configuration_expired")
             elif coverage.get("available") and time.monotonic() - self.coverage_mono >= 15:
                 coverage = unavailable_coverage("stale_prediction")
+            if self.detection_recorder is not None:
+                recording = self.detection_recorder.health()
+            elif self.recording_enabled:
+                recording = {"enabled": True, "status": self.recording_status,
+                             "lastError": "firebase_dependency_unavailable", "queued": 0}
+            else:
+                recording = {"enabled": False, "status": "disabled", "lastError": None, "queued": 0}
             return self.jpeg, {"status": "degraded" if self.failed else "ok" if self.jpeg else "waiting",
                                "model": "YOLOv8n-seg", "latestFrameAvailable": self.jpeg is not None,
                                "lastInferenceAt": self.at, "lastPredictionCount": self.count,
-                               "cameraDocId": self.camera_doc_id, "waterwayCoverage": coverage, **self.timing,
+                               "cameraDocId": self.camera_doc_id, "waterwayCoverage": coverage,
+                               "recording": recording, **self.timing,
                                **({"modelClassNames": list(self.model_classes)} if self.model_classes is not None else {})}
 
 

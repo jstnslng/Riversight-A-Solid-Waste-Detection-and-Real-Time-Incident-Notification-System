@@ -30,6 +30,20 @@ class AccessDependencyError(Exception):
     pass
 
 
+class UnavailableFirebaseAccess:
+    """Fail closed for protected routes while non-Firebase inference continues."""
+
+    write_detection = None
+    resolve_active_detections = None
+    server_timestamp = staticmethod(lambda: None)
+
+    def authorize(self, token, camera):
+        raise AccessDependencyError()
+
+    def read(self, path):
+        raise AccessDependencyError()
+
+
 class FirebaseAccess:
     def __init__(self, verify, read, write=None, resolve_active=None, server_timestamp=None,
                  authorization_cache_seconds=0):
