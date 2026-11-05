@@ -1,4 +1,4 @@
-import { db } from "../shared/firebase-config.js";
+import { db, auth } from "../shared/firebase-config.js";
 import { renderSeverityDistribution } from "./severity-distribution.js";
 import {
   collection,
@@ -7,6 +7,14 @@ import {
   getDocs,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = 'Admin-Login.html';
+    }
+
+});
 
 // ---------- Helpers ----------
 function startOfDay(date) {
