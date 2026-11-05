@@ -18,19 +18,25 @@ async function checkHealth() {
     return;
   }
   try {
-    const token = await window.riversightAIIdToken();
-    const response = await fetch(`${backend}/health?cameraDocId=${encodeURIComponent(cameraDocId)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store"
-    });
+    const request = async (forceRefresh = false) => {
+      const token = await window.riversightAIIdToken(forceRefresh);
+      return fetch(`${backend}/feed-health?cameraDocId=${encodeURIComponent(cameraDocId)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store"
+      });
+    };
+    let response = await request();
+    if (response.status === 401 || response.status === 403) response = await request(true);
     if (!response.ok) throw new Error(`health_${response.status}`);
     const health = await response.json();
     const last = health.lastInferenceAt ? new Date(health.lastInferenceAt) : null;
     const age = last ? Date.now() - last.getTime() : Infinity;
-    if (health.status === "ok" && health.latestFrameAvailable && age < 15000) {
+    if (health.status === "ok" && health.cameraDocId === cameraDocId
+      && health.latestFrameAvailable && age < 15000) {
       render("ONLINE", "Nodes synchronized", last.toLocaleTimeString());
     } else {
-      render("DEGRADED", health.status === "ok" ? "Inference data is stale" : "Inference unavailable",
+      render("DEGRADED", health.status === "ok" ? "Inference data is stale or mismatched"
+        : "Inference unavailable",
         last?.toLocaleTimeString() || null);
     }
   } catch (error) {

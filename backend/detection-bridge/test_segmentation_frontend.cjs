@@ -508,3 +508,15 @@ test('hidden page pauses polling and clears processed frame', async () => {
   assert.equal(ui.timers.size, 0); assert.equal(ui.image.hidden, true);
   ui.window.pagehide(); assert.equal(ui.timers.size, 0);
 });
+
+test('waste dashboard keeps authenticated AI feed and processor health wiring', () => {
+  assert.match(html, /js\/monitoring\/ai-feed-auth\.js/);
+  assert.match(html, /js\/monitoring\/segmentation-feed\.js/);
+  assert.match(html, /js\/monitoring\/processor-status\.js/);
+  const processorSource = fs.readFileSync(
+    path.join(root, 'js/monitoring/processor-status.js'), 'utf8');
+  assert.match(processorSource, /\/feed-health\?cameraDocId=/);
+  assert.doesNotMatch(processorSource, /\/health\?cameraDocId=/);
+  assert.match(processorSource, /request\(true\)/);
+  assert.match(processorSource, /riversightAIIdToken\(forceRefresh\)/);
+});
