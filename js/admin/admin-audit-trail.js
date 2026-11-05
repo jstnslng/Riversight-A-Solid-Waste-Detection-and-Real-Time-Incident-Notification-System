@@ -7,7 +7,6 @@ import { auth, db, firebaseConfig } from "../shared/firebase-config.js";
 
 const profileMenu = document.querySelector('[data-profile-menu]');
 const profileToggle = document.querySelector('[data-profile-toggle]');
-const logoutLink = document.querySelector('[data-logout-link]');
 
 const startDateInput = document.getElementById('auditStartDate');
 const endDateInput = document.getElementById('auditEndDate');
@@ -99,17 +98,6 @@ function bindProfileMenu() {
         if (event.key === 'Escape') {
             closeProfileMenu();
         }
-    });
-}
-
-function bindLogout() {
-    if (!logoutLink) return;
-
-    logoutLink.addEventListener('click', (event) => {
-        event.preventDefault();
-        localStorage.removeItem('riversightAdminSession');
-        sessionStorage.removeItem('riversightAdminSession');
-        window.location.href = logoutLink.href;
     });
 }
 
@@ -289,6 +277,5 @@ reloadButton?.addEventListener('click', () => {
 exportCsvButton?.addEventListener("click", exportAuditCsv);
 
 bindProfileMenu();
-bindLogout();
 bindFilters();
 applyFilters();

@@ -22,7 +22,6 @@ const dateJoinedDisplay = document.querySelector('[data-profile-date-joined]');
 const editButton = document.querySelector('[data-edit-profile]');
 const saveButton = document.querySelector('[data-save-profile]');
 const cancelButton = document.querySelector('[data-cancel-profile]');
-const logoutLink = document.querySelector('[data-logout-link]');
 
 const profileMenu = document.querySelector('[data-profile-menu]');
 const profileToggle = document.querySelector('[data-profile-toggle]');
@@ -275,22 +274,6 @@ if (changePasswordForm) {
         } finally {
             updatePasswordBtn.disabled = false;
             updatePasswordBtn.textContent = 'Update Password';
-        }
-    });
-}
-
-if (logoutLink) {
-    logoutLink.addEventListener('click', async (e) => {
-        e.preventDefault();
-        sessionStorage.removeItem('riversightAdminSession');
-        localStorage.removeItem('riversightAdminSession');
-
-        try {
-            await signOut(auth);
-        } catch (err) {
-            console.error("Sign out error:", err);
-        } finally {
-            window.location.href = './Admin-Login.html';
         }
     });
 }

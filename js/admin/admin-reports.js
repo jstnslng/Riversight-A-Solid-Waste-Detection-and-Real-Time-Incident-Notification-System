@@ -31,7 +31,6 @@ const statusFilter = document.getElementById('filter-status');
 
 const profileMenu = document.querySelector('[data-profile-menu]');
 const profileToggle = document.querySelector('[data-profile-toggle]');
-const logoutLink = document.querySelector('[data-logout-link]');
 
 let allReports = [];
 let allCameras = [];
@@ -515,13 +514,6 @@ document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
     closeProfileMenu();
     }
-});
-
-logoutLink.addEventListener('click', (event) => {
-    event.preventDefault();
-    localStorage.removeItem('riversightAdminSession');
-    sessionStorage.removeItem('riversightAdminSession');
-    window.location.href = logoutLink.href;
 });
 
 applyFiltersBtn.addEventListener('click', applyFilters);
