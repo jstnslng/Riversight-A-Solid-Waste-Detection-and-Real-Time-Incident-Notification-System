@@ -117,10 +117,11 @@
           <select id="wasteCameraSelect" class="camera-select" aria-label="Select monitoring camera">
             <option>Loading cameras...</option>
           </select>
-          <button class="date-btn">
+          <label class="date-btn" for="detectionDate">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
-            Today
-          </button>
+            <span>Selected date</span>
+          </label>
+          <input id="detectionDate" type="date" class="camera-select" aria-label="Detection date">
           <a href="./Incident-Evaluation.html" class="export-btn" data-incident-eval-link title="View this camera's detections in the Incident Evaluation module">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="btn-icon"><path d="M9 3h6l1 4H8l1-4Z"/><path d="M5 7h14l-1.2 13.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 7Z"/><path d="M10 11v6M14 11v6"/></svg>
           View in Incident Evaluation
@@ -199,10 +200,10 @@
             </svg>
           </div>
 
-          <div class="processor-status">
+          <div class="processor-status" data-processor-status>
             <span class="proc-dot"></span>
-            <span class="proc-text"><strong>AI Processor Status: OPTIMAL</strong> • Nodes Synchronized</span>
-            <span class="proc-uptime">UPTIME: 142h 28m</span>
+            <span class="proc-text"><strong data-processor-label>AI Processor Status: Checking…</strong> • <span data-processor-detail>Waiting for bridge health</span></span>
+            <span class="proc-uptime" data-processor-updated>LAST UPDATE: —</span>
           </div>
 
           <div class="card">
@@ -269,7 +270,7 @@
               <h3>Recorded Waste Volume Today</h3>
               <button class="info-tooltip" type="button" aria-label="Recorded waste volume metric info">
                 ?
-                <span class="tooltip-text">The recorded kilograms come from today’s Firestore detection documents. </span>
+                <span class="tooltip-text">Physical volume requires a configured camera calibration or sensor measurement; detection pixels are not converted to kilograms.</span>
               </button>
             </div>
 
@@ -288,7 +289,7 @@
               <p class="recorded-volume-note" data-volume-note role="status" aria-live="polite">Loading recorded volume…</p>
             </div>
 
-            <button class="dispatch-btn" type="button" data-dispatch-cleanup title="Cleanup dispatch is not connected to a response service" disabled>
+            <button class="dispatch-btn" type="button" data-dispatch-cleanup title="Create an internal cleanup request">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="8" width="14" height="9" rx="1.5"/><path d="M15 11h4l3 3v3h-7z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
               Alert Cleanup Team
             </button>
@@ -308,6 +309,8 @@
     <script type="module" src="../../js/monitoring/waste-detection-timeline.js"></script>
     <script type="module" src="../../js/monitoring/waste-detection-summary.js"></script>
     <script type="module" src="../../js/monitoring/recent-captures-module.js"></script>
+    <script type="module" src="../../js/monitoring/cleanup-request-module.js"></script>
+    <script type="module" src="../../js/monitoring/processor-status.js"></script>
     <script src="../../js/monitoring/monitoring-nav.js"></script>
     <script type="module" src="../../js/shared/global.js"></script>
 </body>

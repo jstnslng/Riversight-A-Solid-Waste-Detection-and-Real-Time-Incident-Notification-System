@@ -3,6 +3,9 @@ import {
   addDoc,
   collection,
   onSnapshot,
+  query,
+  orderBy,
+  limit,
   serverTimestamp,
   updateDoc,
   doc
@@ -13,6 +16,7 @@ const requestList = document.querySelector("[data-cleanup-requests-list]");
 const requestStatus = document.querySelector("[data-cleanup-requests-status]");
 const requestsRef = collection(db, "cleanup_requests");
 let cleanupRequests = [];
+let recentDetections = [];
 
 function formatTimestamp(timestamp) {
   if (!timestamp) return "Time pending";
@@ -104,6 +108,18 @@ function renderRequests() {
   });
 }
 
+function updateButtonState() {
+  if (!requestButton) return;
+  const cameraDocId = document.querySelector("[data-camera-feed-frame]")?.dataset.cameraDocId;
+  const eligible = cameraDocId && recentDetections.some((item) => item.cameraDocId === cameraDocId);
+  const duplicate = cleanupRequests.some((item) => item.cameraDocId === cameraDocId
+    && ["pending_acknowledgment", "acknowledged"].includes(item.status));
+  requestButton.disabled = !eligible || duplicate;
+  requestButton.title = duplicate
+    ? "An open cleanup request already exists for this camera"
+    : eligible ? "Create an internal cleanup request" : "A recorded detection is required";
+}
+
 onSnapshot(requestsRef, (snapshot) => {
   cleanupRequests = snapshot.docs.map((requestDoc) => ({
     ...requestDoc.data(),
@@ -113,12 +129,27 @@ onSnapshot(requestsRef, (snapshot) => {
     requestStatus.textContent = "In-app tracking only; no external cleanup team is notified.";
   }
   renderRequests();
+  updateButtonState();
 }, (error) => {
   console.error("Could not load in-app cleanup requests:", error);
   if (requestStatus) {
     requestStatus.textContent = "Cleanup requests are unavailable. Check your connection or access permissions.";
   }
 });
+
+onSnapshot(
+  query(collection(db, "detections"), orderBy("timestamp", "desc"), limit(50)),
+  (snapshot) => {
+    recentDetections = snapshot.docs.map((item) => item.data());
+    updateButtonState();
+  },
+  (error) => {
+    console.error("Could not load eligible detections for cleanup requests:", error);
+    updateButtonState();
+  }
+);
+
+document.addEventListener("riversight:camera-selected", updateButtonState);
 
 requestButton?.addEventListener("click", async () => {
   const user = auth.currentUser;
@@ -132,6 +163,11 @@ requestButton?.addEventListener("click", async () => {
     if (requestStatus) {
       requestStatus.textContent = "Select an available camera and sign in before creating a request.";
     }
+    return;
+  }
+  if (cleanupRequests.some((item) => item.cameraDocId === cameraDocId
+    && ["pending_acknowledgment", "acknowledged"].includes(item.status))) {
+    if (requestStatus) requestStatus.textContent = "An open cleanup request already exists for this camera.";
     return;
   }
 

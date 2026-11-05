@@ -64,23 +64,30 @@ function setActiveIncident(id, data) {
   streamSubEvents(id);
 }
 
+function confidencePercent(data) {
+  if (typeof data.confidenceScore === "number") return data.confidenceScore;
+  if (typeof data.confidence === "number") return data.confidence * 100;
+  return null;
+}
+
 function renderConsoleHeader(id, data) {
   const titleElem = document.getElementById("activeDetectionIdText");
   const metaElem = document.getElementById("activeDetectionMetaText");
   const badgeElem = document.getElementById("activeSeverityBadge");
   const sectorElem = document.getElementById("activeLocationSector");
 
-  const camName = data.camId ? data.camId.toUpperCase() : "CAM-001";
-  const confidenceVal = data.confidence ? `${data.confidence}%` : "88.42%";
+  const camName = data.camId ? data.camId.toUpperCase() : "Unknown camera";
+  const confidence = confidencePercent(data);
+  const confidenceVal = confidence === null ? "Not recorded" : `${confidence.toFixed(1)}%`;
   const typeText = data.detectionType || "Camera Detection";
   const displayId = data.reportId || id.substring(0, 8);
 
   if (titleElem) titleElem.textContent = `Detection ID: ${displayId}`;
   if (metaElem) metaElem.textContent = `Captured by ${camName} • ${typeText} (${confidenceVal}) • ${formatTime(data.createdAt || data.updatedAt)}`;
-  if (sectorElem) sectorElem.textContent = data.location || "Buwaya Creek North";
+  if (sectorElem) sectorElem.textContent = data.location || "Location not recorded";
 
   if (badgeElem) {
-    const sev = (data.severity || "CRITICAL").toUpperCase();
+    const sev = (data.severity || "UNCLASSIFIED").toUpperCase();
     badgeElem.textContent = `${sev} INCIDENT`;
     badgeElem.className = `severity-badge ${sev.toLowerCase()}`;
   }
@@ -93,9 +100,12 @@ function renderIncidentData(id, data) {
   const materialElem = document.getElementById("dataPrimaryMaterial");
   const timestampElem = document.getElementById("dataTimestamp");
 
-  if (locationElem) locationElem.textContent = data.location || "Buwaya Creek North";
-  if (confidenceElem) confidenceElem.textContent = data.confidence ? `${data.confidence}%` : "88.42%";
-  if (volumeElem) volumeElem.textContent = data.wasteVolume || "~12.5 kg (Massive)";
+  if (locationElem) locationElem.textContent = data.location || "Location not recorded";
+  const confidence = confidencePercent(data);
+  if (confidenceElem) confidenceElem.textContent = confidence === null ? "Not recorded" : `${confidence.toFixed(1)}%`;
+  if (volumeElem) volumeElem.textContent = data.wasteVolumeKg != null
+    ? `${data.wasteVolumeKg} kg`
+    : "Not measured";
   if (materialElem) materialElem.textContent = data.detectionType || "Camera Detection";
   if (timestampElem) timestampElem.textContent = formatFullDate(data.createdAt || data.updatedAt);
 }
