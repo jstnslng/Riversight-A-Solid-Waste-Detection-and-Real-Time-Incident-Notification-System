@@ -17,6 +17,11 @@ def detection_recording_enabled():
     return os.environ.get("SEGMENTATION_DETECTION_RECORDING_ENABLED", "").strip().lower() == "true"
 
 
+def _log(event, **fields):
+    details = " ".join(f"{key}={value}" for key, value in fields.items())
+    print(f"production event={event}" + (f" {details}" if details else ""), flush=True)
+
+
 def application_for(state, origins, host, port, allowed_hosts):
     base = feed.handler_for(state, origins, host, port, allowed_hosts)
 
@@ -156,9 +161,12 @@ class ProductionServer:
             clear_untrusted_proxy_headers=True,
         )
         self.detection_recorder = None
-        if (detection_recording_enabled()
-                and access.write_detection is not None
-                and access.resolve_active_detections is not None):
+        recording_enabled = detection_recording_enabled()
+        _log("detection_recording_configuration", enabled=recording_enabled)
+        if recording_enabled and (access.write_detection is None
+                                  or access.resolve_active_detections is None):
+            raise feed.StartupError("detection_recording_firestore_unavailable")
+        if recording_enabled:
             self.detection_recorder = feed.DetectionRecorder(
                 state.camera_doc_id,
                 access.write_detection,
@@ -166,6 +174,8 @@ class ProductionServer:
                 access.resolve_active_detections,
             )
             state.detection_recorder = self.detection_recorder
+        else:
+            _log("detection_recording_disabled")
 
     def serve_forever(self):
         from waitress import wasyncore

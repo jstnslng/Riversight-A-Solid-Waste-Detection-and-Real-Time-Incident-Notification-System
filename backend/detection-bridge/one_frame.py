@@ -253,6 +253,8 @@ def confidence_threshold():
 
 def predict(endpoint, key, jpeg, requests):
     try:
+        threshold = confidence_threshold()
+        print(f"inference event=request_configuration confidence_threshold={threshold}", flush=True)
         # Disable ambient proxies/.netrc and redirects so the configured bearer
         # token is sent only to the configured HTTPS destination. TLS stays on.
         with requests.Session() as session:
@@ -260,7 +262,7 @@ def predict(endpoint, key, jpeg, requests):
             with session.post(
                 endpoint, headers={"Authorization": "Bearer " + key},
                 files={"file": ("frame.jpg", jpeg, "image/jpeg")},
-                data={"conf": confidence_threshold(), "iou": "0.70", "imgsz": "640"},
+                data={"conf": threshold, "iou": "0.70", "imgsz": "640"},
                 timeout=(10, 60), allow_redirects=False,
             ) as response:
                 print(f"HTTP status: {response.status_code}")

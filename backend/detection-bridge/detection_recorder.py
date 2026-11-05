@@ -13,6 +13,11 @@ import uuid
 CAMERA_ID = re.compile(r"[A-Za-z0-9_-]{1,128}\Z")
 
 
+def _log(event, **fields):
+    details = " ".join(f"{key}={value}" for key, value in fields.items())
+    print(f"detection_recording event={event}" + (f" {details}" if details else ""), flush=True)
+
+
 def _overlap(first, second):
     intersection = max(0, min(first["x2"], second["x2"]) - max(first["x1"], second["x1"])) * max(
         0, min(first["y2"], second["y2"]) - max(first["y1"], second["y1"]))
@@ -55,6 +60,8 @@ class DetectionRecorder:
         self.stop = threading.Event()
         self.worker = threading.Thread(target=self._run, name="detection-firestore-writer", daemon=True)
         self.worker.start()
+        _log("enabled", camera_doc_id=self.camera_doc_id, session_id=self.session_id,
+             lifetime_seconds=self.timeout, write_interval_seconds=self.write_interval)
         if self.resolve_active is not None:
             self._enqueue(("restart", None, None))
 
@@ -85,11 +92,14 @@ class DetectionRecorder:
                 kind, detection_id, payload = action
                 if kind == "restart":
                     self.resolve_active(self.camera_doc_id)
+                    _log("active_lifecycles_resolved", camera_doc_id=self.camera_doc_id)
                 else:
                     self.write(detection_id, payload)
-            except Exception:
+                    _log("firestore_write_succeeded", detection_id=detection_id,
+                         status=payload.get("status", "unknown"))
+            except Exception as error:
                 self.failures.append("firestore_write_failed")
-                print("Detection recording failed; live inference continues.", flush=True)
+                _log("firestore_write_failed", error_type=type(error).__name__)
             finally:
                 self.work.task_done()
         while True:
@@ -152,6 +162,7 @@ class DetectionRecorder:
                         "last_seen": now, "last_write": now,
                     }
                     self._enqueue(("write", track_id, self._payload(row, valid_camera, track_id, True)))
+                    _log("lifecycle_started", tracking_id=track_id, waste_class=row["name"])
                 else:
                     track = self.tracks[track_id]
                     track.update(classId=row["class"], box=dict(row["box"]), last_seen=now)
@@ -169,6 +180,7 @@ class DetectionRecorder:
                     "lastSeenAt": self.server_timestamp(),
                     "resolvedAt": self.server_timestamp(),
                 }))
+                _log("lifecycle_resolved", tracking_id=track_id)
                 del self.tracks[track_id]
 
     def flush(self):

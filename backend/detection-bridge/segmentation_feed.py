@@ -391,6 +391,8 @@ def sample_cycle(state, rtsp, endpoint, key, requests):
     started_at, started = datetime.now(timezone.utc).isoformat(), time.monotonic()
     predictions, _ = predict(endpoint, key, jpeg, requests)
     if state.detection_recorder is not None:
+        print(f"detection_recording event=observations_received count={len(predictions)} "
+              f"camera_doc_id={state.camera_doc_id}", flush=True)
         camera_id = None
         if state.coverage_cache is not None:
             document, _ = state.coverage_cache.snapshot(state.camera_doc_id)

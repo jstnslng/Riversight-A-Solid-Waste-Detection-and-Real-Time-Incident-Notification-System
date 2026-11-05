@@ -13,6 +13,11 @@ from urllib.parse import parse_qs
 FIRESTORE_WRITE_TIMEOUT_SECONDS = 5
 
 
+def _log(event, **fields):
+    details = " ".join(f"{key}={value}" for key, value in fields.items())
+    print(f"firebase event={event}" + (f" {details}" if details else ""), flush=True)
+
+
 class AccessDenied(Exception):
     pass
 
@@ -34,20 +39,31 @@ class FirebaseAccess:
         credential = credentials.Certificate(json.loads(raw)) if raw else credentials.ApplicationDefault()
         app = firebase_admin.initialize_app(credential, {"projectId": project, "httpTimeout": 5}, name="segmentation-bridge")
         database = firestore.client(app=app)
-        return cls(lambda token: auth.verify_id_token(token, app=app, check_revoked=True),
-                   lambda path: database.document(path).get(timeout=5, retry=None).to_dict(),
-                   lambda detection_id, data: database.collection("detections").document(detection_id).set(
-                       data, merge=True, timeout=FIRESTORE_WRITE_TIMEOUT_SECONDS),
-                   lambda camera: [
-                       document.reference.set(
-                           {"status": "resolved", "resolvedAt": firestore.SERVER_TIMESTAMP},
-                           merge=True,
-                       )
-                       for document in database.collection("detections")
-                       .where("cameraDocId", "==", camera)
-                       .where("status", "==", "active")
-                       .stream()
-                   ],
+
+        def verify(token):
+            return auth.verify_id_token(token, app=app, check_revoked=True)
+
+        def read(path):
+            return database.document(path).get(timeout=5, retry=None).to_dict()
+
+        def write_detection(detection_id, data):
+            database.collection("detections").document(detection_id).set(
+                data, merge=True, timeout=FIRESTORE_WRITE_TIMEOUT_SECONDS)
+
+        def resolve_active(camera):
+            for document in (database.collection("detections")
+                             .where("cameraDocId", "==", camera)
+                             .where("status", "==", "active")
+                             .stream(timeout=FIRESTORE_WRITE_TIMEOUT_SECONDS)):
+                document.reference.set(
+                    {"status": "resolved", "resolvedAt": firestore.SERVER_TIMESTAMP},
+                    merge=True,
+                    timeout=FIRESTORE_WRITE_TIMEOUT_SECONDS,
+                )
+
+        _log("admin_initialized", project_id=project,
+             credential_source="service_account_json" if raw else "application_default")
+        return cls(verify, read, write_detection, resolve_active,
                    lambda: firestore.SERVER_TIMESTAMP)
 
     def authorize(self, token, camera):

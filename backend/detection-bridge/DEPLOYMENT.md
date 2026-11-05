@@ -88,6 +88,24 @@ Optional configuration:
 | `SEGMENTATION_TRACK_MAX_AGE_SECONDS` | `3`; finite 0.5–10 seconds |
 | `DETECTION_INTERVAL_SECONDS` | `5`; used only by the separate continuous_detection.py diagnostic |
 
+For the Railway production recording configuration requested by the dashboard, set
+these variables manually in the Railway service (they are not supplied by the
+Docker image):
+
+```text
+SEGMENTATION_CONFIDENCE_THRESHOLD=0.20
+SEGMENTATION_DETECTION_RECORDING_ENABLED=true
+SEGMENTATION_INTERVAL_SECONDS=2
+DETECTION_INTERVAL_SECONDS=5
+SEGMENTATION_TRACK_MAX_AGE_SECONDS=6
+```
+
+Recording also requires `FIREBASE_PROJECT_ID` and either
+`FIREBASE_SERVICE_ACCOUNT_JSON` or Google Application Default Credentials. The
+service account must be able to write the `detections` collection. Dashboard
+users need Firebase Authentication sessions; the current Firestore rules allow
+authenticated users to read that collection.
+
 Local development keeps its existing loopback Host/origin defaults and permits
 an empty camera identity with the existing warning/fallback. Production startup
 requires explicit hosts, HTTPS origins and camera identity. Bind address and
