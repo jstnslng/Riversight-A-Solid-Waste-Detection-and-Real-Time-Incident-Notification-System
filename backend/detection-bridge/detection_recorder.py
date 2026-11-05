@@ -111,6 +111,7 @@ class DetectionRecorder:
                 self.recording_status = "degraded"
                 self.last_error = type(error).__name__
                 _log("firestore_write_failed", error_type=type(error).__name__)
+                _log("recording_unavailable", reason=type(error).__name__)
                 if attempt < self.MAX_WRITE_RETRIES and not self.stop.is_set():
                     delay = self.retry_backoff_base * (2 ** attempt)
                     _log("firestore_write_retry", attempt=attempt + 1,

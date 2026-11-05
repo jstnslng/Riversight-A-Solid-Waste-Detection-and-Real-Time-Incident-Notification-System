@@ -171,6 +171,7 @@ class ProductionServer:
         if recording_enabled and (access.write_detection is None
                                   or access.resolve_active_detections is None):
             state.recording_status = "degraded"
+            _log("recording_unavailable", reason="firebase_dependency_unavailable")
             _log("detection_recording_degraded", reason="firebase_dependency_unavailable")
         elif recording_enabled:
             self.detection_recorder = feed.DetectionRecorder(

@@ -52,6 +52,8 @@ class LiveCapture:
                 if not 0 <= time.monotonic() - captured < 3:
                     continue
                 self.state.publish_raw(jpeg, captured)
+                print("capture event=camera_frame_received camera_doc_id="
+                      f"{self.state.camera_doc_id} bytes={size}", flush=True)
         except (EOFError, OSError, ValueError, struct.error):
             pass
         finally:

@@ -29,6 +29,11 @@ def unavailable_coverage(reason):
     return dict(available=False, reason=reason, percentage=None)
 
 
+def _log(event, **fields):
+    details = " ".join(f"{key}={value}" for key, value in fields.items())
+    print(f"segmentation event={event}" + (f" {details}" if details else ""), flush=True)
+
+
 class CameraConfigurationCache:
     """One camera, one refresh thread, one value; never used for viewer grants."""
     TTL_SECONDS = 5
@@ -405,6 +410,10 @@ def sample_cycle(state, rtsp, endpoint, key, requests):
         captured_at, captured_mono = datetime.now(timezone.utc).isoformat(), time.monotonic()
     started_at, started = datetime.now(timezone.utc).isoformat(), time.monotonic()
     predictions, _ = predict(endpoint, key, jpeg, requests)
+    _log("yolo_inference_succeeded", camera_doc_id=state.camera_doc_id,
+         prediction_count=len(predictions))
+    _log("detections_found", camera_doc_id=state.camera_doc_id,
+         count=len(predictions))
     if state.detection_recorder is not None:
         print(f"detection_recording event=observations_received count={len(predictions)} "
               f"camera_doc_id={state.camera_doc_id}", flush=True)
@@ -413,6 +422,12 @@ def sample_cycle(state, rtsp, endpoint, key, requests):
             document, _ = state.coverage_cache.snapshot(state.camera_doc_id)
             camera_id = document.get("camId") if isinstance(document, dict) else None
         state.detection_recorder.observe(predictions, camera_id)
+        if state.detection_recorder.health()["status"] == "degraded":
+            _log("recording_unavailable", camera_doc_id=state.camera_doc_id,
+                 reason=state.detection_recorder.health()["lastError"] or "write_failed")
+    elif state.recording_enabled:
+        _log("recording_unavailable", camera_doc_id=state.camera_doc_id,
+             reason="firebase_dependency_unavailable")
     ended_at, ended = datetime.now(timezone.utc).isoformat(), time.monotonic()
     state.record_timing(captured_at, captured_mono, started_at, started, ended_at, ended)
     processed, count = processed_jpeg(jpeg, predictions)
