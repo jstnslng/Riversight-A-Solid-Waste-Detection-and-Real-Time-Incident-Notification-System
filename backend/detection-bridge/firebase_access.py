@@ -22,11 +22,23 @@ class AccessDenied(Exception):
     pass
 
 
+class AuthenticationFailed(Exception):
+    pass
+
+
+class AccessDependencyError(Exception):
+    pass
+
+
 class FirebaseAccess:
-    def __init__(self, verify, read, write=None, resolve_active=None, server_timestamp=None):
+    def __init__(self, verify, read, write=None, resolve_active=None, server_timestamp=None,
+                 authorization_cache_seconds=0):
         self.verify, self.read = verify, read
         self.write_detection, self.resolve_active_detections = write, resolve_active
         self.server_timestamp = server_timestamp or (lambda: None)
+        self.authorization_cache_seconds = max(0, float(authorization_cache_seconds))
+        self._authorization_cache = {}
+        self._authorization_cache_lock = threading.Lock()
 
     @classmethod
     def from_environment(cls):
@@ -63,29 +75,58 @@ class FirebaseAccess:
 
         _log("admin_initialized", project_id=project,
              credential_source="service_account_json" if raw else "application_default")
+        cache_seconds = os.environ.get("SEGMENTATION_AUTHORIZATION_CACHE_SECONDS", "10")
+        try:
+            cache_seconds = float(cache_seconds)
+        except ValueError:
+            raise ValueError("SEGMENTATION_AUTHORIZATION_CACHE_SECONDS must be numeric.") from None
+        if not math.isfinite(cache_seconds) or not 0 <= cache_seconds <= 60:
+            raise ValueError("SEGMENTATION_AUTHORIZATION_CACHE_SECONDS must be between 0 and 60.")
         return cls(verify, read, write_detection, resolve_active,
-                   lambda: firestore.SERVER_TIMESTAMP)
+                   lambda: firestore.SERVER_TIMESTAMP, cache_seconds)
 
     def authorize(self, token, camera):
+        cache_key = (hashlib.sha256(token.encode()).digest(), camera)
+        now = time.monotonic()
+        with self._authorization_cache_lock:
+            cached = self._authorization_cache.get(cache_key)
+            if cached and cached[0] > now:
+                return cached[1]
         try:
             claims = self.verify(token)
-            uid, expiry = claims["uid"], claims["exp"]
-            if not isinstance(uid, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", uid):
-                raise AccessDenied()
-            if not isinstance(expiry, (int, float)) or not math.isfinite(expiry) or expiry <= time.time():
-                raise AccessDenied()
+        except Exception as error:
+            _log("token_verification_failed", error_type=type(error).__name__)
+            raise AuthenticationFailed() from None
+
+        uid, expiry = claims.get("uid"), claims.get("exp")
+        if (not isinstance(uid, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", uid)
+                or not isinstance(expiry, (int, float))
+                or not math.isfinite(expiry) or expiry <= time.time()):
+            _log("token_claims_invalid")
+            raise AuthenticationFailed()
+        try:
             user = self.read(f"users/{uid}") or {}
-            # Status absence preserves existing legacy Active default; explicit
-            # pending/inactive accounts are denied, including administrators.
-            if (user.get("role") not in ("Administrator", "Monitoring", "Monitoring Personnel")
-                    or user.get("status", "Active") not in ("active", "Active")):
-                raise AccessDenied()
             grant = self.read(f"bridge_camera_access/{camera}/viewers/{uid}") or {}
-            if grant.get("enabled") is not True:
-                raise AccessDenied()
-            return expiry
-        except Exception:
-            raise AccessDenied() from None
+        except Exception as error:
+            _log("authorization_dependency_failed", error_type=type(error).__name__)
+            raise AccessDependencyError() from None
+
+        # Status absence preserves existing legacy Active default; explicit
+        # pending/inactive accounts are denied, including administrators.
+        if (user.get("role") not in ("Administrator", "Monitoring", "Monitoring Personnel")
+                or user.get("status", "Active") not in ("active", "Active")
+                or grant.get("enabled") is not True):
+            _log("authorization_denied", uid=uid, camera_doc_id=camera)
+            raise AccessDenied()
+
+        if self.authorization_cache_seconds:
+            expiry_at = min(
+                now + self.authorization_cache_seconds,
+                time.monotonic() + max(0, expiry - time.time()),
+            )
+            with self._authorization_cache_lock:
+                self._authorization_cache[cache_key] = (expiry_at, expiry)
+        return expiry
 
 
 class GuardedStream:
@@ -105,7 +146,7 @@ class GuardedStream:
         if now >= self.check_at:
             try:
                 self.access.authorize(self.token, self.camera)
-            except AccessDenied:
+            except (AccessDenied, AuthenticationFailed, AccessDependencyError):
                 self.close()
                 raise StopIteration from None
             self.check_at = now + 15
@@ -179,6 +220,11 @@ def secure_application(application, access, camera, origins, hosts):
             return respond(start, "401 Unauthorized", {"status": "unauthorized"}, origin)
         try:
             expiry = access.authorize(token, camera)
+        except AuthenticationFailed:
+            return respond(start, "401 Unauthorized", {"status": "unauthorized"}, origin)
+        except AccessDependencyError:
+            return respond(start, "503 Service Unavailable",
+                           {"status": "dependency_unavailable"}, origin)
         except AccessDenied:
             return respond(start, "403 Forbidden", {"status": "forbidden"}, origin)
         if path == "/stream-ticket":

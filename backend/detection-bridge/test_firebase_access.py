@@ -7,7 +7,14 @@ import time
 import unittest
 from unittest.mock import Mock, patch
 
-from firebase_access import AccessDenied, FirebaseAccess, GuardedStream, secure_application
+from firebase_access import (
+    AccessDenied,
+    AccessDependencyError,
+    AuthenticationFailed,
+    FirebaseAccess,
+    GuardedStream,
+    secure_application,
+)
 from production_server import application_for
 import segmentation_feed as feed
 
@@ -56,13 +63,25 @@ class AccessTests(unittest.TestCase):
 
     def test_invalid_revoked_expired_token_and_database_outage_fail_closed(self):
         self.verify.side_effect = RuntimeError("sensitive token error")
-        self.assertEqual(self.request("/feed-health")[0][0], "403 Forbidden")
+        self.assertEqual(self.request("/feed-health")[0][0], "401 Unauthorized")
         self.verify.side_effect = None
         self.verify.return_value = {"uid": "user-1", "exp": time.time() - 1}
-        self.assertEqual(self.request("/latest-segmentation.jpg")[0][0], "403 Forbidden")
+        self.assertEqual(self.request("/latest-segmentation.jpg")[0][0], "401 Unauthorized")
         self.verify.return_value = {"uid": "user-1", "exp": time.time() + 300}
         with patch.object(self.access, "read", side_effect=RuntimeError("private database error")):
-            self.assertEqual(self.request("/feed-health")[0][0], "403 Forbidden")
+            self.assertEqual(self.request("/feed-health")[0][0], "503 Service Unavailable")
+
+    def test_authorization_failures_have_distinct_types(self):
+        self.verify.side_effect = RuntimeError("invalid token")
+        with self.assertRaises(AuthenticationFailed):
+            self.access.authorize("token", "camera-1")
+        self.verify.side_effect = None
+        with patch.object(self.access, "read", side_effect=RuntimeError("quota exhausted")):
+            with self.assertRaises(AccessDependencyError):
+                self.access.authorize("token", "camera-1")
+        self.user = {"role": "User", "status": "Active"}
+        with self.assertRaises(AccessDenied):
+            self.access.authorize("token", "camera-1")
 
     def test_roles_status_and_explicit_grants_including_admin(self):
         for role in ("Monitoring", "Monitoring Personnel", "Administrator"):

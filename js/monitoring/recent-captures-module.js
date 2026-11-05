@@ -1,11 +1,4 @@
-import { db } from "../shared/firebase-config.js";
-import {
-  collection,
-  limit,
-  onSnapshot,
-  orderBy,
-  query
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { subscribeDetections } from "./detection-store.js";
 
 const container = document.getElementById("recentSnapshotsGrid");
 const cameraSelect = document.getElementById("wasteCameraSelect");
@@ -57,10 +50,13 @@ function render() {
   });
 }
 
-onSnapshot(
-  query(collection(db, "detections"), orderBy("timestamp", "desc"), limit(50)),
+subscribeDetections(
   (snapshot) => {
-    detections = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+    detections = snapshot.docs
+      .sort((left, right) => (right.data().timestamp?.toMillis?.() || 0)
+        - (left.data().timestamp?.toMillis?.() || 0))
+      .slice(0, 50)
+      .map((item) => ({ id: item.id, ...item.data() }));
     render();
   },
   (error) => {

@@ -87,6 +87,7 @@ Optional configuration:
 | `SEGMENTATION_TRACKING_ENABLED` | `true`; `true`/`false` |
 | `SEGMENTATION_TRACK_MAX_AGE_SECONDS` | `3`; finite 0.5–10 seconds |
 | `DETECTION_INTERVAL_SECONDS` | `5`; used only by the separate continuous_detection.py diagnostic |
+| `SEGMENTATION_AUTHORIZATION_CACHE_SECONDS` | `10`; short-lived user/grant authorization cache, finite 0–60 seconds |
 
 For the Railway production recording configuration requested by the dashboard, set
 these variables manually in the Railway service (they are not supplied by the

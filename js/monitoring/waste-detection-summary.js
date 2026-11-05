@@ -1,11 +1,4 @@
-import { db } from "../shared/firebase-config.js";
-import {
-  collection,
-  onSnapshot,
-  query,
-  Timestamp,
-  where
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { subscribeDetections } from "./detection-store.js";
 
 const countElement = document.querySelector("[data-detection-total]");
 const confidenceElement = document.querySelector("[data-average-confidence]");
@@ -13,7 +6,6 @@ const statusElement = document.querySelector("[data-summary-data-status]");
 const volumeElement = document.querySelector("[data-recorded-volume]");
 const volumeNoteElement = document.querySelector("[data-volume-note]");
 const dateInput = document.getElementById("detectionDate");
-let unsubscribe = null;
 
 const severityCounts = {
   low: 0,
@@ -32,21 +24,6 @@ function classifySeverity(value) {
 
 function formatCount(value) {
   return `${value.toLocaleString()} ${value === 1 ? "event" : "events"}`;
-}
-
-function localDateBounds(value) {
-  const date = value ? new Date(`${value}T00:00:00`) : new Date();
-  date.setHours(0, 0, 0, 0);
-  const end = new Date(date);
-  end.setDate(end.getDate() + 1);
-  return [date, end];
-}
-
-function localDateValue(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }
 
 function render(snapshot) {
@@ -128,18 +105,9 @@ function renderUnavailable(error) {
   });
 }
 
-function listen() {
-  if (unsubscribe) unsubscribe();
-  const [start, end] = localDateBounds(dateInput?.value);
-  const detections = query(
-    collection(db, "detections"),
-    where("timestamp", ">=", Timestamp.fromDate(start)),
-    where("timestamp", "<", Timestamp.fromDate(end))
-  );
-  unsubscribe = onSnapshot(detections, render, renderUnavailable);
+if (dateInput && !dateInput.value) {
+  const today = new Date();
+  dateInput.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 }
-
-if (dateInput) dateInput.value = localDateValue(new Date());
-dateInput?.addEventListener("change", listen);
-document.addEventListener("riversight:camera-selected", () => listen());
-listen();
+subscribeDetections(render, renderUnavailable);
+document.addEventListener("riversight:camera-selected", render);

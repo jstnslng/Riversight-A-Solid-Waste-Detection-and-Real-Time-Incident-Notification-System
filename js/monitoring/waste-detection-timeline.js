@@ -1,5 +1,4 @@
-import { db } from "../shared/firebase-config.js";
-import { collection, query, where, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { subscribeDetections } from "./detection-store.js";
 
 const HIGH_CONF_THRESHOLD = 70;
 const chartLeft = 30;
@@ -40,22 +39,7 @@ function render(highCounts, lowCounts) {
   if (lowLine) lowLine.setAttribute("d", buildLinePath(lowCounts));
 }
 
-let unsubscribe = null;
-
-function listen() {
-  if (unsubscribe) unsubscribe();
-  const dateInput = document.getElementById("detectionDate");
-  const start = dateInput?.value ? new Date(`${dateInput.value}T00:00:00`) : new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  const q = query(
-    collection(db, "detections"),
-    where("timestamp", ">=", Timestamp.fromDate(start)),
-    where("timestamp", "<", Timestamp.fromDate(end))
-  );
-
-  unsubscribe = onSnapshot(q, (snapshot) => {
+function renderSnapshot(snapshot) {
   const highCounts = new Array(bucketCount).fill(0);
   const lowCounts = new Array(bucketCount).fill(0);
   const selectedCamera = document.querySelector("[data-camera-feed-frame]")?.dataset.cameraDocId;
@@ -76,9 +60,9 @@ function listen() {
   });
 
   render(highCounts, lowCounts);
-  }, (error) => console.error("Failed to load detection timeline:", error));
 }
 
-document.getElementById("detectionDate")?.addEventListener("change", listen);
-document.addEventListener("riversight:camera-selected", listen);
-listen();
+subscribeDetections(renderSnapshot, (error) => {
+  console.error("Failed to load detection timeline:", error);
+  render(new Array(bucketCount).fill(0), new Array(bucketCount).fill(0));
+});

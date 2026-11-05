@@ -14,7 +14,8 @@ import {
 const requestButton = document.querySelector("[data-dispatch-cleanup]");
 const requestList = document.querySelector("[data-cleanup-requests-list]");
 const requestStatus = document.querySelector("[data-cleanup-requests-status]");
-const requestsRef = collection(db, "cleanup_requests");
+const requestsCollection = collection(db, "cleanup_requests");
+const requestsRef = query(requestsCollection, orderBy("requestedAt", "desc"), limit(50));
 let cleanupRequests = [];
 let recentDetections = [];
 
@@ -137,17 +138,18 @@ onSnapshot(requestsRef, (snapshot) => {
   }
 });
 
-onSnapshot(
-  query(collection(db, "detections"), orderBy("timestamp", "desc"), limit(50)),
-  (snapshot) => {
-    recentDetections = snapshot.docs.map((item) => item.data());
-    updateButtonState();
-  },
-  (error) => {
-    console.error("Could not load eligible detections for cleanup requests:", error);
-    updateButtonState();
-  }
-);
+import("./detection-store.js").then(({ subscribeDetections }) => {
+  subscribeDetections(
+    (snapshot) => {
+      recentDetections = snapshot.docs.map((item) => item.data());
+      updateButtonState();
+    },
+    (error) => {
+      console.error("Could not load eligible detections for cleanup requests:", error);
+      updateButtonState();
+    }
+  );
+});
 
 document.addEventListener("riversight:camera-selected", updateButtonState);
 
@@ -177,7 +179,7 @@ requestButton?.addEventListener("click", async () => {
   if (buttonText) buttonText.textContent = "Creating in-app request…";
 
   try {
-    await addDoc(requestsRef, {
+    await addDoc(requestsCollection, {
       cameraDocId,
       cameraId,
       location: locationLabel?.textContent.trim() || "Unknown location",
