@@ -50,7 +50,7 @@ class DetectionRecorder:
         self.resolve_active = resolve_active
         self.timeout = self._setting(timeout, "SEGMENTATION_DETECTION_LIFETIME_SECONDS", 5, 1, 120)
         self.write_interval = self._setting(
-            write_interval, "SEGMENTATION_DETECTION_WRITE_INTERVAL_SECONDS", 2, 1, 60)
+            write_interval, "SEGMENTATION_DETECTION_WRITE_INTERVAL_SECONDS", 30, 1, 3600)
         self.session_id = session_id or uuid.uuid4().hex
         if not re.fullmatch(r"[A-Za-z0-9]{16,64}", self.session_id):
             raise ValueError("Invalid detection session identifier.")
@@ -132,15 +132,14 @@ class DetectionRecorder:
     def _match(self, row):
         matches = []
         for track_id, track in self.tracks.items():
-            if track["classId"] != row["class"]:
-                continue
             score = _overlap(track["box"], row["box"])
             distance = _center_distance(track["box"], row["box"])
             diagonal = math.hypot(track["box"]["x2"] - track["box"]["x1"],
                                   track["box"]["y2"] - track["box"]["y1"])
             if score >= 0.3 and distance <= diagonal * 0.5:
-                matches.append((score, track_id))
-        return max(matches, default=(0, None))[1]
+                class_match = track["classId"] == row["class"]
+                matches.append((class_match, score, track_id))
+        return max(matches, default=(False, 0, None))[2]
 
     def _payload(self, row, camera_id, tracking_id, initial=False):
         payload = {
@@ -154,6 +153,8 @@ class DetectionRecorder:
             "status": "active",
             "boundingBox": dict(row["box"]),
         }
+        if isinstance(row.get("severity"), str):
+            payload["severity"] = row["severity"]
         if camera_id is not None:
             payload["cameraId"] = camera_id
         if initial:
@@ -179,14 +180,21 @@ class DetectionRecorder:
                     track_id = f"{self.session_id}:{self.next_track}"
                     self.tracks[track_id] = {
                         "classId": row["class"], "box": dict(row["box"]),
+                        "wasteClass": row["name"], "severity": row.get("severity"),
                         "last_seen": now, "last_write": now,
                     }
                     self._enqueue(("write", track_id, self._payload(row, valid_camera, track_id, True), 0))
                     _log("lifecycle_started", tracking_id=track_id, waste_class=row["name"])
                 else:
                     track = self.tracks[track_id]
+                    meaningful_change = (
+                        track["classId"] != row["class"]
+                        or track["wasteClass"] != row["name"]
+                        or track["severity"] != row.get("severity")
+                    )
                     track.update(classId=row["class"], box=dict(row["box"]), last_seen=now)
-                    if now - track["last_write"] >= self.write_interval:
+                    track.update(wasteClass=row["name"], severity=row.get("severity"))
+                    if meaningful_change or now - track["last_write"] >= self.write_interval:
                         track["last_write"] = now
                         self._enqueue(("write", track_id, self._payload(row, valid_camera, track_id), 0))
                 seen.add(track_id)

@@ -82,7 +82,7 @@ Optional configuration:
 | `SEGMENTATION_CONFIDENCE_THRESHOLD` | `0.25`; finite 0.01–1.0 |
 | `SEGMENTATION_DETECTION_RECORDING_ENABLED` | `false`; only explicit `true` enables Firestore detection recording |
 | `SEGMENTATION_DETECTION_LIFETIME_SECONDS` | `5`; finite 1–120 seconds |
-| `SEGMENTATION_DETECTION_WRITE_INTERVAL_SECONDS` | `2`; finite 1–60 seconds |
+| `SEGMENTATION_DETECTION_WRITE_INTERVAL_SECONDS` | `30`; unchanged active lifecycle updates, finite 1–3600 seconds |
 | `SEGMENTATION_DETECTION_RETRY_BASE_SECONDS` | `0.25`; bounded asynchronous write retry backoff, finite 0.05–10 seconds |
 | `SEGMENTATION_STREAM_FPS` | `10`; 1–15, or `0` for snapshot-only mode |
 | `SEGMENTATION_TRACKING_ENABLED` | `true`; `true`/`false` |

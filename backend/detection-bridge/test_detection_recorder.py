@@ -3,18 +3,21 @@
 import unittest
 import threading
 import time
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from detection_recorder import DetectionRecorder
 
 
-def row(x=10, confidence=0.8, class_id=0, name="Plastic"):
-    return {
+def row(x=10, confidence=0.8, class_id=0, name="Plastic", severity=None):
+    result = {
         "class": class_id,
         "name": name,
         "confidence": confidence,
         "box": {"x1": x, "y1": 10, "x2": x + 20, "y2": 30},
     }
+    if severity is not None:
+        result["severity"] = severity
+    return result
 
 
 class DetectionRecorderTests(unittest.TestCase):
@@ -26,12 +29,20 @@ class DetectionRecorderTests(unittest.TestCase):
     def recorder(self, session_id="session" + "a" * 15):
         return DetectionRecorder(
             "camera-document-1", self.writer, self.timestamp,
-            timeout=5, write_interval=2, session_id=session_id,
+            timeout=5, write_interval=30, session_id=session_id,
         )
 
     def tearDown(self):
         if hasattr(self, "recorder_instance"):
             self.recorder_instance.close()
+
+    def test_default_write_interval_is_thirty_seconds(self):
+        with patch.dict("os.environ", {}, clear=True):
+            self.recorder_instance = DetectionRecorder(
+                "camera-document-1", self.writer, self.timestamp,
+                timeout=5, session_id="session" + "f" * 15,
+            )
+        self.assertEqual(self.recorder_instance.write_interval, 30)
 
     def test_successful_creation_and_dashboard_compatible_fields(self):
         self.recorder_instance = self.recorder()
@@ -51,11 +62,12 @@ class DetectionRecorderTests(unittest.TestCase):
         self.assertEqual(data["trackingId"], detection_id)
         self.assertEqual(data["boundingBox"]["x1"], 10)
 
-    def test_repeated_observations_update_same_record_at_bounded_rate(self):
+    def test_repeated_observations_update_same_record_at_thirty_second_rate(self):
         self.recorder_instance = self.recorder()
         self.recorder_instance.observe([row()], now=10)
         self.recorder_instance.observe([row(confidence=0.9)], now=11)
-        self.recorder_instance.observe([row(confidence=0.9)], now=12)
+        self.recorder_instance.observe([row(confidence=0.9)], now=39)
+        self.recorder_instance.observe([row(confidence=0.9)], now=40)
         self.recorder_instance.flush()
 
         self.assertEqual([item[0] for item in self.writes], [
@@ -64,6 +76,16 @@ class DetectionRecorderTests(unittest.TestCase):
         ])
         self.assertEqual(self.writes[-1][1]["confidenceScore"], 90)
         self.assertNotIn("timestamp", self.writes[-1][1])
+
+    def test_meaningful_classification_or_severity_change_writes_immediately(self):
+        self.recorder_instance = self.recorder()
+        self.recorder_instance.observe([row(severity="low")], now=10)
+        self.recorder_instance.observe([row(class_id=1, name="Glass", severity="high")], now=11)
+        self.recorder_instance.flush()
+
+        self.assertEqual(len(self.writes), 2)
+        self.assertEqual(self.writes[-1][1]["wasteClass"], "Glass")
+        self.assertEqual(self.writes[-1][1]["severity"], "high")
 
     def test_expiration_resolves_and_reappearance_creates_new_lifecycle(self):
         self.recorder_instance = self.recorder()

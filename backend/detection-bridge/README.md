@@ -690,7 +690,10 @@ recording is disabled by default. One `detections` document is maintained per
 session-scoped object lifecycle; repeated observations update `lastSeenAt`
 at a bounded interval, and objects absent for
 `SEGMENTATION_DETECTION_LIFETIME_SECONDS` (default `5`) are marked `resolved`.
-`SEGMENTATION_DETECTION_WRITE_INTERVAL_SECONDS` defaults to `2`. Firestore
+`SEGMENTATION_DETECTION_WRITE_INTERVAL_SECONDS` defaults to `30`; unchanged
+active lifecycle updates are therefore written at most every 30 seconds.
+Meaningful classification or severity changes, new lifecycles, and final
+resolution writes are persisted immediately. Firestore
 write failures are isolated from the inference and streaming loop. Firestore
 writes have a five-second per-operation timeout, and recorder shutdown has a
 two-second wait limit.
