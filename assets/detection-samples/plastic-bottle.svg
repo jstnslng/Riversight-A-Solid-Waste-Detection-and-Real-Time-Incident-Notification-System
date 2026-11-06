@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" fill="none">
+  <defs>
+    <linearGradient id="water" x1="320" y1="150" x2="320" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#78C7C4"/>
+      <stop offset="1" stop-color="#286F78"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="320" y1="0" x2="320" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D7ECE2"/>
+      <stop offset="1" stop-color="#A9D4C8"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h640v230H0z"/>
+  <path fill="#557E69" d="M0 177c75-39 130-32 208 5 71-45 155-43 239 4 69-37 124-37 193-2v75H0z"/>
+  <path fill="url(#water)" d="M0 225h640v175H0z"/>
+  <path stroke="#B5E4D9" stroke-linecap="round" stroke-width="5" d="M42 279c76-22 135-18 205 0m71 26c83-24 150-19 250 0M87 353c54-14 102-13 157 0"/>
+  <path fill="#F6FAF4" d="M294 181h51l-4 18 13 14v104c0 12-10 22-22 22h-25c-12 0-22-10-22-22V213l13-14-4-18Z"/>
+  <path fill="#D7E9E0" d="M304 169h31v18h-31z"/>
+  <path fill="#82B9AA" d="M294 237h60v48h-60z"/>
+  <path stroke="#E8F4EE" stroke-width="3" d="M300 245v31m9-31v31m9-31v31"/>
+  <rect x="273" y="156" width="102" height="201" rx="8" stroke="#E5A72F" stroke-width="4" stroke-dasharray="10 7"/>
+  <path fill="#E5A72F" d="M273 139h112v22H273z"/>
+  <text x="284" y="154" fill="#192A28" font-family="Arial,sans-serif" font-size="12" font-weight="700">PLASTIC · SAMPLE</text>
+  <circle cx="488" cy="93" r="31" fill="#F4F1D9"/>
+  <path fill="#7B9C70" d="m0 213 45-45 45 45H0Zm67 2 62-64 63 64H67Zm393 0 56-55 56 55H460Zm83-1 48-49 49 49h-97Z"/>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" fill="none">
+  <defs>
+    <linearGradient id="water" x1="320" y1="130" x2="320" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#87C9C0"/>
+      <stop offset="1" stop-color="#347780"/>
+    </linearGradient>
+    <linearGradient id="bank" x1="320" y1="0" x2="320" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C9E1CE"/>
+      <stop offset="1" stop-color="#84AF91"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#bank)" d="M0 0h640v221H0z"/>
+  <path fill="#51765D" d="M0 127c98 25 165 17 251-7 116 38 231 25 389-13v132H0z"/>
+  <path fill="url(#water)" d="M0 216h640v184H0z"/>
+  <path stroke="#B9E6D8" stroke-linecap="round" stroke-width="5" d="M35 275c67-18 119-17 183 0m87 21c77-17 150-16 237 3M103 348c61-16 113-13 171 2"/>
+  <path fill="#F3A541" d="m286 208 54-22 44 31-20 61-61 7-31-38 14-39Z"/>
+  <path fill="#F8D38F" d="m286 208 26 7-9 68-31-38 14-37Z"/>
+  <path fill="#D87935" d="m340 186 44 31-20 61-31-24 7-68Z"/>
+  <path stroke="#F8E8C8" stroke-width="4" d="m300 219 59 42m-54-28 45 31"/>
+  <rect x="264" y="170" width="141" height="132" rx="8" stroke="#E5A72F" stroke-width="4" stroke-dasharray="10 7"/>
+  <path fill="#E5A72F" d="M264 153h108v22H264z"/>
+  <text x="275" y="168" fill="#192A28" font-family="Arial,sans-serif" font-size="12" font-weight="700">WRAPPER · SAMPLE</text>
+  <path fill="#6C965F" d="M48 219c-5-45 9-76 25-96 7 39 5 72-25 96Zm32-1c2-42 20-67 42-81-4 40-16 66-42 81Zm443 4c-4-38 10-66 27-85 5 34 1 62-27 85Zm31-1c7-37 26-59 46-71-8 35-22 57-46 71Z"/>
+</svg>
