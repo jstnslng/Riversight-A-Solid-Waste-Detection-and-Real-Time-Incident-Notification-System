@@ -17,7 +17,7 @@ const PLASTIC_WORDS = ["plastic", "poly", "bottle", "bag", "styrofoam"];
 const CHART = { bottom: 180, plotHeight: 150, xStart: 42, xStep: 120, barWidth: 26 };
 const STATUS_CLASS = { Detected: "evaluated", Dismissed: "resolved" };
 
-const state = { reports: [], incidents: [], detections: [] };
+const state = { reports: [], incidents: [], detections: [], cleanupRequests: [] };
 
 const esc = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (c) =>
@@ -26,6 +26,7 @@ const esc = (value) =>
 function toDate(value) {
   if (!value) return null;
   if (typeof value.toDate === "function") return value.toDate();
+  if (typeof value.seconds === "number") return new Date(value.seconds * 1000);
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
@@ -96,6 +97,78 @@ function renderSummary(rows) {
       ? `0 <span class="stat-sub good">Clear</span>`
       : `${active} <span class="stat-sub warn">Active</span>`;
   }
+}
+
+function renderCleanupMetrics() {
+  const responseTimeLabel = document.getElementById("averageResponseTime");
+  const responseTimeNote = document.getElementById("responseTimeNote");
+  const successRateLabel = document.getElementById("cleanupSuccessRate");
+  const successRateNote = document.getElementById("cleanupSuccessNote");
+  const successProgressBar = document.getElementById("cleanupProgressBar");
+  const now = Date.now();
+  const cutoff = now - 30 * DAY_MS;
+  const recentRequests = state.cleanupRequests.filter((request) => {
+    const requestedAt = toDate(request.requestedAt);
+    return requestedAt && requestedAt.getTime() >= cutoff && requestedAt.getTime() <= now;
+  });
+  const responseMinutes = recentRequests
+    .filter((request) => request.acknowledgedAt)
+    .map((request) => {
+      const requestedAt = toDate(request.requestedAt);
+      const acknowledgedAt = toDate(request.acknowledgedAt);
+      return requestedAt && acknowledgedAt
+        ? (acknowledgedAt.getTime() - requestedAt.getTime()) / 60000
+        : null;
+    })
+    .filter((minutes) => minutes !== null && minutes >= 0);
+
+  if (responseTimeLabel) {
+    const average = responseMinutes.length
+      ? responseMinutes.reduce((sum, minutes) => sum + minutes, 0) / responseMinutes.length
+      : null;
+    responseTimeLabel.textContent = average === null ? "—" : `${average.toFixed(1)}m`;
+  }
+  if (responseTimeNote) {
+    responseTimeNote.textContent = responseMinutes.length
+      ? `Request created to in-app acknowledgment · ${responseMinutes.length} acknowledged in last 30 days`
+      : "No in-app acknowledgments in the last 30 days";
+  }
+
+  const verifiedRequests = recentRequests.filter((request) =>
+    request.status === "verified" &&
+    (request.cleanupOutcome === "successful" || request.cleanupOutcome === "unsuccessful")
+  );
+  const successfulCount = verifiedRequests.filter((request) => request.cleanupOutcome === "successful").length;
+  const successRate = verifiedRequests.length
+    ? Math.round((successfulCount / verifiedRequests.length) * 100)
+    : null;
+
+  if (successRateLabel) successRateLabel.textContent = successRate === null ? "—" : `${successRate}%`;
+  if (successRateNote) {
+    successRateNote.textContent = verifiedRequests.length
+      ? `${successfulCount} successful of ${verifiedRequests.length} verified · last 30 days`
+      : "No verified cleanup outcomes in the last 30 days";
+  }
+  if (successProgressBar) successProgressBar.style.width = `${successRate ?? 0}%`;
+}
+
+function listenCleanupRequests() {
+  onSnapshot(collection(db, "cleanup_requests"), (snapshot) => {
+    state.cleanupRequests = snapshot.docs.map((requestDoc) => requestDoc.data());
+    renderCleanupMetrics();
+  }, (error) => {
+    console.error("Could not load cleanup request metrics:", error);
+    const responseTimeLabel = document.getElementById("averageResponseTime");
+    const responseTimeNote = document.getElementById("responseTimeNote");
+    const successRateLabel = document.getElementById("cleanupSuccessRate");
+    const successRateNote = document.getElementById("cleanupSuccessNote");
+    const successProgressBar = document.getElementById("cleanupProgressBar");
+    if (responseTimeLabel) responseTimeLabel.textContent = "Unavailable";
+    if (responseTimeNote) responseTimeNote.textContent = "Could not load in-app cleanup requests.";
+    if (successRateLabel) successRateLabel.textContent = "Unavailable";
+    if (successRateNote) successRateNote.textContent = "Could not load verified cleanup outcomes.";
+    if (successProgressBar) successProgressBar.style.width = "0%";
+  });
 }
 
 function renderTrends(rows) {
@@ -268,6 +341,7 @@ function init() {
   listen("reports", "reports", "report");
   listen("incidents", "incidents", "incident");
   listen("detections", "detections", "detection");
+  listenCleanupRequests();
 }
 
 if (document.readyState === "loading") {
