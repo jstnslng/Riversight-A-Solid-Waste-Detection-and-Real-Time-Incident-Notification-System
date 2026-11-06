@@ -446,10 +446,6 @@ body {
   color: #b9e5cb;
 }
 
-body.auth-pending {
-  visibility: hidden;
-}
-
 a {
   color: inherit;
   text-decoration: none;
