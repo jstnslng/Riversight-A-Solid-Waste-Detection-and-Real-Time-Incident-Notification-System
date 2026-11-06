@@ -550,7 +550,7 @@
 }
 
 .dispatch-btn:hover { opacity: 0.88; }
-.dispatch-btn:disabled { cursor: wait; opacity: 0.65; }
+.dispatch-btn:disabled { cursor: not-allowed; opacity: 0.65; }
 .dispatch-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 .cleanup-request-disclaimer,

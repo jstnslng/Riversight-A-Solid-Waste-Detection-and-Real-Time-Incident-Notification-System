@@ -292,8 +292,15 @@
 
             <button class="dispatch-btn" type="button" data-dispatch-cleanup title="Create an internal cleanup request">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="8" width="14" height="9" rx="1.5"/><path d="M15 11h4l3 3v3h-7z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
-              Alert Cleanup Team
+              <span>Create In-App Cleanup Request</span>
             </button>
+          </div>
+
+          <div class="card cleanup-requests-card">
+            <h3>In-App Cleanup Requests</h3>
+            <p class="cleanup-request-disclaimer">Requests are tracked in RiverSight and do not notify an external cleanup team.</p>
+            <p class="cleanup-requests-status" data-cleanup-requests-status role="status" aria-live="polite">Loading in-app cleanup requests…</p>
+            <div class="cleanup-requests-list" data-cleanup-requests-list aria-live="polite"></div>
           </div>
 
         </div>

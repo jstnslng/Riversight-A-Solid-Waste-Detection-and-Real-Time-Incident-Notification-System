@@ -17,7 +17,9 @@ const requestStatus = document.querySelector("[data-cleanup-requests-status]");
 const requestsCollection = collection(db, "cleanup_requests");
 const requestsRef = query(requestsCollection, orderBy("requestedAt", "desc"), limit(50));
 let cleanupRequests = [];
-let recentDetections = [];
+let requestsLoaded = false;
+let requestLoadFailed = false;
+let requestInProgress = false;
 
 function formatTimestamp(timestamp) {
   if (!timestamp) return "Time pending";
@@ -112,16 +114,21 @@ function renderRequests() {
 function updateButtonState() {
   if (!requestButton) return;
   const cameraDocId = document.querySelector("[data-camera-feed-frame]")?.dataset.cameraDocId;
-  const eligible = cameraDocId && recentDetections.some((item) => item.cameraDocId === cameraDocId);
   const duplicate = cleanupRequests.some((item) => item.cameraDocId === cameraDocId
     && ["pending_acknowledgment", "acknowledged"].includes(item.status));
-  requestButton.disabled = !eligible || duplicate;
+  requestButton.disabled = !cameraDocId || !requestsLoaded || requestLoadFailed || requestInProgress || duplicate;
   requestButton.title = duplicate
     ? "An open cleanup request already exists for this camera"
-    : eligible ? "Create an internal cleanup request" : "A recorded detection is required";
+    : !cameraDocId ? "Select an available camera to create a cleanup request"
+      : requestLoadFailed ? "Cleanup requests are unavailable"
+        : !requestsLoaded ? "Loading existing cleanup requests"
+          : requestInProgress ? "Creating in-app cleanup request"
+            : "Create an internal cleanup request";
 }
 
 onSnapshot(requestsRef, (snapshot) => {
+  requestsLoaded = true;
+  requestLoadFailed = false;
   cleanupRequests = snapshot.docs.map((requestDoc) => ({
     ...requestDoc.data(),
     id: requestDoc.id
@@ -133,22 +140,11 @@ onSnapshot(requestsRef, (snapshot) => {
   updateButtonState();
 }, (error) => {
   console.error("Could not load in-app cleanup requests:", error);
+  requestLoadFailed = true;
   if (requestStatus) {
     requestStatus.textContent = "Cleanup requests are unavailable. Check your connection or access permissions.";
   }
-});
-
-import("./detection-store.js").then(({ subscribeDetections }) => {
-  subscribeDetections(
-    (snapshot) => {
-      recentDetections = snapshot.docs.map((item) => item.data());
-      updateButtonState();
-    },
-    (error) => {
-      console.error("Could not load eligible detections for cleanup requests:", error);
-      updateButtonState();
-    }
-  );
+  updateButtonState();
 });
 
 document.addEventListener("riversight:camera-selected", updateButtonState);
@@ -175,7 +171,8 @@ requestButton?.addEventListener("click", async () => {
 
   const buttonText = requestButton.querySelector("span");
   const originalLabel = buttonText?.textContent || "Create in-app cleanup request";
-  requestButton.disabled = true;
+  requestInProgress = true;
+  updateButtonState();
   if (buttonText) buttonText.textContent = "Creating in-app request…";
 
   try {
@@ -197,8 +194,9 @@ requestButton?.addEventListener("click", async () => {
       requestStatus.textContent = "Request creation failed. Check your connection or access permissions.";
     }
   } finally {
-    requestButton.disabled = false;
+    requestInProgress = false;
     if (buttonText) buttonText.textContent = originalLabel;
+    updateButtonState();
   }
 });
 
